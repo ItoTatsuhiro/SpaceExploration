@@ -7,8 +7,9 @@
 
 
 UENUM(BlueprintType) 
-enum class EElement
+enum  EElement
 {
+	
 	fire,
 	water,
 	wind

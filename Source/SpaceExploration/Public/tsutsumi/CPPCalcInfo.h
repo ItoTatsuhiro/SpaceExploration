@@ -13,4 +13,5 @@ struct FStatus {
 	float AttackPower;
 	float DefencePower;
 	float Speed;
+	enum EElement;
 };
