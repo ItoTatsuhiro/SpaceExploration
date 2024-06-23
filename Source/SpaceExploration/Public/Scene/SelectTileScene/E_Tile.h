@@ -17,5 +17,8 @@ enum class E_TILE_TYPE : uint8
 	BATTLE,				// バトルマス
 	ITEM,				// アイテムマス
 	HEAL,				// 回復マス
-	TILE_TYPE_NUM		// マスの種類の数	
+	TILE_TYPE_NUM,		// マスの種類の数	
+	NONE				// 種類未設定の状態
 };
+
+
