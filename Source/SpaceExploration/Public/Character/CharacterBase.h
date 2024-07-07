@@ -3,20 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
 #include "../tsutsumi/Status.h"
 #include "../Weapon/WeaponBase.h"
 #include "CharacterBase.generated.h"
 
 UCLASS(Abstract)
-class SPACEEXPLORATION_API ACharacterBase : public AActor
+class SPACEEXPLORATION_API ACharacterBase : public ACharacter
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
+
+public:
+	// Sets default values for this character's properties
 	ACharacterBase();
-	virtual ~ACharacterBase();
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,40 +25,53 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// ダメージを受ける
-	virtual void Move(int Damage) PURE_VIRTUAL(ACharacterBase::Move, );
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// 攻撃関数
 	// UFunction(BlueprintCallable)
-	virtual void Attack() PURE_VIRTUAL( ACharacterBase::Attack,);
-
-	// 回復関数
-	virtual void RecoverHP(int RecoveryAmount) PURE_VIRTUAL( ACharacterBase::RecoverHP, );
-
-	// ダメージを受ける
-	virtual void TakeDamage(int Damage) PURE_VIRTUAL( ACharacterBase::TakeDamage,);
+	virtual void Attack() PURE_VIRTUAL(ACharacterBase::Attack, );
 
 	// ----------------------------------------------------------------
 	// ゲッター
 	// ----------------------------------------------------------------
-	
+
+	// 生存しているか判定を返す
+	inline bool IsAlive() const { return CharacterStatus.HP > 0; }
 	// キャラクターステータスを取得する
 	inline const FStatus& GetCharacterStatus() const { return CharacterStatus; }
 	// キャラクターの位置を取得
-	inline const FVector3f& GetCharacterLocation() const { return CharacterLocation; }
+	inline const FVector& GetCharacterLocation() const { return CharacterLocation; }
 	// 装備中の武器を取得
-	const TObjectPtr<AWeaponBase> GetEquippedWeapon() const;
+	const TObjectPtr<AWeaponBase> GetEquippedWeapon() const { return EquippedWeapon; };
 
 	// ----------------------------------------------------------------
 	// セッター
 	// ----------------------------------------------------------------
 
+	// キャラクターの位置を設定する。
+	inline void SetCharacterLocation(const FVector& Location) 
+	{
+		CharacterLocation = Location;
+		GetOwner()->SetActorLocation(CharacterLocation);
+	}
 	// ステータスをセットする。
-	void SetCharacterStatus(float MaxHP, float HP, float Attack, float Defence, float Speed);
-	// キャラクターのメッシュを設定する。
-	void SetCharacterStaticMesh(const TCHAR* file_path);
+	inline void SetCharacterStatus(const FStatus& Status) { CharacterStatus = Status; }
 	// 装備する武器を設定する。
 	void SetEquippedWeapon(TObjectPtr<AWeaponBase> Weapon);
+
+	// ----------------------------------------------------------------
+	// その他
+	// ----------------------------------------------------------------
+
+	// キャラクターのHPを回復させて、回復量を返す関数
+	// 引数：回復する値
+	// 戻り値：回復した値
+	int32 RecoverHP(int32 RecoveryAmount);
+
+	// ダメージを受ける
+	// 引数：ダメージ量
+	void TakeDamage(int32 Damage);
 
 protected:
 	// キャラクターのルートコンポーネント
@@ -68,11 +80,11 @@ protected:
 
 	// スタティックメッシュコンポーネント
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> CharacterMeshComp;
+	TObjectPtr<USkeletalMeshComponent> CharacterMeshComp;
 
 	// キャラクターの位置
 	UPROPERTY(EditAnywhere)
-	FVector3f CharacterLocation;
+	FVector CharacterLocation;
 
 	// ステータス
 	UPROPERTY(EditAnywhere)
