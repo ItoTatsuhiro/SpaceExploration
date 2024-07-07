@@ -7,7 +7,7 @@
 
 
 UENUM(BlueprintType) 
-enum  EElement
+enum class EElement : uint8
 {
 	
 	fire,
