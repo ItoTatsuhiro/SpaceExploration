@@ -3,6 +3,7 @@
 
 #include "Character/EnemyBase.h"
 
-AEnemyBase::AEnemyBase()
+AEnemyBase::AEnemyBase() : EnemyElement(EElement::fire)
 {
+	
 }

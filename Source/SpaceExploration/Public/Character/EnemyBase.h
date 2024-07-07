@@ -14,13 +14,13 @@ UCLASS(Abstract)
 class SPACEEXPLORATION_API AEnemyBase : public ACharacterBase
 {
 	GENERATED_BODY()
-
+	
 public:
 	AEnemyBase();
 
 protected:
 	// “G‚Ì‘®«
-	/*UPROPERTY(EditAnywhere)
-	EElement EnemyElement;*/
-	
+	UPROPERTY(EditAnywhere)
+	EElement EnemyElement;
+
 };

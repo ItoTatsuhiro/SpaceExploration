@@ -4,12 +4,12 @@
 #include "Character/CharacterBase.h"
 #include "tsutsumi/Element.h"
 #include "Weapon/WeaponBase.h"
-// #include "tsutsumi/Status.h"
+#include "tsutsumi/Status.h"
 
 // Sets default values
-ACharacterBase::ACharacterBase() : CharacterLocation( 0.0f, 0.0f, 0.0f )
+ACharacterBase::ACharacterBase() : CharacterLocation(0.0f, 0.0f, 0.0f)
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// ルートコンポーネントの設定
@@ -18,23 +18,21 @@ ACharacterBase::ACharacterBase() : CharacterLocation( 0.0f, 0.0f, 0.0f )
 	RootComponent = DefaultSceneRoot;
 
 	// スタティックメッシュの設定
-	CharacterMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-
-	SetCharacterStaticMesh(TEXT("/Game/Mesh/Cube"));
+	CharacterMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
 
 	// StaticMeshComponentをRootComponentにAttachする
 	CharacterMeshComp->SetupAttachment(RootComponent);
 
-	 // ステータスの初期化
-	SetCharacterStatus(1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	// ステータスの初期化
+	CharacterStatus.PlayerName = "No Name";
+	CharacterStatus.MaxHp = 1.0f;
+	CharacterStatus.HP = 1.0f;
+	CharacterStatus.AttackPower = 1.0f;
+	CharacterStatus.DefencePower = 1.0f;
+	CharacterStatus.Speed = 1.0f;
 
 	// 装備品初期化
 	EquippedWeapon = nullptr;
-
-}
-
-ACharacterBase::~ACharacterBase()
-{
 
 }
 
@@ -52,34 +50,37 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
-const TObjectPtr<AWeaponBase> ACharacterBase::GetEquippedWeapon() const
+// Called to bind functionality to input
+void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	return EquippedWeapon;
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 }
 
-// ステータスをセットする
-void ACharacterBase::SetCharacterStatus(float MaxHP, float HP, float Attack, float Defence, float Speed)
-{
-	CharacterStatus.HP = HP;
-	CharacterStatus.AttackPower = Attack;
-	CharacterStatus.DefencePower = Defence;
-	CharacterStatus.Speed = Speed;
-}
-
-void ACharacterBase::SetCharacterStaticMesh(const TCHAR* file_path)
-{
-	// StaticMeshをLaodしてStaticMeshComponentのStaticMeshに設定する
-	UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, file_path, NULL, LOAD_None, NULL);
-
-	CharacterMeshComp->SetStaticMesh(Mesh);
-}
-
+// 装備する武器を設定する。
 void ACharacterBase::SetEquippedWeapon(TObjectPtr<AWeaponBase> Weapon)
 {
 	if (!Weapon) {
-		UE_LOG(LogTemp, Display, TEXT("nullptrがセットされました"));
+		UE_LOG(LogClass, Display, TEXT("nullptrがセットされました"));
 	}
 
 	EquippedWeapon = Weapon;
 }
 
+int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
+{
+	int32 ResultAmount = RecoveryAmount;
+	CharacterStatus.HP += RecoveryAmount;
+
+	if (CharacterStatus.HP > CharacterStatus.MaxHp) {
+		ResultAmount -= CharacterStatus.HP - CharacterStatus.MaxHp;
+		CharacterStatus.HP = CharacterStatus.MaxHp;
+	}
+
+	return ResultAmount;
+}
+
+void ACharacterBase::TakeDamage(int32 Damage)
+{
+	CharacterStatus.HP -= Damage;
+}
