@@ -47,7 +47,3 @@ struct FStatus {
     }
 };
 
-// ƒOƒ[ƒoƒ‹‚ÈFStatus•Ï”
-FStatus PlayerStatus;
-FStatus Copy = PlayerStatus;
-
