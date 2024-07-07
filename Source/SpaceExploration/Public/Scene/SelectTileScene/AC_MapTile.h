@@ -18,7 +18,7 @@ class SPACEEXPLORATION_API AAC_MapTileBase : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	// コンストラクタ
 	AAC_MapTileBase();
 
 	// マスの種類のゲッター
@@ -28,10 +28,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// マスで実行するイベントが終了しているかどうか
+	// デフォルト値はfalse
+	UPROPERTY(EditAnywhere)
+	bool isTileEventEnd;
 
 	// マスの種類の変数
+	// デフォルト値はNONE
 	UPROPERTY(EditAnywhere)
-	E_TILE_TYPE tileType_ = E_TILE_TYPE::NONE;
+	E_TILE_TYPE tileType_;
 
 
 	//------------------------------------------------------------------
@@ -63,4 +68,7 @@ public:
 	// 
 	// 使用例）SetStaticMesh(TEXT("/Game/StarterContent/Shapes/Shape_Sphere"));
 	void SetStaticMesh(const TCHAR* fileName);
+
+
+
 };
