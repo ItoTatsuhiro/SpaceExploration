@@ -5,6 +5,7 @@
 
 // Sets default values
 AAC_MapTileBase::AAC_MapTileBase()
+	: isTileEventEnd(false), tileType_(E_TILE_TYPE::NONE)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,10 +24,7 @@ AAC_MapTileBase::AAC_MapTileBase()
 	// スタティックメッシュを作成
 	staticMesh_ = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 
-	//// デフォルト（仮）のスタティックメッシュを設定
-	//UStaticMesh* mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/StarterContent/Shapes/Shape_Sphere"), NULL, LOAD_None, NULL);
-	//staticMesh_->SetStaticMesh(mesh);
-
+	// スタティックメッシュのセット
 	SetStaticMesh(TEXT("/Game/StarterContent/Shapes/Shape_Sphere"));
 
 	// スタティックメッシュのアタッチ
@@ -68,5 +66,6 @@ void AAC_MapTileBase::SetStaticMesh(const TCHAR* fileName) {
 	// 引数のスタティックメッシュを設定
 	UStaticMesh* mesh = LoadObject<UStaticMesh>(NULL, fileName, NULL, LOAD_None, NULL);
 	staticMesh_->SetStaticMesh(mesh);
+
 
 }
