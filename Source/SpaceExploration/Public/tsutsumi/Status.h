@@ -23,7 +23,10 @@ struct FStatus {
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Speed;
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditAnywhere , BlueprintReadWrite)
+    int PlayerLevel;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FString PlayerName;
 
 
