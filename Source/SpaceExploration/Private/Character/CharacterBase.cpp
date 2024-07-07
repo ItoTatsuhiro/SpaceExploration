@@ -4,7 +4,7 @@
 #include "Character/CharacterBase.h"
 #include "tsutsumi/Element.h"
 #include "Weapon/WeaponBase.h"
-#include "tsutsumi/CPPCalcInfo.h"
+// #include "tsutsumi/Status.h"
 
 // Sets default values
 ACharacterBase::ACharacterBase() : CharacterLocation( 0.0f, 0.0f, 0.0f )

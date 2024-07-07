@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../tsutsumi/CPPCalcInfo.h"
+#include "../tsutsumi/Status.h"
 #include "../Weapon/WeaponBase.h"
 #include "CharacterBase.generated.h"
 
