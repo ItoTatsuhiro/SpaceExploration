@@ -29,18 +29,16 @@ public:
 	inline const FVector3f& GetWeaponLocation() const { return WeaponLocation; }
 	// 武器のステータスを取得する
 	inline const FStatus& GetWeaponStatus() const { return WeaponStatus; }
-	//// 武器の属性を取得する
-	//inline const EElement GetWeaponElement() const { return WeaponElement; }
+	// 武器の属性を取得する
+	inline const EElement GetWeaponElement() const { return WeaponElement; }
 
 	// ==========================================================================
 	// ここから
 	// ==========================================================================
 	// 武器の位置を設定する
 	inline void SetWeaponLocation(const FVector3f& Location) { WeaponLocation = Location; }
-	// inline void SetWeaponStatus(const FStatus& Status) { WeaponStatus = Status; }
-
 	// 武器のステータスを設定する
-	void SetWeaponStatus(const FStatus& Status);
+	inline void SetWeaponStatus(const FStatus& Status) { WeaponStatus = Status; }
 
 protected:
 	// 武器の位置
@@ -51,8 +49,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FStatus WeaponStatus;
 
-	//// 武器の属性
-	//UPROPERTY(EditAnywhere)
-	//EElement WeaponElement;
+	// 武器の属性
+	UPROPERTY(EditAnywhere)
+	EElement WeaponElement;
 
 };
