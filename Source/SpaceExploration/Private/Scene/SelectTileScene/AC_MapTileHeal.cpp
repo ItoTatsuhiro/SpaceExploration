@@ -6,6 +6,7 @@
 #include "Scene/SelectTileScene/E_Tile.h"
 
 
+
 // コンストラクタ
 AAC_MapTileHeal::AAC_MapTileHeal() {
 
@@ -36,6 +37,6 @@ void AAC_MapTileHeal::Tick(float DeltaTime) {
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileHeal::TileEvent() {
 
-
+	int32 RecoverHP(100000);
 
 }
