@@ -6,8 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "BattleManager.generated.h"
 
-
-
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
 {
@@ -26,35 +24,51 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	//属性
+	enum TYPE {
+		fire,
+		water,
+		wind
+	};
+	
+	//属性相性判定用
+	int type_corr_[5] = { wind, fire, water, wind, fire };
+
+	//属性相性のダメージ補正値
+	const float good_ = 2.0, bad_ = 0.5, none_ = 1.0;
+
 	struct character {
 		float hp_ = 0;
 		float speed_ = 0.0;
 		float defense_ = 0.0;
 		float attack_ = 0.0;
 		//属性　0＝火　1＝水　2＝風
-		int _type_ = 0;
+		//属性相性　火＜水　水＜風　風＜火
+		int type_ = 0;
 
 		float attack_count_ = 0.0;
 	};
-
 	character player_;
 	character enemy_;
 
-	//体力
-	float player_hp_ = 30, enemy_hp_ = 20;
-	//プレイヤーとエネミーの早さ
-	float player_speed_ = 5.0f, enemy_speed_ = 3.0f;
-	//
+	enum class CHARACTER {
+		player,
+		enemy,
+	};
 
-	//攻撃順番決めのカウント
-	float player_attack_count_ = 0.0f, enemy_attack_count_ = 0.0f;
 	//行動を決める値
 	float attack_speed_ = 10;
 	//順番を入れる配列
-	std::vector<character> attack_order;
+	std::vector<CHARACTER> attack_order;
 
-	//ダメージ計算
-	void DamageMath();
+public:
 	//攻撃の順番を決める
 	void BattleTurn();
+
+	//ダメージ計算
+	//引数１・攻撃側の攻撃力
+	//引数２・攻撃側の属性
+	//引数３・防御側の防御力
+	//引数４・防御側の属性
+	float DamageMath(float A_atk, int A_type, float D_def, int D_type);
 };
