@@ -25,8 +25,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	// 武器の位置を取得する
-	inline const FVector3f& GetWeaponLocation() const { return WeaponLocation; }
 	// 武器のステータスを取得する
 	inline const FStatus& GetWeaponStatus() const { return WeaponStatus; }
 	// 武器の属性を取得する
@@ -35,22 +33,24 @@ public:
 	// ==========================================================================
 	// ここから
 	// ==========================================================================
-	// 武器の位置を設定する
-	inline void SetWeaponLocation(const FVector3f& Location) { WeaponLocation = Location; }
 	// 武器のステータスを設定する
 	inline void SetWeaponStatus(const FStatus& Status) { WeaponStatus = Status; }
 
 protected:
-	// 武器の位置
-	UPROPERTY(EditAnywhere)
-	FVector3f WeaponLocation;
+	// 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> SceneComponent;
+
+	// 武器のメッシュ
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
 	// 武器のステータス
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	FStatus WeaponStatus;
 
 	// 武器の属性
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	EElement WeaponElement;
 
 };

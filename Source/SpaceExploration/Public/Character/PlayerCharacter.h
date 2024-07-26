@@ -21,5 +21,28 @@ private:
 	// スタティックメッシュコンポーネント
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> CharacterStaticMeshComp;
+
+	Sequence PlayerSequence;
+
+	// 移動方向への速度
+	UPROPERTY(EditAnywhere)
+	FVector MoveVelocity;
+
+	// 目的位置
+	UPROPERTY(EditAnywhere)
+	FVector TargetLocation;
+
+	// 移動速度
+	UPROPERTY(EditAnywhere)
+	float MoveSpeed;
 	
+public:
+	// 目標の位置に移動
+	void MoveTargetLocation(const FVector Location);
+
+private:
+	// 待機シーケンス
+	bool seqIdle(float DeltaTime);
+	// 移動シーケンス
+	bool seqMoveTargetLocation(float DeltaTime);
 };

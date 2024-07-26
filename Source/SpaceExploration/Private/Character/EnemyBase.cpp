@@ -5,5 +5,6 @@
 
 AEnemyBase::AEnemyBase() : EnemyElement(EElement::fire)
 {
-	
+	CharacterMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>("EnemyMesh");
+	CharacterMeshComp->SetupAttachment(RootComponent);
 }

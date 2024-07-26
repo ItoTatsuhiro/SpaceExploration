@@ -7,7 +7,7 @@
 #include "tsutsumi/Status.h"
 
 // Sets default values
-ACharacterBase::ACharacterBase() : CharacterLocation(0.0f, 0.0f, 0.0f)
+ACharacterBase::ACharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -16,12 +16,6 @@ ACharacterBase::ACharacterBase() : CharacterLocation(0.0f, 0.0f, 0.0f)
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 
 	RootComponent = DefaultSceneRoot;
-
-	// スタティックメッシュの設定
-	CharacterMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-
-	// StaticMeshComponentをRootComponentにAttachする
-	CharacterMeshComp->SetupAttachment(RootComponent);
 
 	// ステータスの初期化
 	CharacterStatus.PlayerName = "No Name";
@@ -50,15 +44,8 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
-void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
 // 装備する武器を設定する。
-void ACharacterBase::SetEquippedWeapon(TObjectPtr<AWeaponBase> Weapon)
+void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 {
 	if (!Weapon) {
 		UE_LOG(LogClass, Display, TEXT("nullptrがセットされました"));
@@ -70,6 +57,12 @@ void ACharacterBase::SetEquippedWeapon(TObjectPtr<AWeaponBase> Weapon)
 int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 {
 	int32 ResultAmount = RecoveryAmount;
+
+	if (RecoveryAmount == -1) {
+		ResultAmount = CharacterStatus.MaxHp - CharacterStatus.HP;
+		CharacterStatus.HP = CharacterStatus.MaxHp;
+		return ResultAmount;
+	}
 	CharacterStatus.HP += RecoveryAmount;
 
 	if (CharacterStatus.HP > CharacterStatus.MaxHp) {
