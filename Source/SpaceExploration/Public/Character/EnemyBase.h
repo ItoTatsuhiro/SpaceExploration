@@ -19,6 +19,10 @@ public:
 	AEnemyBase();
 
 protected:
+	// スケルタルメッシュコンポーネント
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USkeletalMeshComponent> CharacterMeshComp;
+
 	// 敵の属性
 	UPROPERTY(EditAnywhere)
 	EElement EnemyElement;

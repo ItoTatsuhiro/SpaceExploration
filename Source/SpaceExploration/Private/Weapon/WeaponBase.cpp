@@ -4,10 +4,16 @@
 #include "Weapon/WeaponBase.h"
 
 // Sets default values
-AWeaponBase::AWeaponBase() : WeaponLocation(0.0f, 0.0f, 0.0f)
+AWeaponBase::AWeaponBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Default Component"));
+	RootComponent = SceneComponent;
+
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	MeshComponent->SetupAttachment(RootComponent);
 
 	WeaponStatus.PlayerName = "No Name";
 	WeaponStatus.MaxHp = 1.0f;
