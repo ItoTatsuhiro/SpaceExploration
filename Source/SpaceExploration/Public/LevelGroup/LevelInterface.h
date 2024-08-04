@@ -30,9 +30,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UnLoadLevel();
 
-	UFUNCTION(BlueprintCallable)
-	void testfanc(int aaa);
-
 private:
 	FLatentActionInfo LatentInfo;
 	
