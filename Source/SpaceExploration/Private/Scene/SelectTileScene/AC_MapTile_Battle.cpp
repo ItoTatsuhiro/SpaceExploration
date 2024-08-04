@@ -17,7 +17,7 @@ AAC_MapTileBattle::AAC_MapTileBattle() {
 
 // 開始時に実行する関数
 void AAC_MapTileBattle::BeginPlay() {
-
+	Super::BeginPlay();
 
 
 }
@@ -26,7 +26,7 @@ void AAC_MapTileBattle::BeginPlay() {
 
 // 更新用関数
 void AAC_MapTileBattle::Tick(float DeltaTime) {
-
+	Super::Tick(DeltaTime);
 
 
 }
@@ -35,7 +35,7 @@ void AAC_MapTileBattle::Tick(float DeltaTime) {
 // マスで実行するイベントの関数
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileBattle::TileEvent() {
+	Super::TileEvent();
 
-
-
+	
 }
