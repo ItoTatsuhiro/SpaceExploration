@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "BattleScene/BattleManager.h"
 #include "Character/CharacterBase.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "BattleScene/BattleManager.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
