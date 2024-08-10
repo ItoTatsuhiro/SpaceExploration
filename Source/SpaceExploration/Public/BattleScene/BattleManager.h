@@ -67,6 +67,18 @@ private:
 	std::vector<CHARACTER> attack_order;
 
 //---------------------------------------------------------------------------------------------
+ 
+	//バトルの流れ　
+	enum class BattleSeq {
+		battle_standby,
+		player_attack,
+		player_attackreceive,
+		enemy_attack,
+		enemy_attackreceive,
+		battle_end,
+		battle_result
+	};
+	BattleSeq battlenowseq_ = BattleSeq::battle_standby;
 
 public:
 	//バトルシーンに入った時の初期化関数
@@ -80,13 +92,16 @@ public:
 	//攻撃の順番を決める
 	void BattleTurn();
 
-	//ターン取得
-	std::vector<CHARACTER> GetButtleTurn()const { return attack_order; };
-
 	//ダメージ計算
 	//引数１：プレイヤーの攻撃力
 	//引数２：プレイヤーの属性
 	//引数３：敵の防御力
 	//引数４：敵の属性
 	float DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type);
+
+//ゲッター
+
+	//ターン取得
+	std::vector<CHARACTER> GetButtleTurn()const { return attack_order; };
+
 };
