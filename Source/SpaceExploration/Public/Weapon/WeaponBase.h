@@ -8,6 +8,7 @@
 #include "../tsutsumi/Element.h"
 #include "WeaponBase.generated.h"
 
+
 UCLASS(Abstract)
 class SPACEEXPLORATION_API AWeaponBase : public AActor
 {

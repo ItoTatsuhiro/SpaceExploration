@@ -77,6 +77,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 RecoverHP(int32 RecoveryAmount = -1);
 
+	// 攻撃行動を開始
+	UFUNCTION(BlueprintCallable)
+	void StartAttackAction();
+
 	// ダメージを受ける
 	// 引数：ダメージ量
 	UFUNCTION(BlueprintCallable)

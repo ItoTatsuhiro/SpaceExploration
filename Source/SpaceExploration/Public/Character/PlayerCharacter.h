@@ -4,7 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Character/CharacterBase.h"
+#include "EnhancedActionKeyMapping.h"
+#include "MouseButtonEvent.h"
 #include "PlayerCharacter.generated.h"
+
+class UInputMappingContext;
+class UCameraComponent;
 
 /**
  * 
@@ -17,7 +22,28 @@ class SPACEEXPLORATION_API APlayerCharacter : public ACharacterBase
 public:
 	APlayerCharacter();
 
+	virtual void BeginPlay() override;
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UCameraComponent* GetCaemraComponent() { return Camera; }
+
+	// 目標の位置に移動
+	void MoveTargetLocation(const FVector Location);
+
 private:
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UCameraComponent* Camera;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TSoftObjectPtr<UInputMappingContext> InputMapping;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputAction* ClickedEvnet;
+	
 	// スタティックメッシュコンポーネント
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> CharacterStaticMeshComp;
@@ -36,11 +62,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
 	
-public:
-	// 目標の位置に移動
-	void MoveTargetLocation(const FVector Location);
-
 private:
+	//
+	void ClickedMouseLeftButton();
+
+
 	// 待機シーケンス
 	bool seqIdle(float DeltaTime);
 	// 移動シーケンス
