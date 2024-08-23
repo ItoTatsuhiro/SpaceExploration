@@ -18,14 +18,6 @@ ACharacterBase::ACharacterBase()
 
 	RootComponent = DefaultSceneRoot;
 
-	// ステータスの初期化
-	CharacterStatus.PlayerName = "No Name";
-	CharacterStatus.MaxHp = 1.0f;
-	CharacterStatus.HP = 1.0f;
-	CharacterStatus.AttackPower = 1.0f;
-	CharacterStatus.DefencePower = 1.0f;
-	CharacterStatus.Speed = 1.0f;
-
 	// 装備品初期化
 	EquippedWeapon = nullptr;
 
@@ -54,7 +46,7 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 
 	EquippedWeapon = Weapon;
 
-	FString ResultLog = EquippedWeapon->GetWeaponStatus().PlayerName + "を装備しました";
+	FString ResultLog = Weapon->GetWeaponStatus().PlayerName + " equipped";
 	UKismetSystemLibrary::PrintString(this, ResultLog, true, true, FColor::Cyan, 2.f, TEXT(""));
 	UE_LOG(LogTemp, Log, TEXT("%s"), *ResultLog);
 }
@@ -66,8 +58,8 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 	if (RecoveryAmount == -1) {
 		ResultAmount = CharacterStatus.MaxHp - CharacterStatus.HP;
 		CharacterStatus.HP = CharacterStatus.MaxHp;
-		UKismetSystemLibrary::PrintString(this, "HPを全回復しました", true, true, FColor::Yellow, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("HPを全回復しました"), nullptr);
+		UKismetSystemLibrary::PrintString(this, "HP fully recovered.", true, true, FColor::Yellow, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Warning, TEXT("HP fully recovered."), nullptr);
 		return ResultAmount;
 	}
 	CharacterStatus.HP += RecoveryAmount;
@@ -77,8 +69,8 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 		CharacterStatus.HP = CharacterStatus.MaxHp;
 	}
 
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("HPを%d回復しました"), ResultAmount), true, true, FColor::Yellow, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Warning, TEXT("HPを%d回復しました"), ResultAmount);
+	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("HP recovered %d times."), ResultAmount), true, true, FColor::Yellow, 2.f, TEXT(""));
+	UE_LOG(LogTemp, Warning, TEXT("HP recovered %d times."), ResultAmount);
 
 	return ResultAmount;
 }
@@ -92,7 +84,7 @@ void ACharacterBase::StartAttackAction()
 
 void ACharacterBase::TakeDamage(int32 Damage)
 {
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%dダメージ受けた"), Damage), true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("攻撃開始"), nullptr);
+	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%d damaged"), Damage), true, true, FColor::Cyan, 2.f, TEXT(""));
+	UE_LOG(LogTemp, Log, TEXT("%d damaged"), Damage);
 	CharacterStatus.HP -= Damage;
 }
