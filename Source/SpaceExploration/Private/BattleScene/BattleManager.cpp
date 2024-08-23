@@ -23,6 +23,30 @@ void ABattleManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	switch (battlenowseq_) {
+	case BattleSeq::battle_standby:
+
+		break;
+	case BattleSeq::player_attack:
+
+		break;
+	case BattleSeq::player_attackreceive:
+
+		break;
+	case BattleSeq::enemy_attack:
+
+		break;
+	case BattleSeq::enemy_attackreceive:
+
+		break;
+	case BattleSeq::battle_end:
+
+		break;
+	case BattleSeq::battle_result:
+
+		break;
+	}
+
 }
 
 void ABattleManager::ButtleInit(const  FStatus& player, const int& playerelement, const FStatus& enemy, const int& enemyelement)
@@ -64,6 +88,7 @@ void ABattleManager::BattleTurn()
 			player_.attack_count_ = 0.0f;
 			//ダメージの計算
 			enemyhp -= DamageMath(player_.attack_, player_.type_, enemy_.defense_, enemy_.type_);
+			//順番を設定
 			attack_order.emplace_back(CHARACTER::player);
 		}
 		//敵の攻撃
@@ -71,6 +96,7 @@ void ABattleManager::BattleTurn()
 			enemy_.attack_count_ = 0.0f;
 			//ダメージ計算
 			playerhp -= DamageMath(enemy_.attack_, enemy_.type_, player_.defense_, player_.type_);
+			//順番を設定
 			attack_order.emplace_back(CHARACTER::enemy);
 		}
 	}
