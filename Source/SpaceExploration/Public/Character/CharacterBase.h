@@ -93,10 +93,10 @@ protected:
 
 	// ステータス
 	UPROPERTY(EditAnywhere)
-	FStatus CharacterStatus;
+	FStatus CharacterStatus = FStatus();
 
 	// 装備中のウェポン
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<AWeaponBase> EquippedWeapon;
+	TObjectPtr<AWeaponBase> EquippedWeapon = nullptr;
 
 };

@@ -6,11 +6,12 @@
 #include "GameFramework/Actor.h"
 #include "../tsutsumi/Status.h"
 #include "../tsutsumi/Element.h"
+#include "../Character/MouseButtonEvent.h"
 #include "WeaponBase.generated.h"
 
 
 UCLASS(Abstract)
-class SPACEEXPLORATION_API AWeaponBase : public AActor
+class SPACEEXPLORATION_API AWeaponBase : public AActor, public IMouseButtonEvent
 {
 	GENERATED_BODY()
 	
@@ -37,6 +38,9 @@ public:
 	// 武器のステータスを設定する
 	inline void SetWeaponStatus(const FStatus& Status) { WeaponStatus = Status; }
 
+	// 左マウスをクリックしたときの処理
+	virtual void LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter) override;
+
 protected:
 	// 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -52,6 +56,6 @@ protected:
 
 	// 武器の属性
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	EElement WeaponElement;
+	EElement WeaponElement = EElement::fire;
 
 };

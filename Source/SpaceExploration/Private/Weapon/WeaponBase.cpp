@@ -2,6 +2,8 @@
 
 
 #include "Weapon/WeaponBase.h"
+#include <Kismet/KismetSystemLibrary.h>
+#include "Character/PlayerCharacter.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
@@ -14,15 +16,6 @@ AWeaponBase::AWeaponBase()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	MeshComponent->SetupAttachment(RootComponent);
-
-	WeaponStatus.PlayerName = "No Name";
-	WeaponStatus.MaxHp = 1.0f;
-	WeaponStatus.HP = 1.0f;
-	WeaponStatus.AttackPower = 0.0f;
-	WeaponStatus.DefencePower = 0.0f;
-	WeaponStatus.Speed = 0.0f;
-
-	WeaponElement = EElement::fire;
 
 }
 
@@ -38,6 +31,18 @@ void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter)
+{
+	if (!PlayerCharacter) {
+		UKismetSystemLibrary::PrintString(this, "PlayerCharacter is nullptr", true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is nullptr"), nullptr);
+		return;
+	}
+
+	PlayerCharacter->SetEquippedWeapon(this);
+	Destroy();
 }
 
 

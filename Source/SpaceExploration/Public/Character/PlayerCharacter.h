@@ -26,6 +26,7 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable)
 	UCameraComponent* GetCaemraComponent() { return Camera; }
 
 	// –Ú•W‚ÌˆÊ’u‚ÉˆÚ“®

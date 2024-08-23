@@ -130,16 +130,8 @@ void APlayerCharacter::ClickedMouseLeftButton()
 				return;
 			}
 
-			IMouseButtonEvent* MouseButtonEvent = Cast<IMouseButtonEvent>(HitActor);
-
-			if (!MouseButtonEvent)
-			{
-				UKismetSystemLibrary::PrintString(this, "IMouseButtonEvent‚ÌŽæ“¾‚ÉŽ¸”s‚µ‚Ü‚µ‚½B", true, true, FColor::Yellow, 2.f, TEXT(""));
-				UE_LOG(LogTemp, Warning, TEXT("IMouseButtonEvent‚ÌŽæ“¾‚ÉŽ¸”s‚µ‚Ü‚µ‚½B"), nullptr);
-				return;
-			}
-
-			MouseButtonEvent->LeftMouseButtonEvent(this);
+			// MouseButtonEvent->LeftMouseButtonEvent(this);
+			IMouseButtonEvent::Execute_LeftMouseButtonEvent(HitActor, this);
 
 			// Debug line to visualize the trace
 			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f);
