@@ -19,6 +19,7 @@ public:
 	// Sets default values for this actor's properties
 	AWeaponBase();
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -58,4 +59,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	EElement WeaponElement = EElement::fire;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components",  meta = (AllowPrivateAccess = "true"))
+	FStatus DefaultStatus;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "RandomRange")
+	int AttackRandomRange;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "RandomRange")
+	int DeffenceRandomRange;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "RandomRange")
+	int  SpeedRandomRange;
 };
