@@ -6,14 +6,14 @@
 #include "GameFramework/Actor.h"
 
 #include "E_Tile.h"
-
+#include "../../Character/MouseButtonEvent.h"
 #include "AC_MapTile.generated.h"
 
 //********************************************************************
 // マップ上のマスのベースクラス
 // 抽象クラス、それぞれのマスのクラスに継承して用いる
 UCLASS( Abstract )
-class SPACEEXPLORATION_API AAC_MapTileBase : public AActor
+class SPACEEXPLORATION_API AAC_MapTileBase : public AActor, public IMouseButtonEvent
 {
 	GENERATED_BODY()
 	
@@ -69,6 +69,10 @@ public:
 	// 使用例）SetStaticMesh(TEXT("/Game/StarterContent/Shapes/Shape_Sphere"));
 	void SetStaticMesh(const TCHAR* fileName);
 
-
+	// 左クリックをされた時の処理を行う。
+	// プレイヤーを自身の惑星まで移動させる。
+	// 
+	// 引数：PlayerCharacter...プレイヤーのリファレンス
+	virtual void LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter) override;
 
 };

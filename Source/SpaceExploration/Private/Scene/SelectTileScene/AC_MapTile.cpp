@@ -2,6 +2,8 @@
 
 
 #include "Scene/SelectTileScene/AC_MapTile.h"
+#include <Kismet/KismetSystemLibrary.h>
+#include "Character/PlayerCharacter.h"
 
 // Sets default values
 AAC_MapTileBase::AAC_MapTileBase()
@@ -68,4 +70,21 @@ void AAC_MapTileBase::SetStaticMesh(const TCHAR* fileName) {
 	staticMesh_->SetStaticMesh(mesh);
 
 
+}
+
+// 左クリックをされた時の処理を行う。
+// プレイヤーを自身の惑星まで移動させる。
+// 
+// 引数：PlayerCharacter...プレイヤーのリファレンス
+void AAC_MapTileBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter)
+{
+	if (!PlayerCharacter) {
+		UKismetSystemLibrary::PrintString(this, "PlayerCharacter is nullptr", true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is nullptr"), nullptr);
+		return;
+	}
+
+	FVector TargetLocation = GetActorLocation() + FVector(0.f, 0.f, 500.f);
+
+	PlayerCharacter->BeginMoveTargetLocation(TargetLocation);
 }
