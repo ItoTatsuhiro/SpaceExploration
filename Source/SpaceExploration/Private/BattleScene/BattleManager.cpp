@@ -2,6 +2,10 @@
 
 #include "BattleScene/BattleManager.h"
 #include "Character/CharacterBase.h"
+#include "Character/EnemyBase.h"
+#include "Character/PlayerCharacter.h"
+#include "LevelGroup/LevelInterface.h"
+#include "BattleScene/E_BattleSEQ.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
@@ -16,6 +20,13 @@ ABattleManager::ABattleManager()
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
+	//攻撃順初期化
+	attack_order.clear();
+	//attack_orderの始めにバトル前の準備シーンを設定
+	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY));
+
+	//バトル順初期化
+	seqindex = 0;
 }
 
 // Called every frame
@@ -23,52 +34,61 @@ void ABattleManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	switch (battlenowseq_) {
-	case BattleSeq::battle_standby:
+	//現在実行中のシーケンス
+	NowBattleSeq = attack_order[seqindex];
 
-		break;
-	case BattleSeq::player_attack:
-
-		break;
-	case BattleSeq::player_attackreceive:
-
-		break;
-	case BattleSeq::enemy_attack:
-
-		break;
-	case BattleSeq::enemy_attackreceive:
-
-		break;
-	case BattleSeq::battle_end:
-
-		break;
-	case BattleSeq::battle_result:
-
-		break;
+	//バトルシーケンスそれぞれのシーケンス実行
+	switch (NowBattleSeq) {
+	//バトルスタンバイシーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY):
+		
+	break;
+	//プレイヤー攻撃シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK):
+		player->StartAttackAction();
+	break;
+	//プレイヤー攻撃を受けるシーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE):
+		player->TakeDamage(playerdamage);
+	break;
+	//エネミー攻撃シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK):
+		enemy->StartAttackAction();
+	break;
+	//エネミー攻撃を受けるシーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE):
+		enemy->TakeDamage(enemydamage);
+	break;
+	//バトルリザルト画面シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT):
+		
+	break;
+	//バトル終了シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):
+		levelinterface->LoadLevel(NextLevel);
+	break;
 	}
-
 }
 
-void ABattleManager::ButtleInit(const  FStatus& player, const int& playerelement, const FStatus& enemy, const int& enemyelement)
+void ABattleManager::ButtleInit(const  FStatus& player_status, const int& playerelement, const FStatus& enemy_status, const int& enemyelement)
 {
 	//順番決め用一時変数に挿入
-	
 	//プレイヤー
-	player_.hp_ = player.HP;
-	player_.speed_ = player.Speed;
-	player_.defense_ = player.DefencePower;
-	player_.attack_ = player.AttackPower;
+	player_.hp_ = player_status.HP;
+	player_.speed_ = player_status.Speed;
+	player_.defense_ = player_status.DefencePower;
+	player_.attack_ = player_status.AttackPower;
 	player_.type_ = playerelement;
 
 	//敵
-	enemy_.hp_ = enemy.HP;
-	enemy_.speed_ = enemy.Speed;
-	enemy_.defense_ = enemy.DefencePower;
-	enemy_.attack_ = enemy.AttackPower;
+	enemy_.hp_ = enemy_status.HP;
+	enemy_.speed_ = enemy_status.Speed;
+	enemy_.defense_ = enemy_status.DefencePower;
+	enemy_.attack_ = enemy_status.AttackPower;
 	enemy_.type_ = enemyelement;
 
 	//攻撃タイミング設定
-	attack_timing_ = player.Speed + enemy.Speed;
+	attack_timing_ = player_status.Speed + enemy_status.Speed;
 
 	//順番決め
 	BattleTurn();
@@ -87,19 +107,26 @@ void ABattleManager::BattleTurn()
 		if (player_.attack_count_ >= attack_timing_) {
 			player_.attack_count_ = 0.0f;
 			//ダメージの計算
-			enemyhp -= DamageMath(player_.attack_, player_.type_, enemy_.defense_, enemy_.type_);
+			enemydamage = DamageMath(player_.attack_, player_.type_, enemy_.defense_, enemy_.type_);
+			enemyhp -= enemydamage;
 			//順番を設定
-			attack_order.emplace_back(CHARACTER::player);
+			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK));
+			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE));
 		}
 		//敵の攻撃
 		else if (enemy_.attack_count_ >= attack_timing_) {
 			enemy_.attack_count_ = 0.0f;
 			//ダメージ計算
-			playerhp -= DamageMath(enemy_.attack_, enemy_.type_, player_.defense_, player_.type_);
+			playerdamage = DamageMath(enemy_.attack_, enemy_.type_, player_.defense_, player_.type_);
+			playerhp -= playerdamage;
 			//順番を設定
-			attack_order.emplace_back(CHARACTER::enemy);
+			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK));
+			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE));
 		}
 	}
+	//バトル終了シーケンス設定
+	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT));
+	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END));
 }
 
 float ABattleManager::DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type){
@@ -124,5 +151,13 @@ float ABattleManager::DamageMath(const float& A_atk, const int& A_type, const fl
 	return damage;
 }
 
+void ABattleManager::ConvertVectorToActor() {
+	//TArrayをクリア
+	ConvertArray.Empty();
 
+	//vectorをTArrayにコピー
+	for (auto element : attack_order) {
+		ConvertArray.Add(element);
+	}
+}
 
