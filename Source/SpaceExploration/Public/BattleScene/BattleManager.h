@@ -4,14 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
 #include "BattleManager.generated.h"
 
+class APlayerCharacter;
+class AEnemyBase;
+class ALevelInterface;
 struct FStatus;
-
-enum class CHARACTER {
-	player,
-	enemy,
-};
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -63,30 +62,42 @@ private:
 	
 	//行動を決める値
 	float attack_timing_ = 10;
-	//順番を入れる配列
-	std::vector<CHARACTER> attack_order;
 
+	//受けるダメージ
+	float playerdamage = 0.0, enemydamage = 0.0;
 //---------------------------------------------------------------------------------------------
  
-	//バトルの流れ　
-	enum class BattleSeq {
-		battle_standby,
-		player_attack,
-		player_attackreceive,
-		enemy_attack,
-		enemy_attackreceive,
-		battle_end,
-		battle_result
-	};
-	BattleSeq battlenowseq_ = BattleSeq::battle_standby;
+	//バトルの流れ
+private:
+	APlayerCharacter* player;
+	AEnemyBase* enemy;
+	ALevelInterface* levelinterface;
+
+	//順番を入れる配列
+	std::vector<uint8> attack_order;
+	//現在の順番のインデックス
+	uint8 seqindex = 0;
+
+	//バトル終了後のレベル
+	UPROPERTY(EditAnywhere, Category = "Level")
+	TSoftObjectPtr<UWorld> NextLevel;
+public:
+	//実行中のシーケンス
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleManager")
+	uint8 NowBattleSeq = 0;
 
 public:
+	//BPで使用するための配列
+	UPROPERTY(BlueprintReadOnly, Category = "BattleManager")
+	TArray<uint8> ConvertArray;
+
+//関数
 	//バトルシーンに入った時の初期化関数
 	//引数１：プレイヤーのステータスデータ
 	//引数２：プレイヤーの属性
 	//引数３：敵のステータスデータ
 	//引数４：敵の属性
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "BattleManager")
 	void ButtleInit(const  FStatus& player, const int& playerelement, const FStatus& enemy, const int& enemyelement);
 
 	//攻撃の順番を決める
@@ -98,10 +109,12 @@ public:
 	//引数３：敵の防御力
 	//引数４：敵の属性
 	float DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type);
-
+	
 //ゲッター
-
 	//ターン取得
-	std::vector<CHARACTER> GetButtleTurn()const { return attack_order; };
+	std::vector<uint8> GetButtleTurn() { return attack_order; };
 
+	//vectorを変換する関数
+	UFUNCTION(BlueprintCallable, Category = "BattleManager")
+	void ConvertVectorToActor();
 };
