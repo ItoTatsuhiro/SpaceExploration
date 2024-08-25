@@ -26,11 +26,13 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION(BlueprintCallable)
 	UCameraComponent* GetCaemraComponent() { return Camera; }
 
 	// 目標の位置に移動
-	void MoveTargetLocation(const FVector Location);
+	void BeginMoveTargetLocation(const FVector Location);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -49,6 +51,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> CharacterStaticMeshComp;
 
+	// プレイヤーのシーケンス
 	Sequence PlayerSequence;
 
 	// 移動方向への速度
@@ -64,12 +67,12 @@ private:
 	float MoveSpeed;
 	
 private:
-	//
+	// 左クリックを押したとき、インターフェースを実行する。
 	void ClickedMouseLeftButton();
 
 
 	// 待機シーケンス
-	bool seqIdle(float DeltaTime);
+	bool SeqIdle(float DeltaTime);
 	// 移動シーケンス
-	bool seqMoveTargetLocation(float DeltaTime);
+	bool SeqMoveTargetLocation(float DeltaTime);
 };

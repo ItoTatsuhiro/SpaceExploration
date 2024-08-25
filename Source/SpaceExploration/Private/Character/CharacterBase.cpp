@@ -51,6 +51,14 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 	UE_LOG(LogTemp, Log, TEXT("%s"), *ResultLog);
 }
 
+// =========================================================================
+// キャラクターのHPを回復させて、回復量を返す関数
+// 
+// ・引数
+// RecoveryAmount：回復する値（デフォルト値の場合、全回復する）
+// 
+// 戻り値：回復した値
+// =========================================================================
 int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 {
 	int32 ResultAmount = RecoveryAmount;
@@ -75,6 +83,9 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 	return ResultAmount;
 }
 
+// =========================================================================
+// 攻撃行動を開始
+// =========================================================================
 void ACharacterBase::StartAttackAction()
 {
 
@@ -82,6 +93,12 @@ void ACharacterBase::StartAttackAction()
 	UE_LOG(LogTemp, Log, TEXT("攻撃開始"), nullptr);
 }
 
+// =========================================================================
+// ダメージを受ける処理を行う
+// 
+// ・引数
+// Damage：ダメージ量
+// =========================================================================
 void ACharacterBase::TakeDamage(int32 Damage)
 {
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%d damaged"), Damage), true, true, FColor::Cyan, 2.f, TEXT(""));
