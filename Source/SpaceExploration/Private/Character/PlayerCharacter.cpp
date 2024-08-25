@@ -1,4 +1,4 @@
-ï»¿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/PlayerCharacter.h"
@@ -11,6 +11,13 @@
 #include "GameFramework/PlayerController.h"
 #include "Character/MouseButtonEvent.h"
 #include <Kismet/KismetSystemLibrary.h>
+
+/*
+ƒvƒŒƒCƒ„[‚É¶ƒNƒŠƒbƒN‚ÌƒCƒxƒ“ƒg‚ğ•t‚¯‚é‚Æ‚±‚©‚ç
+
+‚½‚Ô‚ñƒJƒƒ‰‚ÌÀ‘•‚Å‚«‚½B
+
+*/
 
 
 APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(10.0f)
@@ -25,39 +32,31 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(10
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
-	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+	PlayerSequence.BindUObject(this, &APlayerCharacter::seqIdle);
 
 	ClickedEvnet = nullptr;
 
 }
 
-/// <summary>
-/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”Ÿæˆæ™‚ã«ä¸€åº¦ã ã‘å®Ÿè¡Œã™ã‚‹
-/// </summary>
+
 void APlayerCharacter::BeginPlay()
 {
-	Super::BeginPlay();
-
-	// PlayerController ã®å–å¾—
+	// PlayerController ‚Ìæ“¾
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, "PlayerControllerã®å–å¾—ã«å¤±æ•—ã—ã¾ã—ãŸã€‚", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerã®å–å¾—ã«å¤±æ•—ã—ã¾ã—ãŸã€‚"), nullptr);
+		UKismetSystemLibrary::PrintString(this, "PlayerController‚Ìæ“¾‚É¸”s‚µ‚Ü‚µ‚½B", true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Warning, TEXT("PlayerController‚Ìæ“¾‚É¸”s‚µ‚Ü‚µ‚½B"), nullptr);
 		return;
 	}
-	// ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã‚’è¡¨ç¤º
+	// ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚ğ•\¦
 	PlayerController->bShowMouseCursor = true;
 
-	//// ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®ãƒ¢ãƒ¼ãƒ‰ã‚’ UI ãƒ¢ãƒ¼ãƒ‰ã«è¨­å®š (å¿…è¦ã«å¿œã˜ã¦)
+	//// ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ìƒ‚[ƒh‚ğ UI ƒ‚[ƒh‚Éİ’è (•K—v‚É‰‚¶‚Ä)
 	//FInputModeUIOnly InputMode;
 	//PlayerController->SetInputMode(InputMode);
 }
 
-/// <summary>
-/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å…¥åŠ›ã‚¤ãƒ™ãƒ³ãƒˆã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã‚’è¡Œã†
-/// </summary>
-/// <param name="PlayerInputComponent"> å…¥åŠ›ãƒãƒƒãƒ”ãƒ³ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ </param>
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -69,13 +68,13 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(ClickedEvnet, ETriggerEvent::Triggered, this, &ThisClass::ClickedMouseLeftButton);
 	}
 	else {
-		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponentãŒNullã§ã™"));
+		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponent‚ªNull‚Å‚·"));
 	}
 	if (GetOwner()->InputComponent)
 	{
 		if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 		{
-			// InputMapping Context ã‚’ç™»éŒ²ã™ã‚‹
+			// InputMapping Context ‚ğ“o˜^‚·‚é
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 				ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())
 				)
@@ -85,57 +84,33 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		}
 	}
 	else {
-		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponentãŒNullã§ã™2"));
+		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponent‚ªNull‚Å‚·2"));
 	}
 }
 
-/// <summary>
-/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
-/// </summary>
-/// <param name="DeltaTime"></param>
-void APlayerCharacter::Tick(float DeltaTime)
+void APlayerCharacter::MoveTargetLocation(const FVector Location)
 {
-	Super::Tick(DeltaTime);
-
-	if (!PlayerSequence.IsBound()) {
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Don,t set PlayerSequence function")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("Don,t set PlayerSequence function"), nullptr);
-		return;
-	}
-
-	PlayerSequence.Execute(DeltaTime);
-}
-
-/// <summary>
-/// ç§»å‹•ã•ã›ãŸã„ä½ç½®ã‚’ã‚»ãƒƒãƒˆã•ã›ã¦ã€ç§»å‹•ã‚’é–‹å§‹ã•ã›ã‚‹ã€‚
-/// </summary>
-/// <param name="Location"> ç§»å‹•ã•ã›ã‚‹ä½ç½® </param>
-void APlayerCharacter::BeginMoveTargetLocation(const FVector Location)
-{
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Player Move TargetLocationï¼šx = %1.f, y = %1.f, z = %1.f"), 
-		Location.X, Location.Y, Location.Z )
-		, true, true, FColor::Cyan, 2.f, TEXT(""));
 	TargetLocation = Location;
-	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqMoveTargetLocation);
+	PlayerSequence.BindUObject(this, &APlayerCharacter::seqMoveTargetLocation);
 }
 
-//
-// å·¦ã‚¯ãƒªãƒƒã‚¯ã‚’æŠ¼ã—ãŸã¨ããƒ¬ã‚¤ã‚’é£›ã°ã—ã¦
-// å½“ãŸã£ãŸ "Actor" ã‚¯ãƒ©ã‚¹ã® "LeftMouseButton" é–¢æ•°ã‚’å®Ÿè¡Œã™ã‚‹
-// 
+/// <summary>
+/// ¶ƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½‚Æ‚«ƒŒƒC‚ğ”ò‚Î‚µ‚Ä
+/// “–‚½‚Á‚½ "Actor" ƒNƒ‰ƒX‚Ì "LeftMouseButton" ‚ğÀs‚·‚é
+/// </summary>
 void APlayerCharacter::ClickedMouseLeftButton()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, "PlayerControllerã®å–å¾—ã«å¤±æ•—ã—ã¾ã—ãŸã€‚", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerã®å–å¾—ã«å¤±æ•—ã—ã¾ã—ãŸã€‚"), nullptr);
+		UKismetSystemLibrary::PrintString(this, "PlayerController‚Ìæ“¾‚É¸”s‚µ‚Ü‚µ‚½B", true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Warning, TEXT("PlayerController‚Ìæ“¾‚É¸”s‚µ‚Ü‚µ‚½B"), nullptr);
 		return;
 	}
 
 	FVector WorldLocation, WorldDirection;
 
-	// ãƒã‚¦ã‚¹ã®åº§æ¨™ã‚’å–å¾—
+	// ƒ}ƒEƒX‚ÌÀ•W‚ğæ“¾
 	if (PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection)) {
 
 		FVector Start = WorldLocation;
@@ -143,15 +118,15 @@ void APlayerCharacter::ClickedMouseLeftButton()
 
 		FHitResult HitResult;
 
-		// ãƒ¬ã‚¤ã‚’é£›ã°ã™
+		// ƒŒƒC‚ğ”ò‚Î‚·
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
 		{
 			AActor* HitActor = HitResult.GetActor();
 
 			if ( !HitActor || !( HitActor->GetClass()->ImplementsInterface( UMouseButtonEvent::StaticClass() ) ) )
 			{
-				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Actorã®å–å¾—ã«å¤±æ•—ã—ã¾ã—ãŸã€‚")), true, true, FColor::Yellow, 2.f, TEXT(""));
-				UE_LOG(LogTemp, Warning, TEXT("Actorã®å–å¾—ã«å¤±æ•—ã—ã¾ã—ãŸã€‚"), nullptr);
+				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Actor‚Ìæ“¾‚É¸”s‚µ‚Ü‚µ‚½B")), true, true, FColor::Yellow, 2.f, TEXT(""));
+				UE_LOG(LogTemp, Warning, TEXT("Actor‚Ìæ“¾‚É¸”s‚µ‚Ü‚µ‚½B"), nullptr);
 				return;
 			}
 
@@ -159,40 +134,25 @@ void APlayerCharacter::ClickedMouseLeftButton()
 			IMouseButtonEvent::Execute_LeftMouseButtonEvent(HitActor, this);
 
 			// Debug line to visualize the trace
-			// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f);
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f);
 		}
 	}
 }
 
-/// <summary>
-/// å¾…æ©Ÿã‚·ãƒ¼ã‚±ãƒ³ã‚¹
-/// </summary>
-/// <param name="DeltaTime"></param>
-/// <returns> å®Ÿè¡Œçµæœã‚’è¿”ã™ã€‚Falseï¼šå¤±æ•— Trueï¼šæˆåŠŸ </returns>
-bool APlayerCharacter::SeqIdle(float DeltaTime)
+bool APlayerCharacter::seqIdle(float DeltaTime)
 {
 	return true;
 }
 
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ç›®æ¨™ä½ç½®ã«ç§»å‹•ã•ã›ã‚‹ã€‚
-// ç§»å‹•ãŒçµ‚äº†ã—ãŸã‚‰ "SeqIdle" ã«æˆ»ã‚‹ã€‚
-//
-// æˆ»ã‚Šå€¤ï¼šå®Ÿè¡Œçµæœã‚’è¿”ã™ã€‚Falseï¼šå¤±æ•— Trueï¼šæˆåŠŸ </returns>
-bool APlayerCharacter::SeqMoveTargetLocation(float DeltaTime)
+bool APlayerCharacter::seqMoveTargetLocation(float DeltaTime)
 {
-	// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¾ã§ã®æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã‚’è¨ˆç®—
-	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
 
-	// ç§»å‹•é€Ÿåº¦ã‚’æ–¹å‘ã«é©ç”¨
-	FVector MoveDirection = Direction * MoveSpeed * DeltaTime;
+	FVector MoveDirection = (TargetLocation - GetActorLocation()).GetSafeNormal();
+	
+	AddMovementInput(MoveDirection);
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’æ›´æ–°
-	FVector NewLocation = GetActorLocation() + MoveDirection;
-	SetActorLocation(NewLocation);
-
-	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 20.f) {
-		SetActorLocation(TargetLocation);
-		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 100.f) {
+		PlayerSequence.BindUObject(this, &APlayerCharacter::seqIdle);
 	}
 	return true;
 }
