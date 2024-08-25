@@ -4,7 +4,9 @@
 #include "Weapon/WeaponBase.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include "Character/PlayerCharacter.h"
-
+#include "UObject/NoExportTypes.h"
+#include "Math/RandomStream.h"
+#include "random"
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
@@ -17,20 +19,24 @@ AWeaponBase::AWeaponBase()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	MeshComponent->SetupAttachment(RootComponent);
 
+
+
 }
 
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	WeaponStatus.AttackPower = DefaultStatus.AttackPower + FMath::RandRange(0, AttackRandomRange);
+	WeaponStatus.DefencePower = DefaultStatus.DefencePower + FMath::RandRange(0, DeffenceRandomRange);
+	WeaponStatus.Speed = DefaultStatus.Speed + FMath::RandRange(0, SpeedRandomRange);
+	WeaponElement = static_cast<EElement>(FMath::RandRange(0, 2));
 }
 
 // Called every frame
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter)
@@ -44,5 +50,4 @@ void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCh
 	PlayerCharacter->SetEquippedWeapon(this);
 	Destroy();
 }
-
 
