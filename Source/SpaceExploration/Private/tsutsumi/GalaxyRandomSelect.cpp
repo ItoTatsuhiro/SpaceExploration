@@ -12,7 +12,7 @@
 
 // Sets default values
 AGalaxyRandomSelect::AGalaxyRandomSelect()
-	: tileNumHolizontal_( { 1, 2, 3, 2 } ), tileTypeNum_(static_cast<int>(E_TILE_TYPE::TILE_TYPE_NUM))
+	: tileNumHolizontal_( { 1, 2, 3, 2, 3, 2, 1 } ), tileTypeNum_(static_cast<int>(E_TILE_TYPE::TILE_TYPE_NUM)), minSelectNum_({ 1, 1, 1 })
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -31,7 +31,7 @@ AGalaxyRandomSelect::AGalaxyRandomSelect()
 	}
 
 
-	MakeTileArray();
+	// MakeTileArray(tileNumHolizontal_);
 }
 
 
@@ -97,11 +97,13 @@ void AGalaxyRandomSelect::RandomInsertTileType(E_TILE_TYPE insertTile) {
 			int y = static_cast<int>(newIndex.Y);
 			int x = static_cast<int>(newIndex.X);
 
+
+
 			// 配列の範囲内かどうかを確認
-			if (y >= 0 && y < tileArray_.Num() && x >= 0 && x < tileArray_[y].Num()) {
+			if (y >= 0 && y < tileArray_.Num() && x >= 0 && x < tileArray_[y].typeArray.Num()) {
 				// 配列の中身が空の状態の時のみ入れる
-				if (tileArray_[y][x] == E_TILE_TYPE::NONE) {
-					tileArray_[y][x] = insertTile;
+				if (tileArray_[y].typeArray[x] == E_TILE_TYPE::NONE) {
+					tileArray_[y].typeArray[x] = insertTile;
 					break;
 				}
 			}
@@ -122,23 +124,24 @@ FVector2D AGalaxyRandomSelect::CheckShiftArray(FVector2D before) {
 
 
 	while (true) {
-		// インデックスの範囲を確認
-		if (newArrayNum.Y >= tileArray_.Num() || newArrayNum.X >= tileNumHolizontal_[static_cast<int>(newArrayNum.Y)]) {
-			// 配列範囲外のインデックスが検出された場合の処理
-			UE_LOG(LogTemp, Error, TEXT("Index out of bounds: X = %d, Y = %d"), static_cast<int>(newArrayNum.X), static_cast<int>(newArrayNum.Y));
+		//// インデックスの範囲を確認
+		//if (newArrayNum.Y >= tileArray_.Num() || newArrayNum.X >= tileNumHolizontal_[static_cast<int>(newArrayNum.Y)]) {
+		//	// 配列範囲外のインデックスが検出された場合の処理
+		//	UE_LOG(LogTemp, Error, TEXT("Index out of bounds: X = %d, Y = %d"), static_cast<int>(newArrayNum.X), static_cast<int>(newArrayNum.Y));
 
-			// 範囲外の時は00にする
-			newArrayNum = { 0, 0 };
+		//	// 範囲外の時は00にする
+		//	newArrayNum = { 0, 0 };
 
-		}
+		//}
 
 		UE_LOG(LogTemp, Log, TEXT("Checking tileArray_[%d][%d]"), static_cast<int>(newArrayNum.Y), static_cast<int>(newArrayNum.X));
 
-		if (tileArray_[static_cast<int>(newArrayNum.Y)][static_cast<int>(newArrayNum.X)] == E_TILE_TYPE::NONE) {
+		if (tileArray_[static_cast<int>(newArrayNum.Y)].typeArray[static_cast<int>(newArrayNum.X)] == E_TILE_TYPE::NONE) {
 			break;
 		}
 
-		++newArrayNum.X;
+
+		newArrayNum.X = static_cast<int>(newArrayNum.X + 1) % static_cast<int>( newArrayNum.X );
 
 		if (newArrayNum.X >= tileNumHolizontal_[static_cast<int>(newArrayNum.Y)]) {
 			newArrayNum.X = 0;
@@ -150,6 +153,8 @@ FVector2D AGalaxyRandomSelect::CheckShiftArray(FVector2D before) {
 			}
 		}
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("returnValue x：%d, y：%d"), static_cast<int>(newArrayNum.X), static_cast<int>(newArrayNum.Y));
 
 	return newArrayNum;
 }
@@ -190,10 +195,9 @@ void AGalaxyRandomSelect::BeginPlay()
 
 		for (int h = 0; h < tileNumHolizontal_[v]; ++h) {
 
-			UE_LOG(LogTemp, Log, TEXT("x:%d, y:%d, tileType = %d"), v, h, tileArray_[v][h]);
+			UE_LOG(LogTemp, Log, TEXT("x:%d, y:%d, tileType = %d"), v, h, tileArray_[v].typeArray[h]);
 
 		}
-
 
 	}
 
@@ -212,15 +216,18 @@ void AGalaxyRandomSelect::Tick(float DeltaTime)
 
 
 // マスの配列を作成する関数
-void AGalaxyRandomSelect::MakeTileArray() {
-	// マスの数分、配列の枠を生成
-	for (int v = 0; v < tileNumHolizontal_.Num(); ++v) {
-		// 二重配列に入れる用の仮の配列
-		TArray<E_TILE_TYPE> tempTileArray;
+TArray<FTileEnumArray> AGalaxyRandomSelect::MakeTileArray(TArray<int> tileNumHolizontal) {
 
-		// 横方向のマスの数だけランダムにマスの種類を決定
-		for (int h = 0; h < tileNumHolizontal_[v]; ++h) {
-			tempTileArray.Emplace(E_TILE_TYPE::NONE);
+	tileArray_.Empty();
+
+	// マスの数分、配列の枠を生成
+	for (int v = 0; v < tileNumHolizontal.Num(); ++v) {
+		// 二重配列に入れる用の仮の配列
+		FTileEnumArray tempTileArray;
+
+		// 横方向のマスの数だけ空のマスを入れる
+		for (int h = 0; h < tileNumHolizontal[v]; ++h) {
+			tempTileArray.typeArray.Emplace(E_TILE_TYPE::NONE);
 		}
 
 		// 二重配列に入れる
@@ -228,55 +235,43 @@ void AGalaxyRandomSelect::MakeTileArray() {
 	}
 
 
-	// 最低限生成する必要のあるマスの数の合計
-	int totalMinSelectCount = 0;
-	for (int i = 0; i < minSelectNum_.Num(); ++i) {
-		totalMinSelectCount += minSelectNum_[i];
-	}
 
-	// 最低限生成する必要のあるマスの合計分回す
-	for (int i = 0; i < totalMinSelectCount; ++i) {
 		// マスの種類数分確認を行う
-		for (int j = 0; j < minSelectNum_.Num(); ++j) {
-			// 現在のマスの種類までに生成する最低限の数
-			int tileCreateCount = 0;
+	for (int j = 0; j < minSelectNum_.Num(); ++j) {
+		// 現在のマスの種類までに生成する最低限の数
+		int tileCreateCount = 0;
 
-			// 現在時点での生成するマスの種類の確認
-			for (int k = 0; k < j; ++k) {
-				tileCreateCount += minSelectNum_[k];
-			}
+		// UE_LOG(LogTemp, Log, TEXT("minSelectNum_[%d] = %d"), j, minSelectNum_[j]);
 
-			// 現在作成するべき数よりも生成数が少ないとき
-			if (i < tileCreateCount) {
-				// 現在生成するマス
-				E_TILE_TYPE createTile = static_cast<E_TILE_TYPE>(j);
+		for (int k = 0; k < minSelectNum_[j]; ++k) {
 
-				
-				RandomInsertTileType(createTile);
-				break;
-			}
+			// 現在生成するマス
+			E_TILE_TYPE createTile = static_cast<E_TILE_TYPE>(j);
+
+			// RandomInsertTileType(createTile);
+
 		}
 	}
 
 	// 該当する箇所にランダムに選択したマスの種類をセット
-	for (int v = 0; v < tileNumHolizontal_.Num(); ++v) {
-		for (int h = 0; h < tileNumHolizontal_[v]; ++h) {
+	for (int v = 0; v < tileNumHolizontal.Num(); ++v) {
+		for (int h = 0; h < tileNumHolizontal[v]; ++h) {
 			// 既にマスが存在している場合は処理しない
-			if (tileArray_[v][h] != E_TILE_TYPE::NONE) {
+			if (tileArray_[v].typeArray[h] != E_TILE_TYPE::NONE) {
 				continue;
 			}
-			tileArray_[v][h] = RandomTileSelect();
+			tileArray_[v].typeArray[h] = RandomTileSelect();
 		}
 	}
 
 
+	// 生成した内容をログとして表示する処理
+	for (int v = 0; v < tileNumHolizontal.Num(); ++v) {
 
-	for (int v = 0; v < tileNumHolizontal_.Num(); ++v) {
 
+		for (int h = 0; h < tileNumHolizontal[v]; ++h) {
 
-		for (int h = 0; h < tileNumHolizontal_[v]; ++h) {
-
-			UE_LOG(LogTemp, Log, TEXT("x:%d, y:%d, tileType = %d"), v, h, tileArray_[v][h]);
+			UE_LOG(LogTemp, Log, TEXT("x:%d, y:%d, tileType = %d"), v, h, tileArray_[v].typeArray[h]);
 
 		}
 
@@ -285,4 +280,7 @@ void AGalaxyRandomSelect::MakeTileArray() {
 
 
 	UE_LOG(LogTemp, Log, TEXT("生成完了！"));
+
+
+	return tileArray_;
 }
