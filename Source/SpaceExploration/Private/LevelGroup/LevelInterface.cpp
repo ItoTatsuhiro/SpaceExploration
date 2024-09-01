@@ -30,11 +30,11 @@ void ALevelInterface::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (BeforeLevel != nullptr) {
-		UKismetSystemLibrary::PrintString(this, "BeforeLevel unload", true, true, FColor::Cyan, 2.f, TEXT("None"));
-		//ƒŒƒxƒ‹Á‹
-		UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, BeforeLevel, LatentInfo, true);
-	}
+	//if (BeforeLevel != nullptr) {
+	//	UKismetSystemLibrary::PrintString(this, "BeforeLevel unload", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//	//ƒŒƒxƒ‹Á‹
+	//	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, BeforeLevel, LatentInfo, true);
+	//}
 }
 
 void ALevelInterface::LoadLevel(TSoftObjectPtr<UWorld> nextlevel)
@@ -48,8 +48,9 @@ void ALevelInterface::LoadLevel(TSoftObjectPtr<UWorld> nextlevel)
 	UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NowLevel, true, true, LatentInfo);
 }
 
-void ALevelInterface::UnLoadLevel()
+void ALevelInterface::UnLoadLevel(TSoftObjectPtr<UWorld> deletelevel)
 {
 	//Œ»İ‚ÌƒŒƒxƒ‹‚ğÁ‹
-	
+	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, BeforeLevel, LatentInfo, true);
+
 }
