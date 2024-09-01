@@ -35,7 +35,6 @@ void AAC_MapTileBattle::Tick(float DeltaTime) {
 // マスで実行するイベントの関数
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileBattle::TileEvent() {
-	Super::TileEvent();
 
 	
 }

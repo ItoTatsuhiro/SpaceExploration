@@ -80,7 +80,7 @@ private:
 
 	//バトル終了後のレベル
 	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> NextLevel;
+	TSoftObjectPtr<UWorld> MyLevel;
 public:
 	//実行中のシーケンス
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleManager")

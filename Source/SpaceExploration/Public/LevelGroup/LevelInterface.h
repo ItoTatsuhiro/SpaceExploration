@@ -26,9 +26,9 @@ public:
 	//シーン遷移、次のレベルを読み込み
 	UFUNCTION(BlueprintCallable)
 	void LoadLevel(TSoftObjectPtr<UWorld> nextlevel);
-	//シーン遷移、前のレベル破棄、LoadLevelの後に呼ぶ
+	//レベル破棄
 	UFUNCTION(BlueprintCallable)
-	void UnLoadLevel();
+	void UnLoadLevel(TSoftObjectPtr<UWorld> deletelevel);
 
 private:
 	FLatentActionInfo LatentInfo;

@@ -65,7 +65,8 @@ void ABattleManager::Tick(float DeltaTime)
 	break;
 	//バトル終了シーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):
-		levelinterface->LoadLevel(NextLevel);
+		//levelinterface->LoadLevel(NextLevel);
+		levelinterface->UnLoadLevel(MyLevel);
 	break;
 	}
 }
