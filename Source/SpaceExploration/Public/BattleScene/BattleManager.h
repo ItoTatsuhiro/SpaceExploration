@@ -4,13 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-
+#include "../Character/CharacterBase.h"
 #include "BattleManager.generated.h"
 
 class APlayerCharacter;
 class AEnemyBase;
 class ALevelInterface;
 struct FStatus;
+class APlayerController;
+
+//-----------------------------------------------------------------------------------
+// バトルシーンから実行するとプレイヤーと敵の情報が取れなくてUnrealが落ちるので注意--
+//-----------------------------------------------------------------------------------
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -20,6 +25,7 @@ class SPACEEXPLORATION_API ABattleManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABattleManager();
+	~ABattleManager();
 
 protected:
 	// Called when the game starts or when spawned
@@ -41,24 +47,27 @@ private:
 	};
 	//属性相性判定用
 	int type_corr_[5] = { wind, fire, water, wind, fire };
+
 	//属性相性のダメージ補正値
 	//good_ = 2.0
 	//bad_ = 0.5
 	//none_ = 1.0
 	const float good_ = 2.0, bad_ = 0.5, none_ = 1.0;
+
+	//攻撃順番判定用の一時変数
 	struct character {
-		float hp_ = 0;
-		float speed_ = 0.0;
-		float defense_ = 0.0;
-		float attack_ = 0.0;
+		float hp_ = 10;
+	
 		//属性　0＝火　1＝水　2＝風
 		//属性相性　火＜水　水＜風　風＜火
-		int type_ = 0;
+		uint8 type_ = 0;
 
 		float attack_count_ = 0.0;
 	};
-	character player_;
-	character enemy_;
+	character provplayerstatus_;
+	character provenemystatus_;
+	FStatus playerstatus_;
+	FStatus enemystatus_;
 	
 	//行動を決める値
 	float attack_timing_ = 10;
@@ -72,15 +81,20 @@ private:
 	APlayerCharacter* player;
 	AEnemyBase* enemy;
 	ALevelInterface* levelinterface;
+	APlayerController* playercontroller;
 
 	//順番を入れる配列
 	std::vector<uint8> attack_order;
-	//現在の順番のインデックス
+	//現在のバトル順番のインデックス
 	uint8 seqindex = 0;
 
-	//バトル終了後のレベル
+	//バトルレベル
 	UPROPERTY(EditAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> MyLevel;
+	//バトルレベルのカメラ
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	AActor* BattleSceneCamera;
+
 public:
 	//実行中のシーケンス
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleManager")
@@ -92,25 +106,30 @@ public:
 	TArray<uint8> ConvertArray;
 
 //関数
+
 	//バトルシーンに入った時の初期化関数
 	//引数１：プレイヤーのステータスデータ
 	//引数２：プレイヤーの属性
 	//引数３：敵のステータスデータ
 	//引数４：敵の属性
 	UFUNCTION(BlueprintCallable, Category = "BattleManager")
-	void ButtleInit(const  FStatus& player, const int& playerelement, const FStatus& enemy, const int& enemyelement);
+	void ButtleInit();
 
 	//攻撃の順番を決める
 	void BattleTurn();
 
 	//ダメージ計算
-	//引数１：プレイヤーの攻撃力
-	//引数２：プレイヤーの属性
-	//引数３：敵の防御力
-	//引数４：敵の属性
+	//引数１：攻撃側の攻撃力
+	//引数２：攻撃側の属性
+	//引数３：防御側の防御力
+	//引数４：防御側の属性
 	float DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type);
+
+	//現在のバトル順番を一つ進める
+	void SeqIndexAdd() { seqindex++; };
 	
 //ゲッター
+
 	//ターン取得
 	std::vector<uint8> GetButtleTurn() { return attack_order; };
 

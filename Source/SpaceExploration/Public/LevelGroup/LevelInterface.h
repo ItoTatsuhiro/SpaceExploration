@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "LevelInterface.generated.h"
 
+class ACharacterBase;
+
 UCLASS()
 class SPACEEXPLORATION_API ALevelInterface : public AActor
 {
@@ -30,6 +32,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UnLoadLevel(TSoftObjectPtr<UWorld> deletelevel);
 
+//------------------------------------------------------
+//セッター
+
+	//バトルで使用する敵のセッター
+	UFUNCTION(BlueprintCallable)
+	void SetterBattleEnemy(ACharacterBase* battleenemy, const uint8& battleenemyelement);
+
+//ゲッター
+
+	//バトルで使用する敵のゲッター
+	UFUNCTION(BlueprintCallable)
+	ACharacterBase* GetterBattleEnemy()const { return BattleEnemy; };
+	UFUNCTION(BlueprintCallable)
+	//バトルで使用する敵の属性のゲッター
+	uint8 GetterBattleEnemyElement()const { return BattleEnemyElement; };
+
 private:
 	FLatentActionInfo LatentInfo;
 	
@@ -43,4 +61,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> BeforeLevel;
+
+	//バトルで使用する敵
+	ACharacterBase* BattleEnemy;
+	//バトルで使用する敵の属性
+	uint8 BattleEnemyElement;
 };
