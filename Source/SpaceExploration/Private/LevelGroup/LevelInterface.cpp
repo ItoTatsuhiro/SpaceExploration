@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "LevelGroup/LevelInterface.h"
+#include "Character/CharacterBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -53,4 +54,10 @@ void ALevelInterface::UnLoadLevel(TSoftObjectPtr<UWorld> deletelevel)
 	//Œ»İ‚ÌƒŒƒxƒ‹‚ğÁ‹
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, BeforeLevel, LatentInfo, true);
 
+}
+
+void ALevelInterface::SetterBattleEnemy(ACharacterBase* battleenemy, const uint8& battleenemyelement)
+{
+	BattleEnemy = battleenemy;
+	BattleEnemyElement = battleenemyelement;
 }

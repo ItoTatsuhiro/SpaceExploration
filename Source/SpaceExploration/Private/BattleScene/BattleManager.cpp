@@ -6,6 +6,7 @@
 #include "Character/PlayerCharacter.h"
 #include "LevelGroup/LevelInterface.h"
 #include "BattleScene/E_BattleSEQ.h"
+#include "GameFramework/PlayerController.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
@@ -16,17 +17,16 @@ ABattleManager::ABattleManager()
 
 }
 
+ABattleManager::~ABattleManager()
+{
+
+}
+
 // Called when the game starts or when spawned
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
-	//攻撃順初期化
-	attack_order.clear();
-	//attack_orderの始めにバトル前の準備シーンを設定
-	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY));
-
-	//バトル順初期化
-	seqindex = 0;
+	
 }
 
 // Called every frame
@@ -41,55 +41,70 @@ void ABattleManager::Tick(float DeltaTime)
 	switch (NowBattleSeq) {
 	//バトルスタンバイシーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY):
-		
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+		//バトルシーンのカメラに切り替え
+		playercontroller->SetViewTargetWithBlend(BattleSceneCamera);
 	break;
 	//プレイヤー攻撃シーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK):
 		player->StartAttackAction();
+		//プレイヤーのカメラに切り替え
+		playercontroller->SetViewTargetWithBlend(player->GetBattleCameraComponent()->GetChildActor());
 	break;
 	//プレイヤー攻撃を受けるシーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE):
 		player->TakeDamage(playerdamage);
+		//プレイヤーのカメラに切り替え
+		playercontroller->SetViewTargetWithBlend(player->GetBattleCameraComponent()->GetChildActor());
 	break;
 	//エネミー攻撃シーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK):
 		enemy->StartAttackAction();
+		//敵カメラに切り替え
+		playercontroller->SetViewTargetWithBlend(enemy->GetBattleCameraComponent()->GetChildActor());
 	break;
 	//エネミー攻撃を受けるシーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE):
 		enemy->TakeDamage(enemydamage);
+		//敵カメラに切り替え
+		playercontroller->SetViewTargetWithBlend(enemy->GetBattleCameraComponent()->GetChildActor());
 	break;
 	//バトルリザルト画面シーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT):
-		
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+		//バトルシーンのカメラに切り替え
+		playercontroller->SetViewTargetWithBlend(BattleSceneCamera);
 	break;
 	//バトル終了シーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):
-		//levelinterface->LoadLevel(NextLevel);
-		levelinterface->UnLoadLevel(MyLevel);
+		
 	break;
 	}
 }
 
-void ABattleManager::ButtleInit(const  FStatus& player_status, const int& playerelement, const FStatus& enemy_status, const int& enemyelement)
+void ABattleManager::ButtleInit()
 {
+	//攻撃順初期化
+	attack_order.clear();
+	//attack_orderの始めにバトル前の準備シーンを設定
+	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY));
+
+	//現在のバトル順初期化
+	seqindex = 0;
+
 	//順番決め用一時変数に挿入
 	//プレイヤー
-	player_.hp_ = player_status.HP;
-	player_.speed_ = player_status.Speed;
-	player_.defense_ = player_status.DefencePower;
-	player_.attack_ = player_status.AttackPower;
-	player_.type_ = playerelement;
-
+	playerstatus_ = player->GetCharacterStatus();
+	provplayerstatus_.hp_ = playerstatus_.HP;
+	provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());;
+	
 	//敵
-	enemy_.hp_ = enemy_status.HP;
-	enemy_.speed_ = enemy_status.Speed;
-	enemy_.defense_ = enemy_status.DefencePower;
-	enemy_.attack_ = enemy_status.AttackPower;
-	enemy_.type_ = enemyelement;
+	enemystatus_ = levelinterface->GetterBattleEnemy()->GetCharacterStatus();
+	provenemystatus_.hp_ = enemystatus_.HP;
+	provenemystatus_.type_ = levelinterface->GetterBattleEnemyElement();
 
 	//攻撃タイミング設定
-	attack_timing_ = player_status.Speed + enemy_status.Speed;
+	attack_timing_ = playerstatus_.Speed + enemystatus_.Speed;
 
 	//順番決め
 	BattleTurn();
@@ -97,29 +112,32 @@ void ABattleManager::ButtleInit(const  FStatus& player_status, const int& player
 
 void ABattleManager::BattleTurn()
 {
-	float playerhp = player_.hp_, enemyhp = enemy_.hp_;
+	//ダメージの計算
+	enemydamage = DamageMath(playerstatus_.AttackPower, provplayerstatus_.type_, enemystatus_.DefencePower, provenemystatus_.type_);
+	playerdamage = DamageMath(enemystatus_.AttackPower, provenemystatus_.type_, playerstatus_.DefencePower, provplayerstatus_.type_);
 
 	//プレイヤーか敵のどちらかの体力が0になるまで
-	while (playerhp > 0.0f && enemyhp > 0.0f) {
-		player_.attack_count_ += player_.speed_;
-		enemy_.attack_count_ += enemy_.speed_;
+	while (playerstatus_.HP > 0.0f && enemystatus_.HP > 0.0f) {
+		provplayerstatus_.attack_count_ += playerstatus_.Speed;
+		provenemystatus_.attack_count_ += enemystatus_.Speed;
 
 		//プレイヤーの攻撃
-		if (player_.attack_count_ >= attack_timing_) {
-			player_.attack_count_ = 0.0f;
-			//ダメージの計算
-			enemydamage = DamageMath(player_.attack_, player_.type_, enemy_.defense_, enemy_.type_);
-			enemyhp -= enemydamage;
+		if (provplayerstatus_.attack_count_ >= attack_timing_) {
+			provplayerstatus_.attack_count_ = 0.0f;
+			
+			enemystatus_.HP -= enemydamage;
+
 			//順番を設定
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK));
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE));
 		}
+
 		//敵の攻撃
-		else if (enemy_.attack_count_ >= attack_timing_) {
-			enemy_.attack_count_ = 0.0f;
-			//ダメージ計算
-			playerdamage = DamageMath(enemy_.attack_, enemy_.type_, player_.defense_, player_.type_);
-			playerhp -= playerdamage;
+		if (provenemystatus_.attack_count_ >= attack_timing_) {
+			provenemystatus_.attack_count_ = 0.0f;
+
+			playerstatus_.HP -= playerdamage;
+
 			//順番を設定
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK));
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE));
