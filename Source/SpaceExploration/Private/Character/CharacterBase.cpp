@@ -3,6 +3,8 @@
 
 #include "Character/CharacterBase.h"
 #include "tsutsumi/Element.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/BaseCamera.h"
 #include "Weapon/WeaponBase.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include "tsutsumi/Status.h"
@@ -15,8 +17,15 @@ ACharacterBase::ACharacterBase()
 
 	// ルートコンポーネントの設定
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-
 	RootComponent = DefaultSceneRoot;
+
+	// バトルシーンのカメラ設定
+	BattleCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("BattleCameraSpringArm"));
+	BattleCameraSpringArm->SetupAttachment(DefaultSceneRoot);
+
+	BattleCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("BattleCamera"));
+	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
+	BattleCameraComp->SetupAttachment(BattleCameraSpringArm);
 
 	// 装備品初期化
 	EquippedWeapon = nullptr;

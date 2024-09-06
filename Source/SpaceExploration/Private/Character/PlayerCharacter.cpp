@@ -2,12 +2,12 @@
 
 
 #include "Character/PlayerCharacter.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include <EnhancedInputSubsystems.h>
 #include "InputAction.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/BaseCamera.h"
 #include "GameFramework/PlayerController.h"
 #include "Character/MouseButtonEvent.h"
 #include <Kismet/KismetSystemLibrary.h>
@@ -19,13 +19,15 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(10
 
 	CharacterStaticMeshComp->SetupAttachment(RootComponent);
 
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
-	SpringArm->SetupAttachment(RootComponent);
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
-
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+
+	// カメラの作成
+	LookingDownCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("LookingDownCameraSpringArm"));
+	LookingDownCameraSpringArm->SetupAttachment(CharacterStaticMeshComp);
+
+	LookingDownCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("LookingDownCameraComponent"));
+	LookingDownCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
+	LookingDownCameraComp->SetupAttachment(LookingDownCameraSpringArm);
 
 	ClickedEvnet = nullptr;
 
@@ -49,6 +51,8 @@ void APlayerCharacter::BeginPlay()
 	// マウスカーソルを表示
 	PlayerController->bShowMouseCursor = true;
 
+	PlayerController->SetViewTargetWithBlend(LookingDownCameraComp->GetChildActor());
+
 	//// マウスカーソルのモードを UI モードに設定 (必要に応じて)
 	//FInputModeUIOnly InputMode;
 	//PlayerController->SetInputMode(InputMode);
@@ -71,21 +75,24 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	else {
 		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponentがNullです"));
 	}
-	if (GetOwner()->InputComponent)
+	if (!GetOwner()->InputComponent)
 	{
-		if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-		{
-			// InputMapping Context を登録する
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-				ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())
-				)
-			{
-				Subsystem->AddMappingContext(InputMapping.LoadSynchronous(), 0);
-			}
-		}
-	}
-	else {
 		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponentがNullです2"));
+		return;
+	}
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	// InputMapping Context を登録する
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())
+		)
+	{
+		Subsystem->AddMappingContext(InputMapping.LoadSynchronous(), 0);
 	}
 }
 

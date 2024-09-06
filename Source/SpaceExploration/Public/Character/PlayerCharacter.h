@@ -9,6 +9,7 @@
 #include "PlayerCharacter.generated.h"
 
 class UInputMappingContext;
+class USpringArmComponent;
 class UCameraComponent;
 
 /**
@@ -29,18 +30,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	UCameraComponent* GetCaemraComponent() { return Camera; }
+	UChildActorComponent* GetLookingDownCaemeraComponent() const { return LookingDownCameraComp; }
 
 	// 目標の位置に移動
 	void BeginMoveTargetLocation(const FVector Location);
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class USpringArmComponent* SpringArm;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UCameraComponent* Camera;
-
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TSoftObjectPtr<UInputMappingContext> InputMapping;
 
@@ -65,6 +60,12 @@ private:
 	// 移動速度
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	USpringArmComponent* LookingDownCameraSpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UChildActorComponent* LookingDownCameraComp;
 	
 private:
 	// 左クリックを押したとき、インターフェースを実行する。

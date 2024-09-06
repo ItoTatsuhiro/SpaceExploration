@@ -52,6 +52,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; };
 
+	UFUNCTION(BlueprintCallable)
+	UChildActorComponent* GetBattleCameraComponent() const { return BattleCameraComp; }
+
 	// ----------------------------------------------------------------
 	// セッター
 	// ----------------------------------------------------------------
@@ -120,5 +123,11 @@ protected:
 	// 装備中のウェポン
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<AWeaponBase> EquippedWeapon = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class USpringArmComponent* BattleCameraSpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UChildActorComponent* BattleCameraComp;
 
 };
