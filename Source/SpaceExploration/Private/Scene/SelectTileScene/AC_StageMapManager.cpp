@@ -6,6 +6,10 @@
 #include "../../../Public/Scene/SelectTileScene/AC_MapTileHeal.h"
 #include "../../../Public/Scene/SelectTileScene/AC_MapTileItem.h"
 #include "../../../Public/Scene/SelectTileScene/AC_MapTile_Battle.h"
+#include "../../../Public/Character/PlayerCharacter.h"
+
+#include <Kismet/GameplayStatics.h>
+
 
 
 
@@ -26,10 +30,25 @@ AAC_StageMapManager::AAC_StageMapManager()
     galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
 
 
-
-
     tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
     tileObjectComponent_->SetupAttachment(RootComponent);
+
+    //-------------------------------------------------------------------------------
+    // シーケンス制御用の処理
+
+    // デリゲート初期化
+    createTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqCreateTile);
+    selectTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqSelectTile);
+
+
+
+    // 最初に実行する関数を指定
+    sequenceManager_ = NewObject<USequenceManager>();
+
+    if (sequenceManager_ == nullptr) {
+        UE_LOG(LogTemp, Error, TEXT("sequenceManager_ is nullptr"));
+        return;
+    }
 
 
 }
@@ -41,6 +60,44 @@ void AAC_StageMapManager::BeginPlay()
 	Super::BeginPlay();
 
     UE_LOG(LogTemp, Log, TEXT("BeginPlay"));
+
+    PlayerCharacter_ = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+    if (!PlayerCharacter_) {
+        UKismetSystemLibrary::PrintString(this, "PlayerCharacter_ is nullptr", true, true, FColor::Red, 3.f);
+        UE_LOG(LogClass, Error, TEXT("PlayerCharacter_ is nullptr"));
+        return;
+    }
+
+    sequenceManager_->ChangeSequence(&(AAC_StageMapManager::createTileDel_));
+
+}
+
+// Called every frame
+void AAC_StageMapManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
+
+    if (sequenceManager_ != nullptr) {
+        // シーケンスの更新
+        sequenceManager_->updateSequence(DeltaTime);
+
+    }
+}
+
+
+// -----------------------------------------------------------------------------------------------------
+// シーケンス用
+
+// マス生成シーケンス
+void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
+
+    if (sequenceManager_ == nullptr) {
+        return;
+    }
+
 
     // マスの種類をランダムで生成
     if (galaxyRandomSelectComponent_)
@@ -58,32 +115,62 @@ void AAC_StageMapManager::BeginPlay()
 
             if (galaxyRandomSelect_) {
 
-                // tileTypeArray_ = galaxyRandomSelect_->MakeTileArray({ 1, 2, 3, 2, 3, 2, 1 });
-
                 UE_LOG(LogTemp, Log, TEXT("オブジェクト生成"));
 
                 CreateTileObjArray({ 1, 2, 3, 2, 3, 2, 1 });
             }
 
-
         }
-
-
 
     }
 
-    // CreateTileObjArray();
+
+
+    // 実行するシーケンスを切り替え
+    // 切り替え先：マス選択シーケンス
+    sequenceManager_->ChangeSequence(&(AAC_StageMapManager::selectTileDel_));
+    
 
 }
 
-// Called every frame
-void AAC_StageMapManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+
+
+
+
+// マス選択シーケンス
+void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
+
+    AActor* hoveredObj = PerformRaycast();
+
+    if ( hoveredObj != nullptr && hoveredObj->IsA(AAC_MapTileBase::StaticClass())) {
+
+        hoveredTile_ = Cast<AAC_MapTileBase>(hoveredObj);
+
+    }
+    else {
+
+        hoveredTile_ = nullptr;
+
+    }
+
+    // デバッグ用に重なっているマスに目印を付ける
+    if (hoveredTile_ != nullptr) {
+
+        DrawDebugSphere(GetWorld(), hoveredTile_->GetActorLocation(), 100.0f, 12, FColor::Red, false);
+
+    }
+
+
+
 
 }
 
 
+
+
+
+// -----------------------------------------------------------------------------------------------------
+// マス生成関係
 
 // マスを追加で生成する関数
 // 引数：createTileNumArray...新しく生成するマスの配列の大きさ
@@ -156,23 +243,22 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
 
                 break;
             }
+
+            // 自身のインスタンスをマスにセット
+            tempTileArray.TileArray[col]->setStageMapManager(this);
         }
 
         // 二重配列に入れる
         tileObjArray_.Emplace(tempTileArray);
     }
 
-    // **********************************************************
-    // マスのオブジェクトを生成するところまではできているので、
-    // それぞれのマスのオブジェクトの座標を設定するところから開始する！
-    // **********************************************************
+    // マスをそれぞれ順番に配置
     for (int row = 0; row < tileTypeArray_.Num(); ++row)
     {
 
-
         for (int col = 0; col < tileTypeArray_[row].typeArray.Num(); ++col)
         {
-
+            // 中身が無ければログを表示
             if (tileObjArray_[row].TileArray[col] == nullptr) {
 
                 UE_LOG(LogTemp, Log, TEXT("tileObjArray_[%d].TileArray[5d] = nullptr"), row, col);
@@ -181,14 +267,56 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
             }
 
 
-            // x方向の割合
-            float colRatio = static_cast<float>(col + 1) / tileObjArray_[row].TileArray.Num();
-
+            // x方向の位置
+            float colPos = col - ( (tileObjArray_[row].TileArray.Num() - 1) / 2.0f );
+            
             // マスを配置する座標を計算
-            FVector tilePos = basePos_ + FVector{ (1.0f - 1.0f / (static_cast<float>(col + 1) * 2.0f)) * colRatio, static_cast<float>(row), 0.0f } *tileSpace_;
+            FVector tilePos = basePos_ + FVector{ colPos, static_cast<float>(row), 0.0f} * tileSpace_;
+
 
             // 座標を設定
             tileObjArray_[row].TileArray[col]->SetActorLocation(tilePos);
         }
     }
+}
+
+
+
+
+// -----------------------------------------------------------------------------------------------------
+// クリックでオブジェクトを取得するための関数
+
+// レイを飛ばして当たったActorを取得する関数
+AActor* AAC_StageMapManager::PerformRaycast() {
+
+    // ----------------------------------------------------------------------
+    // レイの開始地点と終了地点を定義
+
+    // プレイヤーコントローラー取得
+    APlayerController* playerController = GetWorld()->GetFirstPlayerController();
+    if (!playerController) {
+        return nullptr;
+    }
+
+
+    // カーソルの位置のオブジェクトを取得
+    FHitResult hitResult;
+    if (playerController->GetHitResultUnderCursor(ECC_Visibility, false, hitResult)) {
+        AActor* hitActor = hitResult.GetActor();
+
+        if (hitActor) {
+
+            UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *hitActor->GetName());
+
+            // デバッグ用にヒット位置を表示
+            DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 1.0f);
+
+
+            return hitActor;
+        }
+
+    }
+
+    return nullptr;
+
 }
