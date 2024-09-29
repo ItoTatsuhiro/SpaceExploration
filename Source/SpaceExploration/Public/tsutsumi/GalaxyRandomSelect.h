@@ -9,7 +9,8 @@
 #include "GalaxyRandomSelect.generated.h"
 
 
-
+// 二重のTArrayに使用する用
+// マスの種類のEnum型のTArrayをもつ構造体
 USTRUCT()
 struct FTileEnumArray {
 	GENERATED_BODY()
@@ -21,6 +22,7 @@ struct FTileEnumArray {
 
 
 // 惑星のマスをランダムに生成する処理を行うクラス
+// 堤君が作成したものに伊藤が機能追加
 UCLASS(BlueprintType)
 class SPACEEXPLORATION_API AGalaxyRandomSelect : public AActor
 {
@@ -42,9 +44,6 @@ protected:
 	// 配列上のランダムな位置に引数の種類のマスを挿入する関数
 	void RandomInsertTileType(E_TILE_TYPE insertTile);
 
-	//// 生成するマスの配列
-	//// （伊藤追加）
-	//TArray<TArray<E_TILE_TYPE>> tileArray_;
 
 
 	UPROPERTY(VisibleAnywhere)
@@ -86,7 +85,7 @@ protected:
 	//		各種類のマスを最低1つずつ生成したい場合には、{ 1, 1, 1 }を入れる
 	// -------------------------------------------------------------------------------
 	UPROPERTY(EditAnywhere)
-	TArray<int> minSelectNum_ = { 1, 1, 1 };
+	TArray<int> minSelectNum_ = { 2, 2, 2 };
 
 
 public:

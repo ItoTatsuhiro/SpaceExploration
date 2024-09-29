@@ -7,13 +7,18 @@
 
 #include "../../tsutsumi/GalaxyRandomSelect.h"
 #include "../../Scene/SelectTileScene/E_Tile.h"
+#include "../../Manager/SequenceManager.h"
+
 
 #include "AC_StageMapManager.generated.h"
 
+//// 前方宣言
+//class FSequenceDelegate;
 
 
 
-
+// 二重のTArrayに使用する用
+// マスのベース型のTArrayをもつ構造体
 USTRUCT()
 struct FTileArray {
 	GENERATED_BODY()
@@ -40,19 +45,45 @@ private:
 	virtual void BeginPlay() override;
 
 
+	//------------------------------------------------------------------------------------
+	// MapSceneの制御用
+	// デリゲートを用いて制御を行う
+
+	// シーケンスマネージャー
+	USequenceManager* sequenceManager_;
+
+
+
+	// シーケンス用の関数とデリゲート
+
+	// マス生成シーケンス
+	void SeqCreateTile(const float delta_time);
+	// マス生成シーケンス用デリゲート(コンストラクタで初期化)
+	FSequenceDelegate createTileDel_;
+
+
+
+	// マス選択シーケンス
+	void SeqSelectTile(const float delta_time);
+	// マス選択シーケンス用デリゲート(コンストラクタで初期化)
+	FSequenceDelegate selectTileDel_;
+
+
+
+	//------------------------------------------------------------------------------------
+	// マス生成関連
+
 	// マスランダム生成のためのクラスのインスタンス用
 	UPROPERTY()
 	AGalaxyRandomSelect* galaxyRandomSelect_ = nullptr;
-
 
 	// マスをランダム生成するためのGalaxyRandomSelectクラスのコンポーネント
 	// ランダムにマスを生成する際に、MakeTileArray関数を呼び出して使用する
 	UPROPERTY(VisibleAnywhere)
 	class UChildActorComponent* galaxyRandomSelectComponent_;
 
-
 	// AGalaxyRandomSelectのクラス
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	TSubclassOf<AGalaxyRandomSelect> galaxyRandomSelectClass_;
 
 	UPROPERTY(VisibleAnywhere)
@@ -64,19 +95,15 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UChildActorComponent* tileObjectComponent_;
 
-
-
 	// マスのオブジェクトの配列
 	// tileTypeArrayから実際にオブジェクトを生成
 	UPROPERTY()
 	TArray< FTileArray > tileObjArray_;
 
 
-
 	// マス同士の間隔
 	UPROPERTY(EditAnywhere, Category = "tileDetail")
 	float tileSpace_;
-
 
 	// マスを配置する際の基準となる座標
 	UPROPERTY(EditAnywhere, Category = "tileDetail")
@@ -95,6 +122,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "tileDetail")
 	TSubclassOf<class AAC_MapTileItem> itemTileClass_;
 
+	const APlayerCharacter* PlayerCharacter_;
+
+
+	// レイを飛ばして当たったActorを取得する関数
+	AActor* PerformRaycast();
+
+	// カーソルが重なっているマス
+	AActor* hoveredTile_;
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -110,7 +147,5 @@ public:
 	// 0	　　〇
 	// ----------------------------------------------------------------------
 	void CreateTileObjArray( TArray<int> createTileNumArray );
-
-
 
 };
