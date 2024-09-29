@@ -6,12 +6,12 @@
 AWeapon1::AWeapon1()
 {
 
-	WeaponStatus.PlayerName = "Weapon01";
-	WeaponStatus.MaxHp = 1.0f;
-	WeaponStatus.HP = 1.0f;
-	WeaponStatus.AttackPower = 1.0f;
-	WeaponStatus.DefencePower = 1.0f;
-	WeaponStatus.Speed = 1.0f;
+	CurrentLevelStatus.PlayerName = "Weapon01";
+	CurrentLevelStatus.MaxHp = 1.0f;
+	CurrentLevelStatus.HP = 1.0f;
+	CurrentLevelStatus.AttackPower = 1.0f;
+	CurrentLevelStatus.DefencePower = 1.0f;
+	CurrentLevelStatus.Speed = 1.0f;
 }
 
 void AWeapon1::BeginPlay()
