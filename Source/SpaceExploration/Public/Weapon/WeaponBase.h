@@ -10,7 +10,7 @@
 #include "WeaponBase.generated.h"
 
 
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable)
 class SPACEEXPLORATION_API AWeaponBase : public AActor, public IMouseButtonEvent
 {
 	GENERATED_BODY()
@@ -18,7 +18,6 @@ class SPACEEXPLORATION_API AWeaponBase : public AActor, public IMouseButtonEvent
 public:	
 	// Sets default values for this actor's properties
 	AWeaponBase();
-
 
 protected:
 	// Called when the game starts or when spawned
@@ -29,7 +28,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	// 武器のステータスを取得する
-	inline const FStatus& GetWeaponStatus() const { return WeaponStatus; }
+	inline const FStatus& GetWeaponStatus() const { return CurrentLevelStatus; }
 	// 武器の属性を取得する
 	inline const EElement GetWeaponElement() const { return WeaponElement; }
 
@@ -37,10 +36,13 @@ public:
 	// ここから
 	// ==========================================================================
 	// 武器のステータスを設定する
-	inline void SetWeaponStatus(const FStatus& Status) { WeaponStatus = Status; }
+	inline void SetWeaponStatus(const FStatus& Status) { CurrentLevelStatus = Status; }
 
 	// 左マウスをクリックしたときの処理
 	virtual void LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter) override;
+
+	UFUNCTION(BlueprintCallable)
+	void SettingWeapon();
 
 protected:
 	// 
@@ -51,23 +53,31 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
-	// 武器のステータス
+	//武器の初期ステータス
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	FStatus WeaponStatus;
+	FStatus CurrentLevelStatus;
+
+	//武器の次のレベルのステータス
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	FStatus NextLevelStatus;
 
 	// 武器の属性
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	EElement WeaponElement = EElement::fire;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components",  meta = (AllowPrivateAccess = "true"))
-	FStatus DefaultStatus;
+	//HPのレベルごとの強化値
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "EnhancedValue")
+	int HpEnhancedValue;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "RandomRange")
-	int AttackRandomRange;
+	//スピードのレベルごとの強化値
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "EnhancedValue")
+	int SpeedEnhancedValue;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "RandomRange")
-	int DeffenceRandomRange;
+	//攻撃力のレベルごとの強化値
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "EnhancedValue")
+	int AttackEnhancedValue;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "RandomRange")
-	int  SpeedRandomRange;
+	//防御力のレベルごとの強化値
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "EnhancedValue")
+	int DeffenceEnhancedValue;
 };
