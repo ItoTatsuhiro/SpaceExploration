@@ -52,6 +52,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; };
 
+
 	UFUNCTION(BlueprintCallable)
 	UChildActorComponent* GetBattleCameraComponent() const { return BattleCameraComp; }
 
