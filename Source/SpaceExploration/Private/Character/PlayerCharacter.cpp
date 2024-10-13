@@ -8,29 +8,46 @@
 #include "InputAction.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/BaseCamera.h"
+#include "Weapon/WeaponInventoryComponent.h"
+#include "Weapon/WeaponBase.h"
 #include "GameFramework/PlayerController.h"
 #include "Character/MouseButtonEvent.h"
 #include <Kismet/KismetSystemLibrary.h>
 
 
-APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(10.0f)
+APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(2000.0f)
 {
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	UE_LOG(LogClass, Log, TEXT("PlayerCharacterのコンストラクタが実行されました。"), nullptr);
+
 	CharacterStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayeMesh"));
 
 	CharacterStaticMeshComp->SetupAttachment(RootComponent);
 
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 
-	// カメラの作成
+	// ----------- カメラの作成 -----------------------------------------------------
 	LookingDownCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("LookingDownCameraSpringArm"));
 	LookingDownCameraSpringArm->SetupAttachment(CharacterStaticMeshComp);
+
+	LookingDownCameraSpringArm->TargetArmLength = 1000.f;
+	LookingDownCameraSpringArm->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));
 
 	LookingDownCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("LookingDownCameraComponent"));
 	LookingDownCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
 	LookingDownCameraComp->SetupAttachment(LookingDownCameraSpringArm);
 
-	ClickedEvnet = nullptr;
+	// ----------- 武器インベントリコンポーネントの生成 ------------------------------
+	WeaponInventoryComponent = CreateDefaultSubobject<UWeaponInventoryComponent>(TEXT("Weapon Inventory"));
 
+	if (!WeaponInventoryComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの生成に失敗しました。"));
+	}
+
+	ClickedEvnet = nullptr;
 }
 
 /// <summary>
@@ -45,7 +62,7 @@ void APlayerCharacter::BeginPlay()
 	if (!PlayerController)
 	{
 		UKismetSystemLibrary::PrintString(this, "PlayerControllerの取得に失敗しました。", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"), nullptr);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"));
 		return;
 	}
 	// マウスカーソルを表示
@@ -53,9 +70,22 @@ void APlayerCharacter::BeginPlay()
 
 	PlayerController->SetViewTargetWithBlend(LookingDownCameraComp->GetChildActor());
 
+	if (!WeaponInventoryComponent) {
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("WeaponInventoryの取得に失敗しました。")), true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの取得に失敗しました。"));
+		return;
+	}
+
+	WeaponInventoryComponent->CreateElememtWeapons();
+
+	auto ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
+
+	EquippedWeapon = ElementWeapons[0];
+	
 	//// マウスカーソルのモードを UI モードに設定 (必要に応じて)
 	//FInputModeUIOnly InputMode;
 	//PlayerController->SetInputMode(InputMode);
+
 }
 
 /// <summary>
@@ -158,11 +188,11 @@ void APlayerCharacter::ClickedMouseLeftButton()
 			if ( !HitActor || !( HitActor->GetClass()->ImplementsInterface( UMouseButtonEvent::StaticClass() ) ) )
 			{
 				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Actorの取得に失敗しました。")), true, true, FColor::Yellow, 2.f, TEXT(""));
-				UE_LOG(LogTemp, Warning, TEXT("Actorの取得に失敗しました。"), nullptr);
+				UE_LOG(LogTemp, Warning, TEXT("Actorの取得に失敗しました。"));
 				return;
 			}
 
-			// MouseButtonEvent->LeftMouseButtonEvent(this);
+			// インターフェイスが存在する場合、左クリック時のイベント関数を呼び出す。
 			IMouseButtonEvent::Execute_LeftMouseButtonEvent(HitActor, this);
 
 			// Debug line to visualize the trace

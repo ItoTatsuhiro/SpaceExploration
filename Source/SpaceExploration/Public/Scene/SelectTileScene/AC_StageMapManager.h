@@ -45,11 +45,13 @@ private:
 	virtual void BeginPlay() override;
 
 
+
 	//------------------------------------------------------------------------------------
 	// MapSceneの制御用
 	// デリゲートを用いて制御を行う
 
 	// シーケンスマネージャー
+	UPROPERTY(VisibleAnywhere)
 	USequenceManager* sequenceManager_;
 
 
@@ -128,6 +130,7 @@ private:
 	// レイを飛ばして当たったActorを取得する関数
 	AActor* PerformRaycast();
 
+	UPROPERTY()
 	// カーソルが重なっているマス
 	AActor* hoveredTile_;
 

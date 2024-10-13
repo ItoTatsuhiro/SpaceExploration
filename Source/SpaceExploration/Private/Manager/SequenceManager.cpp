@@ -15,9 +15,11 @@ USequenceManager::USequenceManager()
 
 
 // シーケンスを新しいものに切り替える処理
-void USequenceManager::ChangeSequence(FSequenceDelegate* newDelegate) {
+void USequenceManager::ChangeSequence(FSequenceDelegate newDelegate) {
 	
 	sequence_ = newDelegate;
+
+	UE_LOG(LogTemp, Log, TEXT("シーケンス切り替え"));
 
 }
 
@@ -26,13 +28,14 @@ void USequenceManager::ChangeSequence(FSequenceDelegate* newDelegate) {
 // シーケンスを更新する処理
 void USequenceManager::updateSequence(const float delta_time) {
 
-	if (sequence_ == nullptr) {
+
+	if (!sequence_.IsBound()) {
 		return;
 	}
 
 
 	// 実行する
-	(*sequence_).Execute(delta_time);
+	sequence_.Execute(delta_time);
 
 
 }

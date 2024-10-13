@@ -23,6 +23,9 @@ ACharacterBase::ACharacterBase()
 	BattleCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("BattleCameraSpringArm"));
 	BattleCameraSpringArm->SetupAttachment(DefaultSceneRoot);
 
+	BattleCameraSpringArm->TargetArmLength = 300.f;
+	BattleCameraSpringArm->SetWorldRotation(FRotator(-150.f, 0.f, 0.f));
+
 	BattleCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("BattleCamera"));
 	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
 	BattleCameraComp->SetupAttachment(BattleCameraSpringArm);
@@ -44,6 +47,11 @@ void ACharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+EElement ACharacterBase::GetAttackElement() const
+{
+	return EquippedWeapon->GetWeaponElement();
 }
 
 // 装備する武器を設定する。
@@ -76,7 +84,7 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 		ResultAmount = CharacterStatus.MaxHp - CharacterStatus.HP;
 		CharacterStatus.HP = CharacterStatus.MaxHp;
 		UKismetSystemLibrary::PrintString(this, "HP fully recovered.", true, true, FColor::Yellow, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("HP fully recovered."), nullptr);
+		UE_LOG(LogTemp, Warning, TEXT("HP fully recovered."));
 		return ResultAmount;
 	}
 	CharacterStatus.HP += RecoveryAmount;
@@ -99,7 +107,7 @@ void ACharacterBase::StartAttackAction()
 {
 
 	UKismetSystemLibrary::PrintString(this, "StartAttack", true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("攻撃開始"), nullptr);
+	UE_LOG(LogTemp, Log, TEXT("攻撃開始"));
 }
 
 // =========================================================================

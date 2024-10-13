@@ -16,11 +16,12 @@
 
 // Sets default values
 AAC_StageMapManager::AAC_StageMapManager()
-    : tileSpace_(500), basePos_({ 0, 0, 0 }),
+    : tileSpace_(500), basePos_({ 0, 0, 0 }), sequenceManager_(nullptr), galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr), tileObjectComponent_(nullptr), hoveredTile_(nullptr),
     battleTileClass_(AAC_MapTileBattle::StaticClass()), healTileClass_(AAC_MapTileHeal::StaticClass()), itemTileClass_(AAC_MapTileItem::StaticClass())
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 
 
 
@@ -32,30 +33,18 @@ AAC_StageMapManager::AAC_StageMapManager()
 
     tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
     tileObjectComponent_->SetupAttachment(RootComponent);
-
-    //-------------------------------------------------------------------------------
-    // シーケンス制御用の処理
-
-    // デリゲート初期化
-    createTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqCreateTile);
-    selectTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqSelectTile);
-
-
-
-    // 最初に実行する関数を指定
-    sequenceManager_ = NewObject<USequenceManager>();
-
-    if (sequenceManager_ == nullptr) {
-        UE_LOG(LogTemp, Error, TEXT("sequenceManager_ is nullptr"));
-        return;
-    }
-
-
+    
+    
 }
+
+
+
 
 // Called when the game starts or when spawned
 void AAC_StageMapManager::BeginPlay()
 {
+
+
 
 	Super::BeginPlay();
 
@@ -69,7 +58,23 @@ void AAC_StageMapManager::BeginPlay()
         return;
     }
 
-    sequenceManager_->ChangeSequence(&(AAC_StageMapManager::createTileDel_));
+
+    //-------------------------------------------------------------------------------
+    // シーケンス制御用の処理
+
+    // デリゲート初期化
+    createTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqCreateTile);
+    selectTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqSelectTile);
+
+    // 最初に実行する関数を指定
+    sequenceManager_ = NewObject<USequenceManager>();
+
+    if (sequenceManager_ == nullptr) {
+        UE_LOG(LogTemp, Error, TEXT("sequenceManager_ is nullptr"));
+        return;
+    }
+
+    sequenceManager_->ChangeSequence(createTileDel_);
 
 }
 
@@ -80,11 +85,18 @@ void AAC_StageMapManager::Tick(float DeltaTime)
 
 
 
-    if (sequenceManager_ != nullptr) {
+    if (sequenceManager_) {
+
+
         // シーケンスの更新
         sequenceManager_->updateSequence(DeltaTime);
 
     }
+    else {
+
+        UE_LOG(LogTemp, Error, TEXT("sequenceManager_ is nullptr"));
+    }
+
 }
 
 
@@ -128,8 +140,9 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
 
     // 実行するシーケンスを切り替え
     // 切り替え先：マス選択シーケンス
-    sequenceManager_->ChangeSequence(&(AAC_StageMapManager::selectTileDel_));
+    sequenceManager_->ChangeSequence(selectTileDel_);
     
+    UE_LOG(LogTemp, Log, TEXT("シーケンス切り替え：selectTileDel_"));
 
 }
 
@@ -140,11 +153,23 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
 // マス選択シーケンス
 void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
 
+    // カーソルと重なっているオブジェクトを取得
     AActor* hoveredObj = PerformRaycast();
 
     if ( hoveredObj != nullptr && hoveredObj->IsA(AAC_MapTileBase::StaticClass())) {
 
-        hoveredTile_ = Cast<AAC_MapTileBase>(hoveredObj);
+        // 重なっているオブジェクトをMapTileBaseのクラスにキャスト
+        AActor* hoveredTile = Cast<AAC_MapTileBase>(hoveredObj);
+
+        // 現在変数として置いてあるものと比較
+        if (hoveredTile_ != hoveredTile) {
+            
+            // 置き換え
+            hoveredTile_ = hoveredTile;
+
+            // ログを表示
+            UE_LOG(LogTemp, Log, TEXT("HoveredTile: %s"), *hoveredTile_->GetName() );
+        }
 
     }
     else {
@@ -244,8 +269,7 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
                 break;
             }
 
-            // 自身のインスタンスをマスにセット
-            tempTileArray.TileArray[col]->setStageMapManager(this);
+
         }
 
         // 二重配列に入れる
@@ -306,7 +330,7 @@ AActor* AAC_StageMapManager::PerformRaycast() {
 
         if (hitActor) {
 
-            UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *hitActor->GetName());
+             //UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *hitActor->GetName());
 
             // デバッグ用にヒット位置を表示
             DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 1.0f);
