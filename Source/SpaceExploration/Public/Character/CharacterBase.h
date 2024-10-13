@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "../tsutsumi/Status.h"
 #include "../Weapon/WeaponBase.h"
+#include "../tsutsumi/Element.h"
 #include "CharacterBase.generated.h"
 
 DECLARE_DELEGATE_RetVal_OneParam(bool, Sequence, float);
@@ -52,6 +53,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; };
 
+	// =========================================================================
+	// ‘•”õ’†‚Ì•Ší‚ğæ“¾
+	// =========================================================================
+	UFUNCTION(BlueprintCallable)
+	EElement GetAttackElement() const;
 
 	UFUNCTION(BlueprintCallable)
 	UChildActorComponent* GetBattleCameraComponent() const { return BattleCameraComp; }

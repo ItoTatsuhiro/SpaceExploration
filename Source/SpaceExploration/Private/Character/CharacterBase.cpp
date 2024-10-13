@@ -49,6 +49,11 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
+EElement ACharacterBase::GetAttackElement() const
+{
+	return EquippedWeapon->GetWeaponElement();
+}
+
 // ‘•”õ‚·‚é•Ší‚ğİ’è‚·‚éB
 void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 {
