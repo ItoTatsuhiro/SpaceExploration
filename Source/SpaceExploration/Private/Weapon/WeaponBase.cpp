@@ -11,7 +11,7 @@
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.                             
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.                        
 	PrimaryActorTick.bCanEverTick = false;
 	SceneComponent                = CreateDefaultSubobject<USceneComponent>(TEXT("Default Component"));
 	RootComponent                 = SceneComponent;
@@ -62,7 +62,7 @@ void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCh
 {
 	if (!PlayerCharacter) {
 		UKismetSystemLibrary::PrintString(this, "PlayerCharacter is nullptr", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is nullptr"), nullptr);
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is nullptr"));
 		return;
 	}
 	CurrentLevelStatus = NextLevelStatus;
