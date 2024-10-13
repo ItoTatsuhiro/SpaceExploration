@@ -23,13 +23,13 @@ DECLARE_DELEGATE_OneParam(FSequenceDelegate, float);
 // FSequenceDelegate delegate1 
 //		= FSequenceDelegate::CreateUObject(SequenceManager, &USequenceManager::Function1);
 // // デリゲートセット
-// SequenceManager->updateSequence(&delegate1);
+// SequenceManager->ChangeSequence(delegate1);
 // 
 // ※※※※※※注意点※※※※※※
 // コンストラクタは複数回実行されないため、BeginPlayにてChangeSequence関数を実行してシーケンスをセットすること！！！
 // 
 // 
-UCLASS()
+UCLASS(BlueprintType)
 class SPACEEXPLORATION_API USequenceManager : public UObject
 {
 	GENERATED_BODY()
@@ -43,7 +43,7 @@ public:
 
 	// シーケンスを新しいものに切り替える処理
 	// 引数には使用先で作成したデリゲートを参照で入れる
-	void ChangeSequence(FSequenceDelegate* newDelegate);
+	void ChangeSequence(FSequenceDelegate newDelegate);
 	// シーケンスを更新する処理
 	void updateSequence(const float delta_time);
 
@@ -51,6 +51,6 @@ public:
 private:
 
 	// 実行するシーケンス
-	FSequenceDelegate* sequence_;
+	FSequenceDelegate sequence_;
 
 };
