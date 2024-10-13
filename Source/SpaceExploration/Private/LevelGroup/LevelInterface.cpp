@@ -55,9 +55,3 @@ void ALevelInterface::UnLoadLevel(TSoftObjectPtr<UWorld> deletelevel)
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, BeforeLevel, LatentInfo, true);
 
 }
-
-void ALevelInterface::SetterBattleEnemy(ACharacterBase* battleenemy, const uint8& battleenemyelement)
-{
-	BattleEnemy = battleenemy;
-	BattleEnemyElement = battleenemyelement;
-}

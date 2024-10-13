@@ -35,10 +35,6 @@ public:
 //------------------------------------------------------
 //セッター
 
-	//バトルで使用する敵のセッター
-	UFUNCTION(BlueprintCallable)
-	void SetterBattleEnemy(ACharacterBase* battleenemy, const uint8& battleenemyelement);
-
 //ゲッター
 
 	//バトルで使用する敵のゲッター
