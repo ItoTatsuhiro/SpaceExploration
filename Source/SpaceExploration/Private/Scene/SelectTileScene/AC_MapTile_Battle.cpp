@@ -34,7 +34,7 @@ void AAC_MapTileBattle::Tick(float DeltaTime) {
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileBattle::TileEvent() {
 	//バトルシーン生成
-	levelinterface->LoadLevel(BattleLevel);
+
 	//バトルで使用する敵のステータスをgameinstanceに
 
 }

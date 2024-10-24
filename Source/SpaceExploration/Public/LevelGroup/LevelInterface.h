@@ -25,41 +25,47 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//シーン遷移、次のレベルを読み込み
-	UFUNCTION(BlueprintCallable)
-	void LoadLevel(TSoftObjectPtr<UWorld> nextlevel);
-	//レベル破棄
-	UFUNCTION(BlueprintCallable)
-	void UnLoadLevel(TSoftObjectPtr<UWorld> deletelevel);
+	//シーン変更（シーン変更時に一度だけ呼んでね）
+	//引数１：次のレベル
+	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel);
 
+	//ローディング画面レベル読み込み
+	UFUNCTION()
+	void Load_LoadingLevel();
+	//次のレベル読み込み
+	UFUNCTION()
+	void Load_NextLevel();
+	//ローディング画面レベル消去
+	UFUNCTION()
+	void Unload_LoadingLevel();
+
+	//テスト用時間 delay関係
+	UFUNCTION()
+	void testdelay();
+	UPROPERTY()
+	UWorld* world;
+	
 //------------------------------------------------------
 //セッター
 
+
 //ゲッター
 
-	//バトルで使用する敵のゲッター
-	UFUNCTION(BlueprintCallable)
-	ACharacterBase* GetterBattleEnemy()const { return BattleEnemy; };
-	UFUNCTION(BlueprintCallable)
-	//バトルで使用する敵の属性のゲッター
-	uint8 GetterBattleEnemyElement()const { return BattleEnemyElement; };
-
 private:
-	FLatentActionInfo LatentInfo;
-	
-	//初期ワールド
-	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> FirstLevel;
 
-	//現在のワールド
+	//ローディング画面
+	UPROPERTY(EditAnywhere, Category = "Level")
+	TSoftObjectPtr<UWorld> LoadingLevel = nullptr;
+
+	//次のレベル（エディタは初期レベル設定）
+	UPROPERTY(EditAnywhere, Category = "Level")
+	TSoftObjectPtr<UWorld> NextLevel = nullptr;
+
+	//現在のレベル
 	UPROPERTY(VisibleAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> NowLevel;
 
+	//一つ前のレベル
 	UPROPERTY(VisibleAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> BeforeLevel;
-
-	//バトルで使用する敵
-	ACharacterBase* BattleEnemy;
-	//バトルで使用する敵の属性
-	uint8 BattleEnemyElement;
 };

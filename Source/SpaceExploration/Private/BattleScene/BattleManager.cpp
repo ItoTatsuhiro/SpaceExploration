@@ -39,9 +39,89 @@ void ABattleManager::BeginPlay()
 	//ゲームインスタンス取得
 	mygameinstance = Cast<UMyGameInstance>(GetGameInstance());
 
+//プレイヤー情報取得時の例外処理-----------------------------------------------------------------------
+	if (!UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0)) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO playerstatus\n"));
+		//エラー落ちしないように仮のステータスを挿入
+		playerstatus_.HP = 30.0f;
+		playerstatus_.MaxHp = 30.0f;
+		playerstatus_.AttackPower = 50.0f;
+		playerstatus_.DefencePower = 20.0f;
+		playerstatus_.Speed = 15.0f;
+		provplayerstatus_.hp_ = playerstatus_.HP;
+		provplayerstatus_.type_ = 1;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
+		//プレイヤーの情報取得
+		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0));
+		//順番決めよう一時変数挿入
+		playerstatus_ = player->GetCharacterStatus();
+		provplayerstatus_.hp_ = playerstatus_.HP;
+		provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());
+	}
+
+	//エネミー情報取得時の例外処理
+	if (!mygameinstance->GetterBattleEnemyStatus()) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO enemystatus\n"));
+		//エラー落ちしないように仮のステータスを挿入
+		enemystatus_.HP = 30.0f;
+		enemystatus_.AttackPower = 50.0f;
+		enemystatus_.DefencePower = 20.0f;
+		enemystatus_.Speed = 10.0f;
+		provenemystatus_.hp_ = enemystatus_.HP;
+		provenemystatus_.type_ = 0;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success enemystatus load\n"));
+		//エネミーのステータス、属性を取得
+		enemy = mygameinstance->GetterBattleEnemyStatus();
+		//順番決めよう一時変数挿入
+		enemystatus_ = enemy->GetCharacterStatus();
+		provenemystatus_.hp_ = enemystatus_.HP;
+		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
+	}
+
+	//エネミー属性取得時の例外処理
+	if (mygameinstance->GetterBattleEnemyElement() > 2 || mygameinstance->GetterBattleEnemyElement() < 0) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO enemytype\n"));
+		provenemystatus_.type_ = 0;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success enemyelement load\n"));
+		//エネミーのステータス、属性を取得
+		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
+	}
+//-----------------------------------------------------------------------------------------------------
+
+
 	//カメラをバトルシーン全体を見る物に切り替え
 	playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
 	cameras = Camera::battlecamera;
+	//プレイヤーのカメラと座標設定
+	if (player) {
+		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
+		//カメラ設定
+		PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
+		//座標設定
+		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
+	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("error : No playerCamera\n"));
+		PlayerCamera = BattleSceneCamera;
+	}
+	//敵のカメラと座標設定
+	if (!enemy) {
+		UE_LOG(LogClass, Warning, TEXT("error : No enemyCamera\n"));
+		EnemyCamera = BattleSceneCamera;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success enemyCamera load\n"));
+		//カメラ設定
+		EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
+		//座標設定
+		enemy->SetActorLocation(enemypos_actor->GetActorLocation());
+	}
 
 	//パーティクル
 	attackparticl->SetRelativeLocation(particlattack_->GetActorLocation());
@@ -69,9 +149,10 @@ void ABattleManager::Tick(float DeltaTime)
 			cameras = Camera::battlecamera;
 		}
 		
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+		//8UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 		_count += DeltaTime;
+		//次のターンに進める
 		if (_count >= _time) {
 			SeqIndexAdd();
 			_count = 0.0f;
@@ -92,6 +173,7 @@ void ABattleManager::Tick(float DeltaTime)
 		attackparticl->Activate();
 
 		_count += DeltaTime;
+		//次のターンに進める
 		if (_count >= _time) {
 			SeqIndexAdd();
 			_count = 0.0f;
@@ -110,6 +192,7 @@ void ABattleManager::Tick(float DeltaTime)
 		//player->TakeDamage(playerdamage);
 
 		_count += DeltaTime;
+		//次のターンに進める
 		if (_count >= _time) {
 			SeqIndexAdd();
 			_count = 0.0f;
@@ -129,6 +212,7 @@ void ABattleManager::Tick(float DeltaTime)
 		//enemy->StartAttackAction();
 
 		_count += DeltaTime;
+		//次のターンに進める
 		if (_count >= _time) {
 			SeqIndexAdd();
 			_count = 0.0f;
@@ -148,6 +232,7 @@ void ABattleManager::Tick(float DeltaTime)
 		//enemy->TakeDamage(enemydamage);
 
 		_count += DeltaTime;
+		//次のターンに進める
 		if (_count >= _time) {
 			SeqIndexAdd();
 			_count = 0.0f;
@@ -164,6 +249,7 @@ void ABattleManager::Tick(float DeltaTime)
 		UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 		
 		_count += DeltaTime;
+		//次のターンに進める
 		if (_count >= _time) {
 			SeqIndexAdd();
 			_count = 0.0f;
@@ -180,111 +266,6 @@ void ABattleManager::Tick(float DeltaTime)
 
 void ABattleManager::ButtleInit()
 {
-	//プレイヤー情報取得時の例外処理
-	if (!UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0)) {
-		UE_LOG(LogClass, Warning, TEXT("error : NO playerstatus\n"));
-		//エラー落ちしないように仮のステータスを挿入
-		playerstatus_.HP = 30.0f;
-		playerstatus_.AttackPower = 50.0f;
-		playerstatus_.DefencePower = 20.0f;
-		playerstatus_.Speed = 15.0f;
-		provplayerstatus_.type_ = 1;
-	}
-	else {
-		//プレイヤーの情報取得
-		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0));
-		//順番決めよう一時変数挿入
-		playerstatus_ = player->GetCharacterStatus();
-		provplayerstatus_.hp_ = playerstatus_.HP;
-		provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());
-	}
-	
-	//エネミー情報取得時の例外処理
-	if (!mygameinstance->GetterBattleEnemyStatus()) {
-		UE_LOG(LogClass, Warning, TEXT("error : NO enemystatus\n"));
-		//エラー落ちしないように仮のステータスを挿入
-		enemystatus_.HP = 30.0f;
-		enemystatus_.AttackPower = 50.0f;
-		enemystatus_.DefencePower = 20.0f;
-		enemystatus_.Speed = 10.0f;
-	}
-	else {
-		//エネミーのステータス、属性を取得
-		enemy = mygameinstance->GetterBattleEnemyStatus();
-		//順番決めよう一時変数挿入
-		enemystatus_ = enemy->GetCharacterStatus();
-		provenemystatus_.hp_ = enemystatus_.HP;
-	}
-
-	//エネミー属性取得時の例外処理
-	if (mygameinstance->GetterBattleEnemyElement() > 2 || mygameinstance->GetterBattleEnemyElement() < 0) {
-		UE_LOG(LogClass, Warning, TEXT("error : NO enemytype\n"));
-		provenemystatus_.type_ = 0;
-	}
-	else {
-		//エネミーのステータス、属性を取得
-		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
-	}
-
-	////プレイヤー情報取得時の例外処理
-	//try {
-	//	if (!UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0)) {
-	//		throw "error : NO playerstatus\n";
-	//	}
-
-	//	//プレイヤーの情報取得
-	//	player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0));
-
-	//	//順番決めよう一時変数挿入
-	//	playerstatus_ = player->GetCharacterStatus();
-	//	provplayerstatus_.hp_ = playerstatus_.HP;
-	//	provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());
-	//}
-	//catch(const FString* str){
-	//	UE_LOG(LogClass, Warning, TEXT("%s\n"), str);
-	//	//エラー落ちしないように仮のステータスを挿入
-	//	playerstatus_.HP = 30.0f;
-	//	playerstatus_.AttackPower = 50.0f;
-	//	playerstatus_.DefencePower = 20.0f;
-	//	playerstatus_.Speed = 15.0f;
-	//	provplayerstatus_.type_ = 1;
-	//}
-	////エネミー情報取得時の例外処理
-	//try {
-	//	if (!mygameinstance->GetterBattleEnemyStatus()) {
-	//		throw "error : NO enemystatus\n";
-	//	}
-
-	//	//エネミーのステータス、属性を取得
-	//	enemy = mygameinstance->GetterBattleEnemyStatus();
-
-	//	//順番決めよう一時変数挿入
-	//	enemystatus_ = enemy->GetCharacterStatus();
-	//	provenemystatus_.hp_ = enemystatus_.HP;
-	//}
-	//catch (const FString* str) {
-	//	UE_LOG(LogClass, Warning, TEXT("%s\n"), str);
-	//	//エラー落ちしないように仮のステータスを挿入
-	//	enemystatus_.HP = 30.0f;
-	//	enemystatus_.AttackPower = 50.0f;
-	//	enemystatus_.DefencePower = 20.0f;
-	//	enemystatus_.Speed = 10.0f;
-	//}
-	////エネミー属性取得時の例外処理
-	//try {
-	//	if (mygameinstance->GetterBattleEnemyElement() > 2 || mygameinstance->GetterBattleEnemyElement() < 0) {
-	//		throw "error : NO enemytype\n";
-	//	}
-
-	//	//エネミーのステータス、属性を取得
-	//	provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
-	//}
-	//catch (const FString* str) {
-	//	UE_LOG(LogClass, Warning, TEXT("%s\n"), str);
-
-	//	provenemystatus_.type_ = 0;
-	//}
-	
 	//攻撃順初期化
 	attack_order.clear();
 	//attack_orderの始めにバトル前の準備シーンを設定

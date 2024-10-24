@@ -16,13 +16,7 @@ class SPACEEXPLORATION_API UMyGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
-	//サブレベル
-	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> BattleLevel;
-	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> MapLevel;
-	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> TreasureLevel;
+	
 
 public:
 	//バトルで使用する敵

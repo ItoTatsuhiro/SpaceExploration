@@ -15,10 +15,6 @@ class APlayerController;
 class UNiagaraComponent;
 class UMyGameInstance;
 
-//-----------------------------------------------------------------------------------
-// バトルシーンから実行するとプレイヤーと敵の情報が取れなくてUnrealが落ちるので注意--
-//-----------------------------------------------------------------------------------
-
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
 {
@@ -84,12 +80,13 @@ private:
 	//バトルの流れ
 private:
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<APlayerCharacter> player;
+	TObjectPtr<APlayerCharacter> player = nullptr;
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<AEnemyBase> enemy;
+	TObjectPtr<AEnemyBase> enemy = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	ALevelInterface* levelinterface = nullptr;
 	UPROPERTY(VisibleAnywhere)
+
 	//カメラ切り替え用
 	APlayerController* playercontroller = nullptr;
 
@@ -138,14 +135,19 @@ public:
 
 private:
 	//プレイヤーの攻撃エフェクト（仮）
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "particl")
 	AActor* particlattack_;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "particl")
 	UNiagaraComponent* attackparticl;
 
 	//ゲームインスタンス
 	UPROPERTY(VisibleAnywhere)
 	UMyGameInstance* mygameinstance = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "CharactorPos")
+	AActor* playerpos_actor;
+	UPROPERTY(EditAnywhere, Category = "CharactorPos")
+	AActor* enemypos_actor;
 
 //関数
 
@@ -169,7 +171,7 @@ private:
 //ゲッター
 
 	//ターン取得
-	std::vector<uint8> GetButtleTurn() { return attack_order; };
+	std::vector<uint8> GetButtleTurn() const { return attack_order; };
 
 	//vectorを変換する関数
 	UFUNCTION(BlueprintCallable, Category = "BattleManager")
