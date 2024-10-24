@@ -12,10 +12,8 @@ class AEnemyBase;
 class ALevelInterface;
 struct FStatus;
 class APlayerController;
-
-//-----------------------------------------------------------------------------------
-// バトルシーンから実行するとプレイヤーと敵の情報が取れなくてUnrealが落ちるので注意--
-//-----------------------------------------------------------------------------------
+class UNiagaraComponent;
+class UMyGameInstance;
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -54,6 +52,11 @@ private:
 	//none_ = 1.0
 	const float good_ = 2.0, bad_ = 0.5, none_ = 1.0;
 
+	//戦闘するプレイヤーのステータス
+	FStatus playerstatus_;
+	//戦闘する敵のステータス
+	FStatus enemystatus_;
+
 	//攻撃順番判定用の一時変数
 	struct character {
 		float hp_ = 10;
@@ -64,54 +67,91 @@ private:
 
 		float attack_count_ = 0.0;
 	};
+	//攻撃順番判定用の一時変数（プレイヤー）
 	character provplayerstatus_;
+	//攻撃順番判定用の一時変数（エネミー）
 	character provenemystatus_;
-	FStatus playerstatus_;
-	FStatus enemystatus_;
 	
 	//行動を決める値
 	float attack_timing_ = 10;
 
-	//受けるダメージ
-	float playerdamage = 0.0, enemydamage = 0.0;
 //---------------------------------------------------------------------------------------------
  
 	//バトルの流れ
 private:
-	APlayerCharacter* player;
-	AEnemyBase* enemy;
-	ALevelInterface* levelinterface;
-	APlayerController* playercontroller;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APlayerCharacter> player = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<AEnemyBase> enemy = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	ALevelInterface* levelinterface = nullptr;
+	UPROPERTY(VisibleAnywhere)
+
+	//カメラ切り替え用
+	APlayerController* playercontroller = nullptr;
+
+	//受けるダメージ
+	float playerdamage = 0.0, enemydamage = 0.0;
+
+	//シーケンス時間
+	float _time = 2.0f, _count = 0.0f;
+
+	//バトルで使用するプレイヤーのカメラ
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	AActor* PlayerCamera = nullptr;
+	//バトルで使用するエネミーのカメラ
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	AActor* EnemyCamera = nullptr;
+
+	//バトルシーンのカメラ
+	enum class Camera {
+		none,
+		battlecamera,
+		playercamera,
+		enemycamera,
+	};
+	Camera cameras = Camera::none;
 
 	//順番を入れる配列
 	std::vector<uint8> attack_order;
 	//現在のバトル順番のインデックス
 	uint8 seqindex = 0;
 
-	//バトルレベル
+	//バトルシーンレベル
 	UPROPERTY(EditAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> MyLevel;
-	//バトルレベルのカメラ
+	//バトルシーンレベルのカメラ
 	UPROPERTY(EditAnywhere, Category = "Camera")
-	AActor* BattleSceneCamera;
+	AActor* BattleSceneCamera = nullptr;
 
 public:
 	//実行中のシーケンス
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleManager")
 	uint8 NowBattleSeq = 0;
 
-public:
 	//BPで使用するための配列
 	UPROPERTY(BlueprintReadOnly, Category = "BattleManager")
 	TArray<uint8> ConvertArray;
 
+private:
+	//プレイヤーの攻撃エフェクト（仮）
+	UPROPERTY(EditAnywhere, Category = "particl")
+	AActor* particlattack_;
+	UPROPERTY(EditDefaultsOnly, Category = "particl")
+	UNiagaraComponent* attackparticl;
+
+	//ゲームインスタンス
+	UPROPERTY(VisibleAnywhere)
+	UMyGameInstance* mygameinstance = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "CharactorPos")
+	AActor* playerpos_actor;
+	UPROPERTY(EditAnywhere, Category = "CharactorPos")
+	AActor* enemypos_actor;
+
 //関数
 
 	//バトルシーンに入った時の初期化関数
-	//引数１：プレイヤーのステータスデータ
-	//引数２：プレイヤーの属性
-	//引数３：敵のステータスデータ
-	//引数４：敵の属性
 	UFUNCTION(BlueprintCallable, Category = "BattleManager")
 	void ButtleInit();
 
@@ -131,7 +171,7 @@ public:
 //ゲッター
 
 	//ターン取得
-	std::vector<uint8> GetButtleTurn() { return attack_order; };
+	std::vector<uint8> GetButtleTurn() const { return attack_order; };
 
 	//vectorを変換する関数
 	UFUNCTION(BlueprintCallable, Category = "BattleManager")

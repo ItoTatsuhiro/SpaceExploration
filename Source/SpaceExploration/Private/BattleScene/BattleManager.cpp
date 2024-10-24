@@ -3,17 +3,24 @@
 #include "BattleScene/BattleManager.h"
 #include "Character/CharacterBase.h"
 #include "Character/EnemyBase.h"
-#include "Character/PlayerCharacter.h"
 #include "LevelGroup/LevelInterface.h"
+#include "Character/PlayerCharacter.h"
+#include "MyGameInstance.h"
 #include "BattleScene/E_BattleSEQ.h"
 #include "GameFramework/PlayerController.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	attackparticl = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AttackNiagara"));
+	attackparticl->SetupAttachment(RootComponent);
 
 }
 
@@ -26,7 +33,102 @@ ABattleManager::~ABattleManager()
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	//カメラ切り替え用PlayerControllerを取得
+	playercontroller = UGameplayStatics::GetPlayerController(this, 0);
+	//ゲームインスタンス取得
+	mygameinstance = Cast<UMyGameInstance>(GetGameInstance());
+
+//プレイヤー情報取得時の例外処理-----------------------------------------------------------------------
+	if (!UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0)) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO playerstatus\n"));
+		//エラー落ちしないように仮のステータスを挿入
+		playerstatus_.HP = 30.0f;
+		playerstatus_.MaxHp = 30.0f;
+		playerstatus_.AttackPower = 50.0f;
+		playerstatus_.DefencePower = 20.0f;
+		playerstatus_.Speed = 15.0f;
+		provplayerstatus_.hp_ = playerstatus_.HP;
+		provplayerstatus_.type_ = 1;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
+		//プレイヤーの情報取得
+		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0));
+		//順番決めよう一時変数挿入
+		playerstatus_ = player->GetCharacterStatus();
+		provplayerstatus_.hp_ = playerstatus_.HP;
+		provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());
+	}
+
+	//エネミー情報取得時の例外処理
+	if (!mygameinstance->GetterBattleEnemyStatus()) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO enemystatus\n"));
+		//エラー落ちしないように仮のステータスを挿入
+		enemystatus_.HP = 30.0f;
+		enemystatus_.AttackPower = 50.0f;
+		enemystatus_.DefencePower = 20.0f;
+		enemystatus_.Speed = 10.0f;
+		provenemystatus_.hp_ = enemystatus_.HP;
+		provenemystatus_.type_ = 0;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success enemystatus load\n"));
+		//エネミーのステータス、属性を取得
+		enemy = mygameinstance->GetterBattleEnemyStatus();
+		//順番決めよう一時変数挿入
+		enemystatus_ = enemy->GetCharacterStatus();
+		provenemystatus_.hp_ = enemystatus_.HP;
+		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
+	}
+
+	//エネミー属性取得時の例外処理
+	if (mygameinstance->GetterBattleEnemyElement() > 2 || mygameinstance->GetterBattleEnemyElement() < 0) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO enemytype\n"));
+		provenemystatus_.type_ = 0;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success enemyelement load\n"));
+		//エネミーのステータス、属性を取得
+		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
+	}
+//-----------------------------------------------------------------------------------------------------
+
+
+	//カメラをバトルシーン全体を見る物に切り替え
+	playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
+	cameras = Camera::battlecamera;
+	//プレイヤーのカメラと座標設定
+	if (player) {
+		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
+		//カメラ設定
+		PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
+		//座標設定
+		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
+	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("error : No playerCamera\n"));
+		PlayerCamera = BattleSceneCamera;
+	}
+	//敵のカメラと座標設定
+	if (!enemy) {
+		UE_LOG(LogClass, Warning, TEXT("error : No enemyCamera\n"));
+		EnemyCamera = BattleSceneCamera;
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("success enemyCamera load\n"));
+		//カメラ設定
+		EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
+		//座標設定
+		enemy->SetActorLocation(enemypos_actor->GetActorLocation());
+	}
+
+	//パーティクル
+	attackparticl->SetRelativeLocation(particlattack_->GetActorLocation());
+	attackparticl->SetWorldRotation(FRotator3d(0,-90,0));
+
+	//バトル順など初期化
+	ButtleInit();
 }
 
 // Called every frame
@@ -37,48 +139,128 @@ void ABattleManager::Tick(float DeltaTime)
 	//現在実行中のシーケンス
 	NowBattleSeq = attack_order[seqindex];
 
-	//バトルシーケンスそれぞれのシーケンス実行
+	//テストバトルシーケンスそれぞれのシーケンス実行
 	switch (NowBattleSeq) {
-	//バトルスタンバイシーケンス
+		//バトルスタンバイシーケンス
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY):
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-		//バトルシーンのカメラに切り替え
-		playercontroller->SetViewTargetWithBlend(BattleSceneCamera);
-	break;
-	//プレイヤー攻撃シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK):
-		player->StartAttackAction();
-		//プレイヤーのカメラに切り替え
-		playercontroller->SetViewTargetWithBlend(player->GetBattleCameraComponent()->GetChildActor());
-	break;
-	//プレイヤー攻撃を受けるシーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE):
-		player->TakeDamage(playerdamage);
-		//プレイヤーのカメラに切り替え
-		playercontroller->SetViewTargetWithBlend(player->GetBattleCameraComponent()->GetChildActor());
-	break;
-	//エネミー攻撃シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK):
-		enemy->StartAttackAction();
-		//敵カメラに切り替え
-		playercontroller->SetViewTargetWithBlend(enemy->GetBattleCameraComponent()->GetChildActor());
-	break;
-	//エネミー攻撃を受けるシーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE):
-		enemy->TakeDamage(enemydamage);
-		//敵カメラに切り替え
-		playercontroller->SetViewTargetWithBlend(enemy->GetBattleCameraComponent()->GetChildActor());
-	break;
-	//バトルリザルト画面シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT):
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-		//バトルシーンのカメラに切り替え
-		playercontroller->SetViewTargetWithBlend(BattleSceneCamera);
-	break;
-	//バトル終了シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):
+		if (cameras != Camera::battlecamera) {
+			//バトルシーンのカメラに切り替え
+			playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
+			cameras = Camera::battlecamera;
+		}
 		
-	break;
+		//8UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+		_count += DeltaTime;
+		//次のターンに進める
+		if (_count >= _time) {
+			SeqIndexAdd();
+			_count = 0.0f;
+		}		
+		break;
+		//プレイヤー攻撃シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK):
+		if (cameras != Camera::playercamera) {
+			//プレイヤーのカメラに切り替え
+			playercontroller->SetViewTargetWithBlend(PlayerCamera, 1.0);
+			cameras = Camera::playercamera;
+		}
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_PLAYERATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+		//プレイヤー攻撃関数
+		//player->StartAttackAction();
+		//パーティクル再生
+		attackparticl->Activate();
+
+		_count += DeltaTime;
+		//次のターンに進める
+		if (_count >= _time) {
+			SeqIndexAdd();
+			_count = 0.0f;
+		}
+		break;
+		//プレイヤー攻撃を受けるシーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE):
+		if (cameras != Camera::playercamera) {
+			//プレイヤーのカメラに切り替え
+			playercontroller->SetViewTargetWithBlend(PlayerCamera, 1.0);
+			cameras = Camera::playercamera;
+		}
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_PLAYERHIT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+		//プレイヤー攻撃を受ける関数
+		//player->TakeDamage(playerdamage);
+
+		_count += DeltaTime;
+		//次のターンに進める
+		if (_count >= _time) {
+			SeqIndexAdd();
+			_count = 0.0f;
+		}
+
+		break;
+		//エネミー攻撃シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK):
+		if (cameras != Camera::enemycamera) {
+			//敵カメラに切り替え
+			playercontroller->SetViewTargetWithBlend(EnemyCamera, 1.0);
+			cameras = Camera::enemycamera;
+		}
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_ENEMYATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+		//敵攻撃関数
+		//enemy->StartAttackAction();
+
+		_count += DeltaTime;
+		//次のターンに進める
+		if (_count >= _time) {
+			SeqIndexAdd();
+			_count = 0.0f;
+		}
+
+		break;
+		//エネミー攻撃を受けるシーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE):
+		if (cameras != Camera::enemycamera) {
+			//敵カメラに切り替え
+			playercontroller->SetViewTargetWithBlend(EnemyCamera, 1.0);
+			cameras = Camera::enemycamera;
+		}
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_ENEMYHIT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+		//敵攻撃を受ける関数
+		//enemy->TakeDamage(enemydamage);
+
+		_count += DeltaTime;
+		//次のターンに進める
+		if (_count >= _time) {
+			SeqIndexAdd();
+			_count = 0.0f;
+		}
+
+		break;
+		//バトルリザルト画面シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT):
+		if (cameras != Camera::battlecamera) {
+			//バトルシーンのカメラに切り替え
+			playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
+			cameras = Camera::battlecamera;
+		}
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+		
+		_count += DeltaTime;
+		//次のターンに進める
+		if (_count >= _time) {
+			SeqIndexAdd();
+			_count = 0.0f;
+		}
+		
+		break;
+		//バトル終了シーケンス
+	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):		
+		UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+		break;
 	}
 }
 
@@ -91,17 +273,6 @@ void ABattleManager::ButtleInit()
 
 	//現在のバトル順初期化
 	seqindex = 0;
-
-	//順番決め用一時変数に挿入
-	//プレイヤー
-	playerstatus_ = player->GetCharacterStatus();
-	provplayerstatus_.hp_ = playerstatus_.HP;
-	provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());;
-	
-	//敵
-	enemystatus_ = levelinterface->GetterBattleEnemy()->GetCharacterStatus();
-	provenemystatus_.hp_ = enemystatus_.HP;
-	provenemystatus_.type_ = levelinterface->GetterBattleEnemyElement();
 
 	//攻撃タイミング設定
 	attack_timing_ = playerstatus_.Speed + enemystatus_.Speed;
