@@ -88,10 +88,9 @@ void APlayerCharacter::BeginPlay()
 
 }
 
-/// <summary>
-/// プレイヤーのアップデート
-/// </summary>
-/// <param name="DeltaTime"></param>
+//　----------------------------------------------------------------
+// プレイヤーのアップデート
+//　---------------------------------------------------------------->
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -105,10 +104,9 @@ void APlayerCharacter::Tick(float DeltaTime)
 	PlayerSequence.Execute(DeltaTime);
 }
 
-/// <summary>
-/// 移動させたい位置をセットさせて、移動を開始させる。
-/// </summary>
-/// <param name="Location"> 移動させる位置 </param>
+// ----------------------------------------------------------------
+// 移動させたい位置をセットさせて、移動を開始させる。
+// ----------------------------------------------------------------
 void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 {
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Player Move TargetLocation：x = %1.f, y = %1.f, z = %1.f"), 
@@ -116,12 +114,14 @@ void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 		, true, true, FColor::Cyan, 2.f, TEXT(""));
 	TargetLocation = Location;
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqMoveTargetLocation);
+
+	E_CharacterActState = ECharacterActState::Move;
 }
 
-//
+//　----------------------------------------------------------------
 // 左クリックを押したときレイを飛ばして
 // 当たった "Actor" クラスの "LeftMouseButton" 関数を実行する
-// 
+// ----------------------------------------------------------------
 void APlayerCharacter::ClickedMouseLeftButton()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -163,20 +163,25 @@ void APlayerCharacter::ClickedMouseLeftButton()
 	}
 }
 
-/// <summary>
-/// 待機シーケンス
-/// </summary>
-/// <param name="DeltaTime"></param>
-/// <returns> 実行結果を返す。False：失敗 True：成功 </returns>
+//　----------------------------------------------------------------
+// 待機シーケンス
+// 
+// == 引数 ===
+// DeltaTime...
+// 
+// 実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
 bool APlayerCharacter::SeqIdle(float DeltaTime)
 {
 	return true;
 }
 
+// ----------------------------------------------------------------
 // プレイヤーを目標位置に移動させる。
 // 移動が終了したら "SeqIdle" に戻る。
 //
-// 戻り値：実行結果を返す。False：失敗 True：成功 </returns>
+// 戻り値：実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
 bool APlayerCharacter::SeqMoveTargetLocation(float DeltaTime)
 {
 	// ターゲットまでの方向ベクトルを計算
@@ -192,6 +197,7 @@ bool APlayerCharacter::SeqMoveTargetLocation(float DeltaTime)
 	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 20.f) {
 		SetActorLocation(TargetLocation);
 		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+		E_CharacterActState = ECharacterActState::Idle;
 	}
 	return true;
 }
