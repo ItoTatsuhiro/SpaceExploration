@@ -33,6 +33,7 @@ ACharacterBase::ACharacterBase()
 	// ‘•”õ•i‰Šú‰»
 	EquippedWeapon = nullptr;
 
+	E_CharacterActState = ECharacterActState::Idle;
 }
 
 // Called when the game starts or when spawned
