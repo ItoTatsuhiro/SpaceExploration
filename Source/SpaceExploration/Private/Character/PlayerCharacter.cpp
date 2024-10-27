@@ -12,6 +12,7 @@
 #include "Weapon/WeaponBase.h"
 #include "GameFramework/PlayerController.h"
 #include "Character/MouseButtonEvent.h"
+#include <Blueprint/WidgetBlueprintLibrary.h>
 #include <Kismet/KismetSystemLibrary.h>
 
 
@@ -47,7 +48,6 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの生成に失敗しました。"));
 	}
 
-	ClickedEvnet = nullptr;
 }
 
 /// <summary>
@@ -61,7 +61,7 @@ void APlayerCharacter::BeginPlay()
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, "PlayerControllerの取得に失敗しました。", true, true, FColor::Red, 2.f, TEXT(""));
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("PlayerControllerの取得に失敗しました。")), true, true, FColor::Red, 2.f, TEXT(""));
 		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"));
 		return;
 	}
@@ -89,44 +89,6 @@ void APlayerCharacter::BeginPlay()
 }
 
 /// <summary>
-/// プレイヤーの入力イベントのセットアップを行う
-/// </summary>
-/// <param name="PlayerInputComponent"> 入力マッピングコンテキスト </param>
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-
-	if (EnhancedInputComponent)
-	{
-		EnhancedInputComponent->BindAction(ClickedEvnet, ETriggerEvent::Triggered, this, &ThisClass::ClickedMouseLeftButton);
-	}
-	else {
-		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponentがNullです"));
-	}
-	if (!GetOwner()->InputComponent)
-	{
-		UE_LOG(LogClass, Error, TEXT("EnhancedInputComponentがNullです2"));
-		return;
-	}
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-
-	if (!PlayerController)
-	{
-		return;
-	}
-
-	// InputMapping Context を登録する
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())
-		)
-	{
-		Subsystem->AddMappingContext(InputMapping.LoadSynchronous(), 0);
-	}
-}
-
-/// <summary>
 /// プレイヤーのアップデート
 /// </summary>
 /// <param name="DeltaTime"></param>
@@ -147,7 +109,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 /// 移動させたい位置をセットさせて、移動を開始させる。
 /// </summary>
 /// <param name="Location"> 移動させる位置 </param>
-void APlayerCharacter::BeginMoveTargetLocation(const FVector Location)
+void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 {
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Player Move TargetLocation：x = %1.f, y = %1.f, z = %1.f"), 
 		Location.X, Location.Y, Location.Z )

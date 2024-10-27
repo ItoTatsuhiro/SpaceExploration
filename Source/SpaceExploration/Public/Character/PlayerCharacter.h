@@ -12,6 +12,7 @@
 class UInputMappingContext;
 class USpringArmComponent;
 class UCameraComponent;
+class UUserWidget;
 
 /**
  * 
@@ -26,7 +27,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -37,15 +38,9 @@ public:
 	UWeaponInventoryComponent* GetWeaponInventoryComponent() { return WeaponInventoryComponent; }
 
 	// 目標の位置に移動
-	void BeginMoveTargetLocation(const FVector Location);
+	void BeginMoveTargetLocation(const FVector& Location);
 
-private:
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputMappingContext> InputMapping;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputAction* ClickedEvnet;
-	
+private:	
 	// スタティックメッシュコンポーネント
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> CharacterStaticMeshComp;
