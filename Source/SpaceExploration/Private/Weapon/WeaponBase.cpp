@@ -38,16 +38,14 @@ void AWeaponBase::SettingWeapon()
 			}
 				if (EquippedWeapon->WeaponElement == WeaponElement)
 				{
-					int level                    = CurrentLevelStatus.PlayerLevel + 1;
 					NextLevelStatus.PlayerName   = CurrentLevelStatus.PlayerName;
-					NextLevelStatus.PlayerLevel  = level;
-					NextLevelStatus.HP           = CurrentLevelStatus.HP + ((level - 1) * HpEnhancedValue);
-					NextLevelStatus.Speed        = CurrentLevelStatus.Speed + ((level - 1) * SpeedEnhancedValue);
-					NextLevelStatus.AttackPower  = CurrentLevelStatus.AttackPower + ((level - 1) * AttackEnhancedValue);
-					NextLevelStatus.DefencePower = CurrentLevelStatus.DefencePower + ((level - 1) * DeffenceEnhancedValue);
+					NextLevelStatus.PlayerLevel  = CurrentLevelStatus.PlayerLevel + 1;
+					NextLevelStatus.HP           = CurrentLevelStatus.HP + ((NextLevelStatus.PlayerLevel - 1) * HpEnhancedValue);
+					NextLevelStatus.Speed        = CurrentLevelStatus.Speed + ((NextLevelStatus.PlayerLevel - 1) * SpeedEnhancedValue);
+					NextLevelStatus.AttackPower  = CurrentLevelStatus.AttackPower + ((NextLevelStatus.PlayerLevel - 1) * AttackEnhancedValue);
+					NextLevelStatus.DefencePower = CurrentLevelStatus.DefencePower + ((NextLevelStatus.PlayerLevel - 1) * DeffenceEnhancedValue);
 				}
-				else
-				{
+				else {
 					NextLevelStatus = CurrentLevelStatus;
 				}
 		}
