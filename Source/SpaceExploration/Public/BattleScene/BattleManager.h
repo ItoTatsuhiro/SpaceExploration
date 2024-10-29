@@ -13,7 +13,9 @@ class ALevelInterface;
 struct FStatus;
 class APlayerController;
 class UNiagaraComponent;
+class UNiagaraSystem;
 class UMyGameInstance;
+class APlaySceneGameModeBase;
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -44,7 +46,7 @@ private:
 		wind
 	};
 	//属性相性判定用
-	int type_corr_[5] = { wind, fire, water, wind, fire };
+	const int type_corr_[5] = { wind, fire, water, wind, fire };
 
 	//属性相性のダメージ補正値
 	//good_ = 2.0
@@ -85,7 +87,15 @@ private:
 	TObjectPtr<AEnemyBase> enemy = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	ALevelInterface* levelinterface = nullptr;
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
+
+	//勝敗用
+	enum class E_BatlleWinner{
+		none,
+		player,
+		enemy,
+	};
+	E_BatlleWinner battlewinner = E_BatlleWinner::none;
 
 	//カメラ切り替え用
 	APlayerController* playercontroller = nullptr;
@@ -129,25 +139,65 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleManager")
 	uint8 NowBattleSeq = 0;
 
-	//BPで使用するための配列
-	UPROPERTY(BlueprintReadOnly, Category = "BattleManager")
-	TArray<uint8> ConvertArray;
-
 private:
-	//プレイヤーの攻撃エフェクト（仮）
-	UPROPERTY(EditAnywhere, Category = "particl")
-	AActor* particlattack_;
-	UPROPERTY(EditDefaultsOnly, Category = "particl")
-	UNiagaraComponent* attackparticl;
-
 	//ゲームインスタンス
 	UPROPERTY(VisibleAnywhere)
 	UMyGameInstance* mygameinstance = nullptr;
 
+	//ゲームモード
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APlaySceneGameModeBase> gamemode;
+
+	//移動先のレベル
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UWorld> nextlevel;
+
+	//バトル時のプレイヤーと敵の座標を取得するためのActor
 	UPROPERTY(EditAnywhere, Category = "CharactorPos")
 	AActor* playerpos_actor;
 	UPROPERTY(EditAnywhere, Category = "CharactorPos")
 	AActor* enemypos_actor;
+
+//エフェクト（Niagara）関係
+	//敵のエフェクト
+	//攻撃　炎
+	UPROPERTY(EditAnywhere, Category = "particl|enemy")
+	UNiagaraComponent* niagara_enemy_attack_fier;
+	//攻撃　水
+	UPROPERTY(EditAnywhere, Category = "particl|enemy")
+	UNiagaraComponent* niagara_enemy_attack_water;
+	//攻撃　風
+	UPROPERTY(EditAnywhere, Category = "particl|enemy")
+	UNiagaraComponent* niagara_enemy_attack_wind;
+	//攻撃
+	UPROPERTY(EditAnywhere, Category = "particl|enemy")
+	UNiagaraComponent* niagara_enemy_attack;
+	//攻撃ヒット
+	UPROPERTY(EditAnywhere, Category = "particl|enemy")
+	UNiagaraComponent* niagara_enemy_hitreceive;
+	//死亡
+	UPROPERTY(EditAnywhere, Category = "particl|enemy")
+	UNiagaraComponent* niagara_enemy_death;
+
+	//プレイヤーのエフェクト
+	//攻撃　炎
+	UPROPERTY(EditAnywhere, Category = "particl|player")
+	UNiagaraComponent* niagara_player_attack_fier;
+	//攻撃　水
+	UPROPERTY(EditAnywhere, Category = "particl|player")
+	UNiagaraComponent* niagara_player_attack_water;
+	//攻撃　風
+	UPROPERTY(EditAnywhere, Category = "particl|player")
+	UNiagaraComponent* niagara_player_attack_wind;
+	//攻撃
+	UPROPERTY(EditAnywhere, Category = "particl|player")
+	UNiagaraComponent* niagara_player_attack;
+	//攻撃ヒット
+	UPROPERTY(EditAnywhere, Category = "particl|player")
+	UNiagaraComponent* niagara_player_hitreceive;
+	//死亡
+	UPROPERTY(EditAnywhere, Category = "particl|player")
+	UNiagaraComponent* niagara_player_death;
 
 //関数
 
@@ -168,12 +218,4 @@ private:
 	//現在のバトル順番を一つ進める
 	void SeqIndexAdd() { seqindex++; };
 	
-//ゲッター
-
-	//ターン取得
-	std::vector<uint8> GetButtleTurn() const { return attack_order; };
-
-	//vectorを変換する関数
-	UFUNCTION(BlueprintCallable, Category = "BattleManager")
-	void ConvertVectorToActor();
 };
