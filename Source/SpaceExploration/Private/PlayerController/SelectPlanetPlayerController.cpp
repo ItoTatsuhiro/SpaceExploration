@@ -7,6 +7,7 @@
 #include <EnhancedInputSubsystems.h>
 #include "InputAction.h"
 #include <Kismet/KismetSystemLibrary.h>
+#include "Scene/SelectTileScene/AC_StageMapManager.h"
 
 void ASelectPlanetPlayerController::SetupInputComponent()
 {
@@ -38,8 +39,16 @@ void ASelectPlanetPlayerController::SetupInputComponent()
 void ASelectPlanetPlayerController::LeftClickEvent()
 {
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("左クリック時のイベントが実行されました。")), true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("左クリック時のイベントが実行されました。"));
+	UE_LOG(LogClass, Log, TEXT("左クリック時のイベントが実行されました。"));
 
-	// ↓↓↓↓↓ ターンマネージャーに通知 ↓↓↓↓↓
+	if (!StageMapManagerRef)
+	{
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("ASelectPlanetPlayerController:StageMapManagerが空です。")), true, true, FColor::Yellow, 2.f, TEXT(""));
+		UE_LOG(LogClass, Warning, TEXT("ASelectPlanetPlayerController:StageMapManagerが空です。"));
+		return;
+	}
+
+	// ターンマネージャーに通知を行う
+	StageMapManagerRef->OnClickInput();
 
 }

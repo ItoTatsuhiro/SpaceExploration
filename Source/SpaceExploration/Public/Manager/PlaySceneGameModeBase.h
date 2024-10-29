@@ -29,6 +29,6 @@ public:
 
 	// 
 	UFUNCTION(BlueprintCallable)
-	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel);
+	void ChangeLevel(TSoftObjectPtr<UWorld> NextLevel);
 
 };
