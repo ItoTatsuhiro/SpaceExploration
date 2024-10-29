@@ -3,6 +3,7 @@
 #include "LevelGroup/LevelInterface.h"
 #include "Character/CharacterBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Manager/PlaySceneGameModeBase.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
@@ -18,42 +19,56 @@ void ALevelInterface::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (NextLevel.IsNull()) {
-		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel\n"));
-		NextLevel = TSoftObjectPtr<UWorld>(FSoftObjectPath(TEXT("Game/mapScene/MapScene")));
+	//GameMode取得
+	gamemode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (gamemode) {
+		UE_LOG(LogClass, Warning, TEXT("gamode yes"));
+		gamemode->SetLevelInterface(this);
 	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("gamoemode no"));
+	}
+
+
 	if (LoadingLevel.IsNull()) {
-		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel\n"));
-		LoadingLevel = TSoftObjectPtr<UWorld>(FSoftObjectPath(TEXT("Game/LevelGroup/L_LoadingLevel")));
+		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel BeginPlay"));
+	}
+
+	if (NextLevel.IsNull()) {
+		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel BeginPlay"));
 	}
 
 	//エディタで設定した初期レベルを読み込み
 	Load_LoadingLevel();
 }
 
-// Called every frame
 void ALevelInterface::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	//NextLevelに何か入った場合
-	if (NextLevel.IsValid()) {
-		//ローディング画面レベルを読み込んだのち、NextLevel読み込み
-		Load_LoadingLevel();
+	if (NextLevel.IsNull()) {
+		UE_LOG(LogClass, Log, TEXT("No NextLevel Tick\n"));
 	}
 	else {
-
+		UE_LOG(LogClass, Log, TEXT("Yes NextLevel Tick\n"));
+		//ローディング画面レベルを読み込んだのち、NextLevel読み込み
+		Load_LoadingLevel();
 	}
 }
 
 void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel)
 {
+	UKismetSystemLibrary::PrintString(this, "~~ChangeLevel~~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 	//次のレベル設定
 	NextLevel = nextlevel;
 }
 
 void ALevelInterface::Load_LoadingLevel()
 {
+	UE_LOG(LogClass, Log, TEXT("------------------------------------Level Loading----------------------------"));
+
+	//非同期処理よう構造体（処理後の関数を呼ぶよう）
 	FLatentActionInfo LatentInfo;
 	LatentInfo.CallbackTarget = this;
 	//”エディタで設定した初期レベル、または次のレベル”を読み込み関数
@@ -61,17 +76,19 @@ void ALevelInterface::Load_LoadingLevel()
 	LatentInfo.Linkage = 0;
 	LatentInfo.UUID = __LINE__;
 	//ローディング画面レベル読み込み、表示
-	if (LoadingLevel.IsValid()) {
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, LoadingLevel, true, false, LatentInfo);
-		UKismetSystemLibrary::PrintString(this, "load LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+	if (LoadingLevel.IsNull()) {
+		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel Function"));
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, false, LatentInfo);
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel\n"));
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, false, LatentInfo);
+		UE_LOG(LogClass, Log, TEXT("Yes LoadingLevel Function"));
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, LoadingLevel, true, false, LatentInfo);
+		UKismetSystemLibrary::PrintString(this, "load LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	}	
 }
 
 void ALevelInterface::testdelay() {
+	//非同期処理よう構造体（処理後の関数を呼ぶよう）
 	FLatentActionInfo LatentInfo;
 	LatentInfo.CallbackTarget = this;
 	//ロード画面レベル消去関数
@@ -79,37 +96,42 @@ void ALevelInterface::testdelay() {
 	LatentInfo.Linkage = 0;
 	LatentInfo.UUID = __LINE__;
 	//初期ワールド読み込み
-	if (NextLevel.IsValid()) {
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, true, LatentInfo);
-		UKismetSystemLibrary::PrintString(this, "load FirstLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+	if (NextLevel.IsNull()) {
+		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel Function\n"));
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NowLevel, true, false, LatentInfo);
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel\n"));
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NowLevel, true, false, LatentInfo);
+		UE_LOG(LogClass, Log, TEXT("Yes NextLevel Function"));
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, true, LatentInfo);
+		UKismetSystemLibrary::PrintString(this, "load FirstLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	}
 }
 
 void ALevelInterface::Load_NextLevel()
 {
+	//テスト用、testdelay()の処理を1.0秒delayする
 	world = GEngine->GameViewport->GetWorld();
 	FTimerHandle timerhandle;
-	world->GetTimerManager().SetTimer(timerhandle, this, &ALevelInterface::testdelay,1.0f, false);
+	world->GetTimerManager().SetTimer(timerhandle, this, &ALevelInterface::testdelay, 3.0f, false);
 }
 
 void ALevelInterface::Unload_LoadingLevel()
 {
 	FLatentActionInfo LatentInfo;
-	
+
 	//ローディング画面レベルunload
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, LoadingLevel, LatentInfo, false);
 	UKismetSystemLibrary::PrintString(this, "Unload LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 
 	//NowLevelの中身があればunload
 	if (NowLevel.IsValid()) {
+
 		UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, NowLevel, LatentInfo, false);
 		UKismetSystemLibrary::PrintString(this, "Unload NowLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	}
-	
+
+	UE_LOG(LogClass, Log, TEXT("Unload_LoadingLevel"));
+
 	//NextLevelをNowLevelに設定
 	NowLevel.Reset();
 	NowLevel = NextLevel;
