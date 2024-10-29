@@ -62,6 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	EElement GetAttackElement() const;
 
+	// ----------------------------------------------------------------
+	// バトルシーンのカメラアクターコンポーネント
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	UChildActorComponent* GetBattleCameraComponent() const { return BattleCameraComp; }
 
