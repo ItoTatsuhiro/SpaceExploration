@@ -1,11 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Manager/SequenceManager.h"
 
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-// ˆø”‚Å‰ŠúƒV[ƒPƒ“ƒX‚ğİ’è
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+// å¼•æ•°ã§åˆæœŸã‚·ãƒ¼ã‚±ãƒ³ã‚¹ã‚’è¨­å®š
 USequenceManager::USequenceManager() 
 {
 
@@ -14,18 +14,18 @@ USequenceManager::USequenceManager()
 
 
 
-// ƒV[ƒPƒ“ƒX‚ğV‚µ‚¢‚à‚Ì‚ÉØ‚è‘Ö‚¦‚éˆ—
+// ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ã‚’æ–°ã—ã„ã‚‚ã®ã«åˆ‡ã‚Šæ›¿ãˆã‚‹å‡¦ç†
 void USequenceManager::ChangeSequence(FSequenceDelegate newDelegate) {
 	
 	sequence_ = newDelegate;
 
-	UE_LOG(LogTemp, Log, TEXT("ƒV[ƒPƒ“ƒXØ‚è‘Ö‚¦"));
+	UE_LOG(LogTemp, Log, TEXT("ã‚·ãƒ¼ã‚±ãƒ³ã‚¹åˆ‡ã‚Šæ›¿ãˆ"));
 
 }
 
 
 
-// ƒV[ƒPƒ“ƒX‚ğXV‚·‚éˆ—
+// ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ã‚’æ›´æ–°ã™ã‚‹å‡¦ç†
 void USequenceManager::updateSequence(const float delta_time) {
 
 
@@ -34,7 +34,7 @@ void USequenceManager::updateSequence(const float delta_time) {
 	}
 
 
-	// Às‚·‚é
+	// å®Ÿè¡Œã™ã‚‹
 	sequence_.Execute(delta_time);
 
 
