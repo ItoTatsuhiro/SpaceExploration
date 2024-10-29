@@ -12,8 +12,6 @@
 
 #include "AC_StageMapManager.generated.h"
 
-//// 前方宣言
-//class FSequenceDelegate;
 
 
 
@@ -45,6 +43,30 @@ private:
 	virtual void BeginPlay() override;
 
 
+	//------------------------------------------------------------------------------------
+	// 入力を確認する用の関数・変数
+
+
+public :
+
+	// クリック入力を外部から伝えるための関数
+	// playerControllerでクリックされたときの処理としてバインドする用
+	void OnClickInput();
+
+
+private :
+
+	// クリック入力があった際に一瞬trueにするための関数
+	// updateで確認してfalseにする
+	UPROPERTY()
+	bool isClickInput_ = false;
+
+
+
+	// クリック入力を確認する関数
+	// クリック入力を必要とする処理と、update関数で毎回isClickInputを確認する
+	bool CheckClickInput();
+
 
 	//------------------------------------------------------------------------------------
 	// MapSceneの制御用
@@ -70,6 +92,23 @@ private:
 	// マス選択シーケンス用デリゲート(コンストラクタで初期化)
 	FSequenceDelegate selectTileDel_;
 
+
+	// プレイヤー移動開始シーケンス
+	void SeqPlayerMoveBegin(const float delta_time);
+	// プレイヤー移動開始シーケンス用デリゲート（コンストラクタで初期化）
+	FSequenceDelegate playerMoveBeginDel_;
+
+
+	// プレイヤー移動待機シーケンス
+	void SeqPlayerMoveIdle(const float delta_time);
+	// プレイヤー移動待機シーケンス用デリゲート（コンストラクタで初期化）
+	FSequenceDelegate playerMoveIdleDel_;
+
+
+	// マスのイベント実行シーケンス
+	void SeqExecuteTileEvent(const float delta_time);
+	// マスのイベント実行シーケンス用デリゲート（コンストラクタで初期化）
+	FSequenceDelegate executeTileEventDel_;
 
 
 	//------------------------------------------------------------------------------------
@@ -124,15 +163,30 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "tileDetail")
 	TSubclassOf<class AAC_MapTileItem> itemTileClass_;
 
-	const APlayerCharacter* PlayerCharacter_;
+
+	// プレイヤーの参照
+	UPROPERTY(EditAnywhere)
+	APlayerCharacter* playerCharacter_;
 
 
 	// レイを飛ばして当たったActorを取得する関数
 	AActor* PerformRaycast();
 
-	UPROPERTY()
 	// カーソルが重なっているマス
-	AActor* hoveredTile_;
+	UPROPERTY(VisibleAnywhere)
+	AAC_MapTileBase* hoveredTile_;
+
+
+	// 選択を行ったマス
+	UPROPERTY(VisibleAnywhere)
+	AAC_MapTileBase* selectTile_;
+
+	// 移動先のマスに対して加算する座標
+	// 加算する前にプレイヤーの向きに調整したうえで加算する
+	UPROPERTY(EditAnywhere)
+	FVector moveTargetOffset_ = { 0, 300, 300 };
+
+
 
 
 public:	
