@@ -7,6 +7,7 @@
 #include "LevelInterface.generated.h"
 
 class ACharacterBase;
+class APlaySceneGameModeBase;
 
 UCLASS()
 class SPACEEXPLORATION_API ALevelInterface : public AActor
@@ -52,6 +53,8 @@ public:
 //ゲッター
 
 private:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APlaySceneGameModeBase> gamemode;
 
 	//ローディング画面
 	UPROPERTY(EditAnywhere, Category = "Level")
@@ -64,8 +67,4 @@ private:
 	//現在のレベル
 	UPROPERTY(VisibleAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> NowLevel;
-
-	//一つ前のレベル
-	UPROPERTY(VisibleAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> BeforeLevel;
 };
