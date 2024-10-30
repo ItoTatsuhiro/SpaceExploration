@@ -8,7 +8,7 @@
 #include "../../tsutsumi/GalaxyRandomSelect.h"
 #include "../../Scene/SelectTileScene/E_Tile.h"
 #include "../../Manager/SequenceManager.h"
-
+#include "../AC_SceneManagerBase.h"
 
 #include "AC_StageMapManager.generated.h"
 
@@ -29,8 +29,9 @@ struct FTileArray {
 // 作成者：伊藤
 // ステージマップを管理するためのクラス
 // ステージの配列の生成、保持、取得等の処理を行う
+// 親クラスはSceneManagerBase
 UCLASS(BlueprintType)
-class SPACEEXPLORATION_API AAC_StageMapManager : public AActor
+class SPACEEXPLORATION_API AAC_StageMapManager : public AAC_SceneManagerBase
 {
 	GENERATED_BODY()
 	
@@ -43,39 +44,10 @@ private:
 	virtual void BeginPlay() override;
 
 
-	//------------------------------------------------------------------------------------
-	// 入力を確認する用の関数・変数
-
-
-public :
-
-	// クリック入力を外部から伝えるための関数
-	// playerControllerでクリックされたときの処理としてバインドする用
-	void OnClickInput();
-
-
-private :
-
-	// クリック入力があった際に一瞬trueにするための関数
-	// updateで確認してfalseにする
-	UPROPERTY()
-	bool isClickInput_ = false;
-
-
-
-	// クリック入力を確認する関数
-	// クリック入力を必要とする処理と、update関数で毎回isClickInputを確認する
-	bool CheckClickInput();
-
 
 	//------------------------------------------------------------------------------------
 	// MapSceneの制御用
 	// デリゲートを用いて制御を行う
-
-	// シーケンスマネージャー
-	UPROPERTY(VisibleAnywhere)
-	USequenceManager* sequenceManager_;
-
 
 
 	// シーケンス用の関数とデリゲート
@@ -164,13 +136,11 @@ private :
 	TSubclassOf<class AAC_MapTileItem> itemTileClass_;
 
 
-	// プレイヤーの参照
-	UPROPERTY(EditAnywhere)
-	APlayerCharacter* playerCharacter_;
+	//// プレイヤーの参照
+	//UPROPERTY(EditAnywhere)
+	//APlayerCharacter* playerCharacter_;
 
 
-	// レイを飛ばして当たったActorを取得する関数
-	AActor* PerformRaycast();
 
 	// カーソルが重なっているマス
 	UPROPERTY(VisibleAnywhere)
