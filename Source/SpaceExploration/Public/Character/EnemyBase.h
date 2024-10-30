@@ -18,6 +18,10 @@ class SPACEEXPLORATION_API AEnemyBase : public ACharacterBase
 public:
 	AEnemyBase();
 
+	virtual void BeginPlay() override;
+
+	void Attack();
+
 protected:
 	// スケルタルメッシュコンポーネント
 	UPROPERTY(EditAnywhere)

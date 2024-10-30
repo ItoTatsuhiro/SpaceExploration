@@ -60,7 +60,7 @@ public:
 	// 装備中の武器を取得
 	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
-	AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; };
+	AWeaponBase* GetEquippedWeapon() const { return nullptr; };
 
 	// ----------------------------------------------------------------
 	// 装備中の武器を取得
@@ -155,9 +155,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UChildActorComponent> EquippedWeaponComp;
 
-	// 装備中のウェポン
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<AWeaponBase> EquippedWeapon = nullptr;
+	//// 装備中のウェポン
+	//UPROPERTY(EditAnywhere)
+	//TObjectPtr<AWeaponBase> EquippedWeapon;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class USpringArmComponent* BattleCameraSpringArm;
