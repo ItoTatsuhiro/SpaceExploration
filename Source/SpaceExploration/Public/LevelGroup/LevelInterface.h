@@ -28,8 +28,9 @@ public:
 
 	//シーン変更（シーン変更時に一度だけ呼んでね）
 	//引数１：次のレベル
-	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel);
-
+	//引数２：消去するレベル（移動前のレベルを消去する場合は消去するレベルを入力）
+	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel = nullptr);
+	
 	//ローディング画面レベル読み込み
 	UFUNCTION()
 	void Load_LoadingLevel();

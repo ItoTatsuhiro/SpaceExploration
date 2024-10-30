@@ -149,8 +149,8 @@ private:
 	TObjectPtr<APlaySceneGameModeBase> gamemode;
 
 	//移動先のレベル
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UWorld> nextlevel;
+	UPROPERTY(EditAnywhere, Category = "Level")
+	TSoftObjectPtr<UWorld> nextlevel = nullptr;
 
 	//バトル時のプレイヤーと敵の座標を取得するためのActor
 	UPROPERTY(EditAnywhere, Category = "CharactorPos")
