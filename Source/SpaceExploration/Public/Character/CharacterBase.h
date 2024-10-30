@@ -13,7 +13,7 @@
 DECLARE_DELEGATE_RetVal_OneParam(bool, Sequence, float);
 
 UCLASS(BlueprintType, Blueprintable, Abstract)
-class SPACEEXPLORATION_API ACharacterBase : public ACharacter
+class SPACEEXPLORATION_API ACharacterBase : public APawn
 {
 	GENERATED_BODY()
 
@@ -50,6 +50,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	inline FStatus& GetCharacterStatus() { return CharacterStatus; }
 	
+	// ----------------------------------------------------------------
+	// 装備中の武器を取得
+	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	UChildActorComponent* GetEquippedWeaponComp() { return EquippedWeaponComp; }
+
 	// ----------------------------------------------------------------
 	// 装備中の武器を取得
 	// ----------------------------------------------------------------
@@ -144,6 +150,10 @@ protected:
 	// ステータス
 	UPROPERTY(EditAnywhere)
 	FStatus CharacterStatus = FStatus();
+
+	// 武器コンポーネント
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UChildActorComponent> EquippedWeaponComp;
 
 	// 装備中のウェポン
 	UPROPERTY(EditAnywhere)

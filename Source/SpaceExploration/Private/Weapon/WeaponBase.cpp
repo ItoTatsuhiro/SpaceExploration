@@ -17,6 +17,10 @@ AWeaponBase::AWeaponBase()
 	RootComponent                 = SceneComponent;
 	MeshComponent                 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	MeshComponent                 -> SetupAttachment(RootComponent);
+
+	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
+
 }
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()

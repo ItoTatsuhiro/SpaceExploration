@@ -30,6 +30,11 @@ ACharacterBase::ACharacterBase()
 	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
 	BattleCameraComp->SetupAttachment(BattleCameraSpringArm);
 
+	BattleCameraComp->SetWorldRotation(FRotator(0.f, 0.f, 180.f));
+
+	EquippedWeaponComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("EuippedWeapon"));
+	EquippedWeaponComp->SetupAttachment(DefaultSceneRoot);
+
 	// ‘•”õ•i‰Šú‰»
 	EquippedWeapon = nullptr;
 

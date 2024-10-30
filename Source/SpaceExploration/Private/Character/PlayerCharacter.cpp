@@ -25,7 +25,7 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	CharacterStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayeMesh"));
 
-	CharacterStaticMeshComp->SetupAttachment(RootComponent);
+	CharacterStaticMeshComp->SetupAttachment(DefaultSceneRoot);
 
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 
@@ -45,7 +45,7 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	if (!WeaponInventoryComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの生成に失敗しました。"));
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:WeaponInventoryの生成に失敗しました。"));
 	}
 
 }
@@ -61,8 +61,7 @@ void APlayerCharacter::BeginPlay()
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("PlayerControllerの取得に失敗しました。")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"));
+		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:PlayerControllerの取得に失敗しました。"));
 		return;
 	}
 	// マウスカーソルを表示
@@ -71,8 +70,7 @@ void APlayerCharacter::BeginPlay()
 	PlayerController->SetViewTargetWithBlend(LookingDownCameraComp->GetChildActor());
 
 	if (!WeaponInventoryComponent) {
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("WeaponInventoryの取得に失敗しました。")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの取得に失敗しました。"));
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:WeaponInventoryの取得に失敗しました。"));
 		return;
 	}
 
@@ -96,8 +94,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (!PlayerSequence.IsBound()) {
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Don,t set PlayerSequence function")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("Don,t set PlayerSequence function"), nullptr);
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:Don,t set PlayerSequence function"), nullptr);
 		return;
 	}
 
@@ -127,8 +124,8 @@ void APlayerCharacter::ClickedMouseLeftButton()
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, "PlayerControllerの取得に失敗しました。", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"), nullptr);
+		UKismetSystemLibrary::PrintString(this, "APlayCharacter:PlayerControllerの取得に失敗しました。", true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:PlayerControllerの取得に失敗しました。"), nullptr);
 		return;
 	}
 
@@ -150,7 +147,7 @@ void APlayerCharacter::ClickedMouseLeftButton()
 			if ( !HitActor || !( HitActor->GetClass()->ImplementsInterface( UMouseButtonEvent::StaticClass() ) ) )
 			{
 				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Actorの取得に失敗しました。")), true, true, FColor::Yellow, 2.f, TEXT(""));
-				UE_LOG(LogTemp, Warning, TEXT("Actorの取得に失敗しました。"));
+				UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:Actorの取得に失敗しました。"));
 				return;
 			}
 

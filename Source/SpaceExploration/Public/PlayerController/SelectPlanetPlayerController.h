@@ -30,6 +30,8 @@ public:
 
 	virtual void SetupInputComponent() override;
 
+	virtual void BeginPlay() override;
+
 private:
 	// 入力マッピングコンテキスト
 	UPROPERTY(EditAnywhere, Category = "Input")

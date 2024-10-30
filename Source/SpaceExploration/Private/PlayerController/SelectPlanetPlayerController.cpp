@@ -14,14 +14,14 @@ void ASelectPlanetPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 
 	if (!InputComponent) {
-		UE_LOG(LogTemp, Log, TEXT("InputComponet が空です"));
+		UE_LOG(LogTemp, Log, TEXT("ASelectPlanetPlayerController:InputComponet が空です"));
 		return;
 	}
 
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
 
 	if (!EnhancedInputComponent) {
-		UE_LOG(LogTemp, Log, TEXT("EnhancedInputComponent のキャストに失敗しました"));
+		UE_LOG(LogTemp, Log, TEXT("ASelectPlanetPlayerController:EnhancedInputComponent のキャストに失敗しました"));
 		return;
 	}
 
@@ -36,10 +36,18 @@ void ASelectPlanetPlayerController::SetupInputComponent()
 	}
 }
 
+void ASelectPlanetPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetShowMouseCursor(true);
+
+}
+
 void ASelectPlanetPlayerController::LeftClickEvent()
 {
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("左クリック時のイベントが実行されました。")), true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogClass, Log, TEXT("左クリック時のイベントが実行されました。"));
+	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("ASelectPlanetPlayerController:左クリック時のイベントが実行されました。")), true, true, FColor::Cyan, 2.f, TEXT(""));
+	UE_LOG(LogClass, Log, TEXT("ASelectPlanetPlayerController:左クリック時のイベントが実行されました。"));
 
 	if (!StageMapManagerRef)
 	{
