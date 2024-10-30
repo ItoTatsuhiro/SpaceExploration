@@ -78,7 +78,7 @@ void APlayerCharacter::BeginPlay()
 
 	auto ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
 
-	EquippedWeapon = ElementWeapons[0];
+	// EquippedWeapon = ElementWeapons[0];
 	
 	//// マウスカーソルのモードを UI モードに設定 (必要に応じて)
 	//FInputModeUIOnly InputMode;

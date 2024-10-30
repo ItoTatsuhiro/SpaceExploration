@@ -7,7 +7,9 @@
 #include "UObject/NoExportTypes.h"
 #include "Math/RandomStream.h"
 #include "random"
+#include "NiagaraComponent.h"
 #include "Engine/LevelScriptActor.h"
+
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
@@ -21,12 +23,20 @@ AWeaponBase::AWeaponBase()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
 
+	// 武器の攻撃エフェクトの設定
+	WeaponAttackNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeaponAttackEffect"));
+	WeaponAttackNiagaraComp->SetupAttachment(MeshComponent);
+
 }
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ExecuteAttack();
+
 }
+
 void AWeaponBase::SettingWeapon()
 {
 		UE_LOG(LogTemp, Warning, TEXT("Set"));
@@ -55,6 +65,15 @@ void AWeaponBase::SettingWeapon()
 		}
 		
 }
+
+
+void AWeaponBase::ExecuteAttack()
+{
+	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("AWeaponBase:Attack")), true, true, FColor::Cyan, 2.f, TEXT(""));
+	UE_LOG(LogTemp, Log, TEXT("Attack"));
+	WeaponAttackNiagaraComp->Activate();
+}
+
 // Called every frame
 void AWeaponBase::Tick(float DeltaTime)
 {
