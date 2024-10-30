@@ -17,7 +17,7 @@
 
 // Sets default values
 AAC_StageMapManager::AAC_StageMapManager()
-    : tileSpace_(500), basePos_({ 0, 0, 0 }), sequenceManager_(nullptr), galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr), tileObjectComponent_(nullptr), hoveredTile_(nullptr),
+    : tileSpace_(500), basePos_({ 0, 0, 0 })/*, sequenceManager_(nullptr)*/, galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr), tileObjectComponent_(nullptr), hoveredTile_(nullptr),
     battleTileClass_(AAC_MapTileBattle::StaticClass()), healTileClass_(AAC_MapTileHeal::StaticClass()), itemTileClass_(AAC_MapTileItem::StaticClass())
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -44,20 +44,7 @@ AAC_StageMapManager::AAC_StageMapManager()
 void AAC_StageMapManager::BeginPlay()
 {
 
-
-
 	Super::BeginPlay();
-
-    UE_LOG(LogTemp, Log, TEXT("BeginPlay"));
-
-    playerCharacter_ = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-
-    if (!playerCharacter_) {
-        UKismetSystemLibrary::PrintString(this, "PlayerCharacter_ is nullptr", true, true, FColor::Red, 3.f);
-        UE_LOG(LogClass, Error, TEXT("PlayerCharacter_ is nullptr"));
-        return;
-    }
-
 
     //-------------------------------------------------------------------------------
     // シーケンス制御用の処理
@@ -70,19 +57,12 @@ void AAC_StageMapManager::BeginPlay()
     executeTileEventDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqExecuteTileEvent);
 
 
-    // 最初に実行する関数を指定
-    sequenceManager_ = NewObject<USequenceManager>();
 
-    if (sequenceManager_ == nullptr) {
-        UE_LOG(LogTemp, Error, TEXT("sequenceManager_ is nullptr"));
-        return;
+    // シーケンスマネージャーが存在するときは初期シーケンスのデリゲートをセット
+    if (sequenceManager_) {
+        sequenceManager_->ChangeSequence(createTileDel_);
     }
 
-    sequenceManager_->ChangeSequence(createTileDel_);
-
-
-    // 自身をplayerControllerにセット
-    Cast<ASelectPlanetPlayerController>(UGameplayStatics::GetPlayerController(this, 0))->SetStageMapManager(this);
 
 }
 
@@ -93,62 +73,9 @@ void AAC_StageMapManager::Tick(float DeltaTime)
 
 
 
-    if (sequenceManager_) {
-
-
-        // シーケンスの更新
-        sequenceManager_->updateSequence(DeltaTime);
-
-        // 入力の状態を確認
-        CheckClickInput();
-
-    }
-    else {
-
-        UE_LOG(LogTemp, Error, TEXT("sequenceManager_ is nullptr"));
-    }
 
 }
 
-
-
-//------------------------------------------------------------------------------------
-// 入力を確認する用の関数
-
-
-
-
-
-// クリック入力を外部から伝えるための関数
-// playerControllerでクリックされたときの処理としてバインドする用
-void AAC_StageMapManager::OnClickInput() {
-
-    // 入力が既にある場合は処理しない
-    if (isClickInput_) { return; }
-
-    // 入力があった状態にする
-    isClickInput_ = true;
-
-}
-
-
-// クリック入力を確認する関数
-// クリック入力を必要とする処理と、update関数で毎回isClickInputを確認する
-bool AAC_StageMapManager::CheckClickInput() {
-
-    // 入力の状態が入っていないときは処理しない
-    if (!isClickInput_) { return false; }
-
-    else {
-
-        // 入力の状態をリセットする
-        isClickInput_ = false;
-
-        // trueを返す
-        return true;
-    }
-
-}
 
 
 
@@ -480,40 +407,3 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
 
 
 
-// -----------------------------------------------------------------------------------------------------
-// クリックでオブジェクトを取得するための関数
-
-// レイを飛ばして当たったActorを取得する関数
-AActor* AAC_StageMapManager::PerformRaycast() {
-
-    // ----------------------------------------------------------------------
-    // レイの開始地点と終了地点を定義
-
-    // プレイヤーコントローラー取得
-    APlayerController* playerController = GetWorld()->GetFirstPlayerController();
-    if (!playerController) {
-        return nullptr;
-    }
-
-
-    // カーソルの位置のオブジェクトを取得
-    FHitResult hitResult;
-    if (playerController->GetHitResultUnderCursor(ECC_Visibility, false, hitResult)) {
-        AActor* hitActor = hitResult.GetActor();
-
-        if (hitActor) {
-
-             //UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *hitActor->GetName());
-
-            // デバッグ用にヒット位置を表示
-            DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 1.0f);
-
-
-            return hitActor;
-        }
-
-    }
-
-    return nullptr;
-
-}
