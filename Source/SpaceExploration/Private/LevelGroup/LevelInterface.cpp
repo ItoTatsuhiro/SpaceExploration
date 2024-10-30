@@ -21,14 +21,14 @@ void ALevelInterface::BeginPlay()
 
 	//GameMode取得
 	gamemode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
+
 	if (gamemode) {
-		UE_LOG(LogClass, Warning, TEXT("gamode yes"));
+		UE_LOG(LogClass, Log, TEXT("gamode yes"));
 		gamemode->SetLevelInterface(this);
 	}
 	else {
 		UE_LOG(LogClass, Warning, TEXT("gamoemode no"));
 	}
-
 
 	if (LoadingLevel.IsNull()) {
 		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel BeginPlay"));
@@ -48,7 +48,7 @@ void ALevelInterface::Tick(float DeltaTime)
 
 	//NextLevelに何か入った場合
 	if (NextLevel.IsNull()) {
-		UE_LOG(LogClass, Log, TEXT("No NextLevel Tick\n"));
+
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("Yes NextLevel Tick\n"));
@@ -57,12 +57,34 @@ void ALevelInterface::Tick(float DeltaTime)
 	}
 }
 
-void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel)
+void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel)
 {
+	FLatentActionInfo LatentInfo;
+
+	if (nextlevel.IsNull()) {
+		UE_LOG(LogClass, Warning, TEXT("NO nextlevel LevelInterface ChangeLevel"));
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("YES nextlevel LevelInterface ChangeLevel"));
+	}
+
+	if (nowlevel != nullptr) {
+		//移動前のレベルを消去
+		UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, nowlevel, LatentInfo, false);
+	}
+	
 	UKismetSystemLibrary::PrintString(this, "~~ChangeLevel~~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 	//次のレベル設定
 	NextLevel = nextlevel;
 }
+
+//void ALevelInterface::DeleteLevel(TSoftObjectPtr<UWorld> nowlevel)
+//{
+//	FLatentActionInfo LatentInfo;
+//
+//	//呼んだレベルを消去
+//	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, nowlevel, LatentInfo, false);
+//}
 
 void ALevelInterface::Load_LoadingLevel()
 {
@@ -78,11 +100,10 @@ void ALevelInterface::Load_LoadingLevel()
 	//ローディング画面レベル読み込み、表示
 	if (LoadingLevel.IsNull()) {
 		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel Function"));
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, false, LatentInfo);
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("Yes LoadingLevel Function"));
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, LoadingLevel, true, false, LatentInfo);
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, LoadingLevel, true, true, LatentInfo);
 		UKismetSystemLibrary::PrintString(this, "load LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	}	
 }
@@ -95,10 +116,9 @@ void ALevelInterface::testdelay() {
 	LatentInfo.ExecutionFunction = FName("Unload_LoadingLevel");
 	LatentInfo.Linkage = 0;
 	LatentInfo.UUID = __LINE__;
-	//初期ワールド読み込み
+	//次のレベル読み込み
 	if (NextLevel.IsNull()) {
 		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel Function\n"));
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NowLevel, true, false, LatentInfo);
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("Yes NextLevel Function"));
@@ -109,10 +129,10 @@ void ALevelInterface::testdelay() {
 
 void ALevelInterface::Load_NextLevel()
 {
-	//テスト用、testdelay()の処理を1.0秒delayする
+	//テスト用、testdelay()の処理をdelayする
 	world = GEngine->GameViewport->GetWorld();
 	FTimerHandle timerhandle;
-	world->GetTimerManager().SetTimer(timerhandle, this, &ALevelInterface::testdelay, 3.0f, false);
+	world->GetTimerManager().SetTimer(timerhandle, this, &ALevelInterface::testdelay, 2.0f, false);
 }
 
 void ALevelInterface::Unload_LoadingLevel()
@@ -122,19 +142,14 @@ void ALevelInterface::Unload_LoadingLevel()
 	//ローディング画面レベルunload
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, LoadingLevel, LatentInfo, false);
 	UKismetSystemLibrary::PrintString(this, "Unload LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+	UE_LOG(LogClass, Log, TEXT("LevelInterface:Unload_Loading:Unload_LoadingLevel"));
 
-	//NowLevelの中身があればunload
-	if (NowLevel.IsValid()) {
-
-		UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, NowLevel, LatentInfo, false);
-		UKismetSystemLibrary::PrintString(this, "Unload NowLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
-	}
-
-	UE_LOG(LogClass, Log, TEXT("Unload_LoadingLevel"));
-
+	//NowLevelのunload
+	
 	//NextLevelをNowLevelに設定
-	NowLevel.Reset();
+	//NowLevel.Reset();
 	NowLevel = NextLevel;
 	//NextLevelをクリア
-	NextLevel.Reset();
+	//NextLevel.Reset();
+	NextLevel = nullptr;
 }

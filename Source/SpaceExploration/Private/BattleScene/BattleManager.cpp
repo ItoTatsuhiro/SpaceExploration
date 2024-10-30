@@ -57,6 +57,13 @@ void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (nextlevel.IsNull()) {
+		UE_LOG(LogClass, Warning, TEXT("NO nextlevel battlemanager beginplay\n"));
+	}
+	else {
+		UE_LOG(LogClass, Log, TEXT("YES nextlevel battlemanager beginplay\n"));
+	}
+
 	//GameMode取得
 	gamemode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
 
@@ -335,8 +342,11 @@ void ABattleManager::Tick(float DeltaTime)
 	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):		
 		UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
+		//現在のバトル順初期化
+		seqindex = 0;
+
 		//シーン移動
-		gamemode->ChangeLevel(nextlevel);
+		gamemode->ChangeLevel(nextlevel,this);
 
 		break;
 	}
