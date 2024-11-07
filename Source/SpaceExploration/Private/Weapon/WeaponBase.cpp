@@ -66,11 +66,10 @@ void AWeaponBase::SettingWeapon()
 		
 }
 
-
+// 武器の攻撃エフェクトを実行する
 void AWeaponBase::ExecuteAttack()
 {
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("AWeaponBase:Attack")), true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("Attack"));
+	UE_LOG(LogTemp, Log, TEXT("AWeaponBase:Attack"));
 	WeaponAttackNiagaraComp->Activate();
 }
 

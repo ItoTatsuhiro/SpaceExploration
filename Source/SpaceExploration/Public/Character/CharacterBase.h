@@ -8,9 +8,8 @@
 #include "../Weapon/WeaponBase.h"
 #include "../tsutsumi/Element.h"
 #include "E_CharacterActState.h"
+#include "../Library/GameLibrary.h"
 #include "CharacterBase.generated.h"
-
-DECLARE_DELEGATE_RetVal_OneParam(bool, Sequence, float);
 
 UCLASS(BlueprintType, Blueprintable, Abstract)
 class SPACEEXPLORATION_API ACharacterBase : public APawn

@@ -17,6 +17,7 @@ void AEnemyBase::BeginPlay()
 	Attack();
 }
 
+// 攻撃関数
 void AEnemyBase::Attack()
 {
 	AWeaponBase* EquippedWeapon =  Cast<AWeaponBase>( EquippedWeaponComp->GetChildActor() );
@@ -29,4 +30,16 @@ void AEnemyBase::Attack()
 	UE_LOG(LogTemp, Log, TEXT("Attack"));
 
 	EquippedWeapon->ExecuteAttack();
+}
+
+// 待機行動シーケンス
+bool AEnemyBase::SeqStandbyAction(const float delta_time)
+{
+	return true;
+}
+
+// 攻撃行動シーケンス
+bool AEnemyBase::SeqAttackAction(const float delta_time)
+{
+	return false;
 }
