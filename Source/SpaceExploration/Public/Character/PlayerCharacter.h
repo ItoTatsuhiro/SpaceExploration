@@ -77,7 +77,7 @@ private:
 	void ClickedMouseLeftButton();
 
 	// 待機シーケンス
-	bool SeqIdle(float DeltaTime);
+	bool SeqIdle(const float DeltaTime);
 	// 移動シーケンス
-	bool SeqMoveTargetLocation(float DeltaTime);
+	bool SeqMoveTargetLocation(const float DeltaTime);
 };

@@ -168,7 +168,7 @@ void APlayerCharacter::ClickedMouseLeftButton()
 // 
 // 実行結果を返す。False：失敗 True：成功
 // ----------------------------------------------------------------
-bool APlayerCharacter::SeqIdle(float DeltaTime)
+bool APlayerCharacter::SeqIdle(const float DeltaTime)
 {
 	return true;
 }
@@ -179,7 +179,7 @@ bool APlayerCharacter::SeqIdle(float DeltaTime)
 //
 // 戻り値：実行結果を返す。False：失敗 True：成功
 // ----------------------------------------------------------------
-bool APlayerCharacter::SeqMoveTargetLocation(float DeltaTime)
+bool APlayerCharacter::SeqMoveTargetLocation(const float DeltaTime)
 {
 	// ターゲットまでの方向ベクトルを計算
 	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
