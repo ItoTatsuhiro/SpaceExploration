@@ -88,7 +88,7 @@ void ABattleManager::BeginPlay()
 	else {
 		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
 		//プレイヤーの情報取得
-		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0));
+		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0));
 		//順番決めよう一時変数挿入
 		playerstatus_ = player->GetCharacterStatus();
 		provplayerstatus_.hp_ = playerstatus_.HP;
@@ -186,6 +186,8 @@ void ABattleManager::BeginPlay()
 		enemy->SetActorLocation(enemypos_actor->GetActorLocation());
 	}
 
+	battlesequence.BindUObject(this, &ABattleManager::BATTLE_STANDBY);
+
 	//バトル順など初期化
 	ButtleInit();
 }
@@ -197,6 +199,8 @@ void ABattleManager::Tick(float DeltaTime)
 
 	//現在実行中のシーケンス
 	NowBattleSeq = attack_order[seqindex];
+
+	battlesequence.Execute(DeltaTime);
 
 	//テストバトルシーケンスそれぞれのシーケンス実行
 	switch (NowBattleSeq) {
@@ -226,9 +230,9 @@ void ABattleManager::Tick(float DeltaTime)
 		UKismetSystemLibrary::PrintString(this, "~BATTLE_PLAYERATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 		//プレイヤー攻撃関数
-		player->StartAttackAction();
+		//player->StartAttackAction();
 		//パーティクル再生
-		niagara_player_attack->Activate();
+		//niagara_player_attack->Activate();
 
 		_count += DeltaTime;
 		//次のターンに進める
@@ -249,7 +253,7 @@ void ABattleManager::Tick(float DeltaTime)
 		//プレイヤー攻撃を受ける関数
 		//player->TakeDamage(playerdamage);
 		//パーティクル再生
-		niagara_player_hitreceive->Activate();
+		//niagara_player_hitreceive->Activate();
 
 		_count += DeltaTime;
 		//次のターンに進める
@@ -271,7 +275,7 @@ void ABattleManager::Tick(float DeltaTime)
 		//敵攻撃関数
 		//enemy->StartAttackAction();
 		//パーティクル再生
-		niagara_enemy_attack->Activate();
+		//niagara_enemy_attack->Activate();
 
 		_count += DeltaTime;
 		//次のターンに進める
@@ -293,7 +297,7 @@ void ABattleManager::Tick(float DeltaTime)
 		//敵攻撃を受ける関数
 		//enemy->TakeDamage(enemydamage);
 		//パーティクル再生
-		niagara_enemy_hitreceive->Activate();
+		//niagara_enemy_hitreceive->Activate();
 
 		_count += DeltaTime;
 		//次のターンに進める
@@ -435,4 +439,52 @@ float ABattleManager::DamageMath(const float& A_atk, const int& A_type, const fl
 	}
 
 	return damage;
+}
+
+bool ABattleManager::CAMERACHANGE(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::BATTLE_STANDBY(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::PLAYER_ATTACK(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::PLAYER_ATTACKRECEIVE(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::ENEMY_ATTACK(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::ENEMY_ATTACKRECEIVE(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::BATTLE_RESULT(const float deltatime)
+{
+
+	return true;
+}
+
+bool ABattleManager::BATTLE_END(const float deltatime)
+{
+
+	return true;
 }
