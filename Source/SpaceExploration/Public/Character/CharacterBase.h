@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -6,12 +6,13 @@
 #include "GameFramework/Character.h"
 #include "../tsutsumi/Status.h"
 #include "../Weapon/WeaponBase.h"
+#include "../tsutsumi/Element.h"
+#include "E_CharacterActState.h"
+#include "../Library/GameLibrary.h"
 #include "CharacterBase.generated.h"
 
-DECLARE_DELEGATE_RetVal_OneParam(bool, Sequence, float);
-
 UCLASS(BlueprintType, Blueprintable, Abstract)
-class SPACEEXPLORATION_API ACharacterBase : public ACharacter
+class SPACEEXPLORATION_API ACharacterBase : public APawn
 {
 	GENERATED_BODY()
 
@@ -27,98 +28,140 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// UŒ‚ŠÖ”
+	// ----------------------------------------------------------------
+	// æ”»æ’ƒé–¢æ•°
+	// ----------------------------------------------------------------
 	virtual void Attack() PURE_VIRTUAL(ACharacterBase::Attack, );
 
-	// ----------------------------------------------------------------
-	// ƒQƒbƒ^[
-	// ----------------------------------------------------------------
+	// =========================================================================
+	// ã‚²ãƒƒã‚¿ãƒ¼
+	// =========================================================================
 
-	// =========================================================================
-	// ¶‘¶‚µ‚Ä‚¢‚é‚©”»’è‚ğ•Ô‚·
-	// =========================================================================
+	// ----------------------------------------------------------------
+	// ç”Ÿå­˜ã—ã¦ã„ã‚‹ã‹åˆ¤å®šã‚’è¿”ã™
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	inline bool IsAlive() const { return CharacterStatus.HP > 0; }
 
-	// =========================================================================
-	// ƒLƒƒƒ‰ƒNƒ^[ƒXƒe[ƒ^ƒX‚ğæ“¾‚·‚é
-	// =========================================================================
+	// ----------------------------------------------------------------
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’å–å¾—ã™ã‚‹
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	inline FStatus& GetCharacterStatus() { return CharacterStatus; }
 	
-	// =========================================================================
-	// ‘•”õ’†‚Ì•Ší‚ğæ“¾
-	// =========================================================================
+	// ----------------------------------------------------------------
+	// è£…å‚™ä¸­ã®æ­¦å™¨ã‚’å–å¾—
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
-	AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; };
+	UChildActorComponent* GetEquippedWeaponComp() { return EquippedWeaponComp; }
 
 	// ----------------------------------------------------------------
-	// ƒZƒbƒ^[
+	// è£…å‚™ä¸­ã®æ­¦å™¨ã‚’å–å¾—
 	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	AWeaponBase* GetEquippedWeapon() const { return nullptr; };
+
+	// ----------------------------------------------------------------
+	// è£…å‚™ä¸­ã®æ­¦å™¨ã‚’å–å¾—
+	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	EElement GetAttackElement() const;
+
+	// ----------------------------------------------------------------
+	// ãƒãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã®ã‚«ãƒ¡ãƒ©ã‚¢ã‚¯ã‚¿ãƒ¼ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	UChildActorComponent* GetBattleCameraComponent() const { return BattleCameraComp; }
+
+	// ----------------------------------------------------------------
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®è¡Œå‹•çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	ECharacterActState GetCharaterActState() const { return E_CharacterActState; }
 
 	// =========================================================================
-	// ƒLƒƒƒ‰ƒNƒ^[‚ÌˆÊ’u‚ğİ’è‚·‚éB
+	// ã‚»ãƒƒã‚¿ãƒ¼
 	// =========================================================================
+
+	// ----------------------------------------------------------------
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®ä½ç½®ã‚’è¨­å®šã™ã‚‹ã€‚
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	inline void SetCharacterLocation(const FVector& Location) 
 	{
 		GetOwner()->SetActorLocation(Location);
 	}
 
-	// =========================================================================
-	// ƒXƒe[ƒ^ƒX‚ğƒZƒbƒg‚·‚éB
-	// =========================================================================
+	// ----------------------------------------------------------------
+	// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ã€‚
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	inline void SetCharacterStatus(const FStatus& Status) 
 	{ 
 		CharacterStatus = Status; 
 	}
 	
-	// ‘•”õ‚·‚é•Ší‚ğİ’è‚·‚éB
+	// ----------------------------------------------------------------
+	// è£…å‚™ã™ã‚‹æ­¦å™¨ã‚’è¨­å®šã™ã‚‹ã€‚
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	void SetEquippedWeapon(AWeaponBase* Weapon);
 
-	// ----------------------------------------------------------------
-	// ‚»‚Ì‘¼
-	// ----------------------------------------------------------------
+	// =========================================================================
+	// ãã®ä»–
+	// =========================================================================
 
-	// =========================================================================
-	// ƒLƒƒƒ‰ƒNƒ^[‚ÌHP‚ğ‰ñ•œ‚³‚¹‚ÄA‰ñ•œ—Ê‚ğ•Ô‚·ŠÖ”
+	// ----------------------------------------------------------------
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®HPã‚’å›å¾©ã•ã›ã¦ã€å›å¾©é‡ã‚’è¿”ã™é–¢æ•°
 	// 
-	// Eˆø”
-	// RecoveryAmountF‰ñ•œ‚·‚é’liƒfƒtƒHƒ‹ƒg’l‚Ìê‡A‘S‰ñ•œ‚·‚éj
+	// ãƒ»å¼•æ•°
+	// RecoveryAmountï¼šå›å¾©ã™ã‚‹å€¤ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã®å ´åˆã€å…¨å›å¾©ã™ã‚‹ï¼‰
 	// 
-	// –ß‚è’lF‰ñ•œ‚µ‚½’l
-	// =========================================================================
+	// æˆ»ã‚Šå€¤ï¼šå›å¾©ã—ãŸå€¤
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	int32 RecoverHP(int32 RecoveryAmount = -1);
 
-	// =========================================================================
-	// UŒ‚s“®‚ğŠJn
-	// =========================================================================
+	// ----------------------------------------------------------------
+	// æ”»æ’ƒè¡Œå‹•ã‚’é–‹å§‹
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	void StartAttackAction();
 
-	// =========================================================================
-	// ƒ_ƒ[ƒW‚ğó‚¯‚éˆ—‚ğs‚¤
+	// ----------------------------------------------------------------
+	// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†ã‚’è¡Œã†
 	// 
-	// Eˆø”
-	// DamageFƒ_ƒ[ƒW—Ê
-	// =========================================================================
+	// ãƒ»å¼•æ•°
+	// Damageï¼šãƒ€ãƒ¡ãƒ¼ã‚¸é‡
+	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	void TakeDamage(int32 Damage);
 
 protected:
-	// ƒLƒƒƒ‰ƒNƒ^[‚Ìƒ‹[ƒgƒRƒ“ƒ|[ƒlƒ“ƒg
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®ãƒ«ãƒ¼ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 
-	// ƒXƒe[ƒ^ƒX
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®è¡Œå‹•çŠ¶æ…‹
+	UPROPERTY(EditAnywhere, Category = "State", BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	ECharacterActState E_CharacterActState;
+
+	// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 	UPROPERTY(EditAnywhere)
 	FStatus CharacterStatus = FStatus();
 
-	// ‘•”õ’†‚ÌƒEƒFƒ|ƒ“
+	// æ­¦å™¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<AWeaponBase> EquippedWeapon = nullptr;
+	TObjectPtr<UChildActorComponent> EquippedWeaponComp;
+
+	//// è£…å‚™ä¸­ã®ã‚¦ã‚§ãƒãƒ³
+	//UPROPERTY(EditAnywhere)
+	//TObjectPtr<AWeaponBase> EquippedWeapon;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class USpringArmComponent* BattleCameraSpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UChildActorComponent* BattleCameraComp;
 
 };

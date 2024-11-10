@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "LevelInterface.generated.h"
 
+class ACharacterBase;
+class APlaySceneGameModeBase;
+
 UCLASS()
 class SPACEEXPLORATION_API ALevelInterface : public AActor
 {
@@ -23,24 +26,46 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//シーン遷移、次のレベルを読み込み
-	UFUNCTION(BlueprintCallable)
-	void LoadLevel(TSoftObjectPtr<UWorld> nextlevel);
-	//シーン遷移、前のレベル破棄、LoadLevelの後に呼ぶ
-	UFUNCTION(BlueprintCallable)
-	void UnLoadLevel();
+	//シーン変更（シーン変更時に一度だけ呼んでね）
+	//引数１：次のレベル
+	//引数２：消去するレベル（移動前のレベルを消去する場合は消去するレベルを入力）
+	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel = nullptr);
+	
+	//ローディング画面レベル読み込み
+	UFUNCTION()
+	void Load_LoadingLevel();
+	//次のレベル読み込み
+	UFUNCTION()
+	void Load_NextLevel();
+	//ローディング画面レベル消去
+	UFUNCTION()
+	void Unload_LoadingLevel();
+
+	//テスト用時間 delay関係
+	UFUNCTION()
+	void testdelay();
+	UPROPERTY()
+	UWorld* world;
+	
+//------------------------------------------------------
+//セッター
+
+
+//ゲッター
 
 private:
-	FLatentActionInfo LatentInfo;
-	
-	//初期ワールド
-	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> FirstLevel;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APlaySceneGameModeBase> gamemode;
 
-	//現在のワールド
+	//ローディング画面
+	UPROPERTY(EditAnywhere, Category = "Level")
+	TSoftObjectPtr<UWorld> LoadingLevel = nullptr;
+
+	//次のレベル（エディタは初期レベル設定）
+	UPROPERTY(EditAnywhere, Category = "Level")
+	TSoftObjectPtr<UWorld> NextLevel = nullptr;
+
+	//現在のレベル
 	UPROPERTY(VisibleAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> NowLevel;
-
-	UPROPERTY(VisibleAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> BeforeLevel;
 };

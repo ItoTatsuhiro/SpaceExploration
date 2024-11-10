@@ -59,6 +59,8 @@ struct FStatus {
             AttackPower = status.AttackPower;
             DefencePower = status.DefencePower;
             Speed = status.Speed;
+            PlayerName = status.PlayerName;
+            PlayerLevel = status.PlayerLevel;
         }
         return *this;
     }

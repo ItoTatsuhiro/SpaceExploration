@@ -3,6 +3,8 @@
 
 #include "Character/CharacterBase.h"
 #include "tsutsumi/Element.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/BaseCamera.h"
 #include "Weapon/WeaponBase.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include "tsutsumi/Status.h"
@@ -15,12 +17,28 @@ ACharacterBase::ACharacterBase()
 
 	// ルートコンポーネントの設定
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-
 	RootComponent = DefaultSceneRoot;
 
-	// 装備品初期化
-	EquippedWeapon = nullptr;
+	// バトルシーンのカメラ設定
+	BattleCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("BattleCameraSpringArm"));
+	BattleCameraSpringArm->SetupAttachment(DefaultSceneRoot);
 
+	BattleCameraSpringArm->TargetArmLength = 300.f;
+	BattleCameraSpringArm->SetWorldRotation(FRotator(-150.f, 0.f, 0.f));
+
+	BattleCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("BattleCamera"));
+	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
+	BattleCameraComp->SetupAttachment(BattleCameraSpringArm);
+
+	BattleCameraComp->SetWorldRotation(FRotator(0.f, 0.f, 180.f));
+
+	EquippedWeaponComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("EuippedWeapon"));
+	EquippedWeaponComp->SetupAttachment(DefaultSceneRoot);
+
+	// 装備品初期化
+	// EquippedWeapon = nullptr;
+
+	E_CharacterActState = ECharacterActState::Idle;
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +55,12 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
+EElement ACharacterBase::GetAttackElement() const
+{
+	// return EquippedWeapon->GetWeaponElement();
+	return EElement::fire;
+}
+
 // 装備する武器を設定する。
 void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 {
@@ -44,7 +68,7 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 		UE_LOG(LogClass, Display, TEXT("nullptrがセットされました"));
 	}
 
-	EquippedWeapon = Weapon;
+	// EquippedWeapon = Weapon;
 
 	FString ResultLog = Weapon->GetWeaponStatus().PlayerName + " equipped";
 	UKismetSystemLibrary::PrintString(this, ResultLog, true, true, FColor::Cyan, 2.f, TEXT(""));
@@ -67,7 +91,7 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 		ResultAmount = CharacterStatus.MaxHp - CharacterStatus.HP;
 		CharacterStatus.HP = CharacterStatus.MaxHp;
 		UKismetSystemLibrary::PrintString(this, "HP fully recovered.", true, true, FColor::Yellow, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("HP fully recovered."), nullptr);
+		UE_LOG(LogTemp, Warning, TEXT("HP fully recovered."));
 		return ResultAmount;
 	}
 	CharacterStatus.HP += RecoveryAmount;
@@ -90,7 +114,7 @@ void ACharacterBase::StartAttackAction()
 {
 
 	UKismetSystemLibrary::PrintString(this, "StartAttack", true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("攻撃開始"), nullptr);
+	UE_LOG(LogTemp, Log, TEXT("攻撃開始"));
 }
 
 // =========================================================================
