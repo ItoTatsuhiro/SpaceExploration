@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../Character/CharacterBase.h"
+#include "Library\GameLibrary.h"
 #include "BattleManager.generated.h"
 
 class APlayerCharacter;
@@ -214,6 +215,17 @@ private:
 	//引数３：防御側の防御力
 	//引数４：防御側の属性
 	float DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type);
+
+	Sequence battlesequence;
+	//バトルシーケンス
+	bool CAMERACHANGE(const float deltatime);
+	bool BATTLE_STANDBY(const float deltatime);
+	bool PLAYER_ATTACK(const float deltatime);
+	bool PLAYER_ATTACKRECEIVE(const float deltatime);
+	bool ENEMY_ATTACK(const float deltatime);
+	bool ENEMY_ATTACKRECEIVE(const float deltatime);
+	bool BATTLE_RESULT(const float deltatime);
+	bool BATTLE_END(const float deltatime);
 
 	//現在のバトル順番を一つ進める
 	void SeqIndexAdd() { seqindex++; };

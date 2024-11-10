@@ -6,7 +6,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 
-void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoftObjectPtr<UWorld> NowLevel)
+void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoftObjectPtr<UWorld> NowLevel, bool BeforeLevelUnload, bool BeforeLevelVisible)
 {
 	if (!NextLevel) {
 		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlaySceneGameMode:NextLevelÇ™ãÛÇ≈Ç∑ÅB")), true, true, FColor::Yellow, 2.f, TEXT(""));

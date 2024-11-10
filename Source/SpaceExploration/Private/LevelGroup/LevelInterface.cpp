@@ -57,7 +57,7 @@ void ALevelInterface::Tick(float DeltaTime)
 	}
 }
 
-void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel)
+void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel, bool BeforeLevelUnload, bool BeforeLevelVisible)
 {
 	FLatentActionInfo LatentInfo;
 
@@ -68,13 +68,49 @@ void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectP
 		UE_LOG(LogClass, Log, TEXT("YES nextlevel LevelInterface ChangeLevel"));
 	}
 
-	if (nowlevel != nullptr) {
+	//引数BeforeLevelUnloadがtrueの場合、移動前のレベルを消去する
+	if (BeforeLevelUnload == true) {
 		//移動前のレベルを消去
 		UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, nowlevel, LatentInfo, false);
+		UE_LOG(LogClass, Log, TEXT("levelinterface: changelevel: unload"));
+	}
+	else {
+		//移動前のレベルを消去しない場合、移動前レベルを表示か非表示か
+		//引数BeforeLevelVisibleがfalseの場合非表示
+		if (BeforeLevelVisible == false) {
+			//ULevelStreaming*型の変数にTSoftObjectPtr<UWorld>型のワールドを入れられるようにする
+			ULevelStreaming* beforelevel = GetWorld()->GetStreamingLevels()[0];
+			//beforelevelにnowlevelをセット
+			beforelevel->SetWorldAsset(nowlevel);
+			//非表示にする
+			beforelevel->SetShouldBeVisible(false);
+			UE_LOG(LogClass, Log, TEXT("levelinterface: changelevel: novisible"));
+
+
+			//UWorld* world = GEngine->GetWorldFromContextObjectChecked(this);
+			//if (world) {
+			//	for (ULevelStreaming* level : world->GetStreamingLevels()) {
+			//		if (level && level->GetWorldAsset() == nowlevel) {
+			//			if (level->IsLevelLoaded()) {
+			//				//更新停止
+			//				level->bShouldBlockOnLoad = false;
+			//				if (BeforeLevelVisible == false) {
+			//					//非表示
+			//					level->SetShouldBeVisible(false);
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
+		}
+		else {
+			UE_LOG(LogClass, Log, TEXT("levelinterface: changelevel: yesvisible"));
+		}
 	}
 	
 	UKismetSystemLibrary::PrintString(this, "~~ChangeLevel~~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 	//次のレベル設定
+	//NextLevelに何か入るとシーン遷移の処理が始まる
 	NextLevel = nextlevel;
 }
 
@@ -121,9 +157,23 @@ void ALevelInterface::testdelay() {
 		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel Function\n"));
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("Yes NextLevel Function"));
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, true, LatentInfo);
-		UKismetSystemLibrary::PrintString(this, "load FirstLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+		ULevelStreaming* nextlevel = GetWorld()->GetStreamingLevels()[0];
+		nextlevel->SetWorldAsset(NextLevel);
+		//NextLevelが読み込み済みの場合
+		if (nextlevel->IsLevelLoaded()) {
+			UE_LOG(LogClass, Log, TEXT("Yes NextLevel yesloaded Function"));
+			//非表示の場合、表示にする
+			if (!nextlevel->GetShouldBeVisibleFlag()) {
+				nextlevel->SetShouldBeVisible(true);
+			}
+		}
+		//読み込んでない場合は通常通りレベル読み込み
+		else {
+			UE_LOG(LogClass, Log, TEXT("Yes NextLevel noloaded Function"));
+			//読み込み
+			UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, true, LatentInfo);
+			UKismetSystemLibrary::PrintString(this, "load FirstLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+		}
 	}
 }
 
@@ -143,13 +193,9 @@ void ALevelInterface::Unload_LoadingLevel()
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, LoadingLevel, LatentInfo, false);
 	UKismetSystemLibrary::PrintString(this, "Unload LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	UE_LOG(LogClass, Log, TEXT("LevelInterface:Unload_Loading:Unload_LoadingLevel"));
-
-	//NowLevelのunload
 	
 	//NextLevelをNowLevelに設定
-	//NowLevel.Reset();
 	NowLevel = NextLevel;
 	//NextLevelをクリア
-	//NextLevel.Reset();
 	NextLevel = nullptr;
 }

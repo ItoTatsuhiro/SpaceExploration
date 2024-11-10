@@ -2,6 +2,8 @@
 
 
 #include "Scene/SelectTileScene/AC_MapTile.h"
+#include "Manager/PlaySceneGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include "Character/PlayerCharacter.h"
 
@@ -32,7 +34,9 @@ AAC_MapTileBase::AAC_MapTileBase()
 	// スタティックメッシュのアタッチ
 	staticMesh_->SetupAttachment(RootComponent);
 
-
+	//和田
+	//GameMode取得
+	gamemode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
 }
 
 // Called when the game starts or when spawned
