@@ -30,9 +30,15 @@ ACharacterBase::ACharacterBase()
 	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
 	BattleCameraComp->SetupAttachment(BattleCameraSpringArm);
 
-	// 装備品初期化
-	EquippedWeapon = nullptr;
+	BattleCameraComp->SetWorldRotation(FRotator(0.f, 0.f, 180.f));
 
+	EquippedWeaponComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("EuippedWeapon"));
+	EquippedWeaponComp->SetupAttachment(DefaultSceneRoot);
+
+	// 装備品初期化
+	// EquippedWeapon = nullptr;
+
+	E_CharacterActState = ECharacterActState::Idle;
 }
 
 // Called when the game starts or when spawned
@@ -51,7 +57,8 @@ void ACharacterBase::Tick(float DeltaTime)
 
 EElement ACharacterBase::GetAttackElement() const
 {
-	return EquippedWeapon->GetWeaponElement();
+	// return EquippedWeapon->GetWeaponElement();
+	return EElement::fire;
 }
 
 // 装備する武器を設定する。
@@ -61,7 +68,7 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 		UE_LOG(LogClass, Display, TEXT("nullptrがセットされました"));
 	}
 
-	EquippedWeapon = Weapon;
+	// EquippedWeapon = Weapon;
 
 	FString ResultLog = Weapon->GetWeaponStatus().PlayerName + " equipped";
 	UKismetSystemLibrary::PrintString(this, ResultLog, true, true, FColor::Cyan, 2.f, TEXT(""));

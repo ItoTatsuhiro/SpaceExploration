@@ -10,6 +10,8 @@
 #include "WeaponBase.generated.h"
 
 
+class UNiagaraComponent;
+
 UCLASS(Abstract, Blueprintable)
 class SPACEEXPLORATION_API AWeaponBase : public AActor, public IMouseButtonEvent
 {
@@ -44,6 +46,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SettingWeapon();
 
+	UFUNCTION(BlueprintCallable)
+	void ExecuteAttack();
+
 protected:
 	// 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -52,6 +57,10 @@ protected:
 	// 武器のメッシュ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+	// 武器の攻撃エフェクト
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraComponent> WeaponAttackNiagaraComp;
 
 	//武器の初期ステータス
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))

@@ -53,7 +53,7 @@ void AAC_MapTileBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 
-	TileEvent();
+	// TileEvent();
 
 }
 

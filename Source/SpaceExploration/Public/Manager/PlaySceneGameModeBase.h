@@ -27,8 +27,8 @@ public:
 		LevelInterfaceRef = LevelInterface;
 	}
 
-	// 
+	// ƒŒƒxƒ‹ˆÚ“®
 	UFUNCTION(BlueprintCallable)
-	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel);
+	void ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoftObjectPtr<UWorld> NowLevel = nullptr);
 
 };

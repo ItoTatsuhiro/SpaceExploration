@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SelectPlanetPlayerController.generated.h"
 
-class AAC_StageMapManager;
+class AAC_SceneManagerBase;
 class UInputAction;
 class UInputMappingContext;
 
@@ -21,14 +21,16 @@ class SPACEEXPLORATION_API ASelectPlanetPlayerController : public APlayerControl
 
 public:
 	// =========================================
-	// StageMapManagerのアドレスをセット
+	// 現在のSceneManagerの参照をセット
 	// =========================================
-	void SetStageMapManager(AAC_StageMapManager* StageMapManager) 
+	void SetStageMapManager(AAC_SceneManagerBase* StageMapManager)
 	{ 
-		StageMapManagerRef = StageMapManager;
+		CurrentSceneManagerRef = StageMapManager;
 	}
 
 	virtual void SetupInputComponent() override;
+
+	virtual void BeginPlay() override;
 
 private:
 	// 入力マッピングコンテキスト
@@ -39,9 +41,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* LeftClickAction;
 
-	// StageMapManagerの参照
+	// 現在のSceneManagerの参照
 	UPROPERTY()
-	AAC_StageMapManager* StageMapManagerRef;
+	AAC_SceneManagerBase* CurrentSceneManagerRef;
 
 private:
 	// 左クリック時に実行する関数

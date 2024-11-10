@@ -8,12 +8,10 @@
 #include "../../tsutsumi/GalaxyRandomSelect.h"
 #include "../../Scene/SelectTileScene/E_Tile.h"
 #include "../../Manager/SequenceManager.h"
-
+#include "../AC_SceneManagerBase.h"
 
 #include "AC_StageMapManager.generated.h"
 
-//// 前方宣言
-//class FSequenceDelegate;
 
 
 
@@ -31,8 +29,9 @@ struct FTileArray {
 // 作成者：伊藤
 // ステージマップを管理するためのクラス
 // ステージの配列の生成、保持、取得等の処理を行う
+// 親クラスはSceneManagerBase
 UCLASS(BlueprintType)
-class SPACEEXPLORATION_API AAC_StageMapManager : public AActor
+class SPACEEXPLORATION_API AAC_StageMapManager : public AAC_SceneManagerBase
 {
 	GENERATED_BODY()
 	
@@ -50,11 +49,6 @@ private:
 	// MapSceneの制御用
 	// デリゲートを用いて制御を行う
 
-	// シーケンスマネージャー
-	UPROPERTY(VisibleAnywhere)
-	USequenceManager* sequenceManager_;
-
-
 
 	// シーケンス用の関数とデリゲート
 
@@ -70,6 +64,23 @@ private:
 	// マス選択シーケンス用デリゲート(コンストラクタで初期化)
 	FSequenceDelegate selectTileDel_;
 
+
+	// プレイヤー移動開始シーケンス
+	void SeqPlayerMoveBegin(const float delta_time);
+	// プレイヤー移動開始シーケンス用デリゲート（コンストラクタで初期化）
+	FSequenceDelegate playerMoveBeginDel_;
+
+
+	// プレイヤー移動待機シーケンス
+	void SeqPlayerMoveIdle(const float delta_time);
+	// プレイヤー移動待機シーケンス用デリゲート（コンストラクタで初期化）
+	FSequenceDelegate playerMoveIdleDel_;
+
+
+	// マスのイベント実行シーケンス
+	void SeqExecuteTileEvent(const float delta_time);
+	// マスのイベント実行シーケンス用デリゲート（コンストラクタで初期化）
+	FSequenceDelegate executeTileEventDel_;
 
 
 	//------------------------------------------------------------------------------------
@@ -124,15 +135,28 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "tileDetail")
 	TSubclassOf<class AAC_MapTileItem> itemTileClass_;
 
-	const APlayerCharacter* PlayerCharacter_;
+
+	//// プレイヤーの参照
+	//UPROPERTY(EditAnywhere)
+	//APlayerCharacter* playerCharacter_;
 
 
-	// レイを飛ばして当たったActorを取得する関数
-	AActor* PerformRaycast();
 
-	UPROPERTY()
 	// カーソルが重なっているマス
-	AActor* hoveredTile_;
+	UPROPERTY(VisibleAnywhere)
+	AAC_MapTileBase* hoveredTile_;
+
+
+	// 選択を行ったマス
+	UPROPERTY(VisibleAnywhere)
+	AAC_MapTileBase* selectTile_;
+
+	// 移動先のマスに対して加算する座標
+	// 加算する前にプレイヤーの向きに調整したうえで加算する
+	UPROPERTY(EditAnywhere)
+	FVector moveTargetOffset_ = { 0, 300, 300 };
+
+
 
 
 public:	

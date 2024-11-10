@@ -7,6 +7,7 @@
 #include "LevelInterface.generated.h"
 
 class ACharacterBase;
+class APlaySceneGameModeBase;
 
 UCLASS()
 class SPACEEXPLORATION_API ALevelInterface : public AActor
@@ -27,8 +28,9 @@ public:
 
 	//シーン変更（シーン変更時に一度だけ呼んでね）
 	//引数１：次のレベル
-	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel);
-
+	//引数２：消去するレベル（移動前のレベルを消去する場合は消去するレベルを入力）
+	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel = nullptr);
+	
 	//ローディング画面レベル読み込み
 	UFUNCTION()
 	void Load_LoadingLevel();
@@ -52,6 +54,8 @@ public:
 //ゲッター
 
 private:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APlaySceneGameModeBase> gamemode;
 
 	//ローディング画面
 	UPROPERTY(EditAnywhere, Category = "Level")
@@ -64,8 +68,4 @@ private:
 	//現在のレベル
 	UPROPERTY(VisibleAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> NowLevel;
-
-	//一つ前のレベル
-	UPROPERTY(VisibleAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> BeforeLevel;
 };

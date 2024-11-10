@@ -25,7 +25,7 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	CharacterStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayeMesh"));
 
-	CharacterStaticMeshComp->SetupAttachment(RootComponent);
+	CharacterStaticMeshComp->SetupAttachment(DefaultSceneRoot);
 
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 
@@ -45,7 +45,7 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	if (!WeaponInventoryComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの生成に失敗しました。"));
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:WeaponInventoryの生成に失敗しました。"));
 	}
 
 }
@@ -61,8 +61,7 @@ void APlayerCharacter::BeginPlay()
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("PlayerControllerの取得に失敗しました。")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"));
+		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:PlayerControllerの取得に失敗しました。"));
 		return;
 	}
 	// マウスカーソルを表示
@@ -71,8 +70,7 @@ void APlayerCharacter::BeginPlay()
 	PlayerController->SetViewTargetWithBlend(LookingDownCameraComp->GetChildActor());
 
 	if (!WeaponInventoryComponent) {
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("WeaponInventoryの取得に失敗しました。")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("WeaponInventoryの取得に失敗しました。"));
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:WeaponInventoryの取得に失敗しました。"));
 		return;
 	}
 
@@ -80,7 +78,7 @@ void APlayerCharacter::BeginPlay()
 
 	auto ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
 
-	EquippedWeapon = ElementWeapons[0];
+	// EquippedWeapon = ElementWeapons[0];
 	
 	//// マウスカーソルのモードを UI モードに設定 (必要に応じて)
 	//FInputModeUIOnly InputMode;
@@ -88,27 +86,24 @@ void APlayerCharacter::BeginPlay()
 
 }
 
-/// <summary>
-/// プレイヤーのアップデート
-/// </summary>
-/// <param name="DeltaTime"></param>
+//　----------------------------------------------------------------
+// プレイヤーのアップデート
+//　---------------------------------------------------------------->
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	if (!PlayerSequence.IsBound()) {
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Don,t set PlayerSequence function")), true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("Don,t set PlayerSequence function"), nullptr);
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:Don,t set PlayerSequence function"), nullptr);
 		return;
 	}
 
 	PlayerSequence.Execute(DeltaTime);
 }
 
-/// <summary>
-/// 移動させたい位置をセットさせて、移動を開始させる。
-/// </summary>
-/// <param name="Location"> 移動させる位置 </param>
+// ----------------------------------------------------------------
+// 移動させたい位置をセットさせて、移動を開始させる。
+// ----------------------------------------------------------------
 void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 {
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Player Move TargetLocation：x = %1.f, y = %1.f, z = %1.f"), 
@@ -116,19 +111,21 @@ void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 		, true, true, FColor::Cyan, 2.f, TEXT(""));
 	TargetLocation = Location;
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqMoveTargetLocation);
+
+	E_CharacterActState = ECharacterActState::Move;
 }
 
-//
+//　----------------------------------------------------------------
 // 左クリックを押したときレイを飛ばして
 // 当たった "Actor" クラスの "LeftMouseButton" 関数を実行する
-// 
+// ----------------------------------------------------------------
 void APlayerCharacter::ClickedMouseLeftButton()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController)
 	{
-		UKismetSystemLibrary::PrintString(this, "PlayerControllerの取得に失敗しました。", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerの取得に失敗しました。"), nullptr);
+		UKismetSystemLibrary::PrintString(this, "APlayCharacter:PlayerControllerの取得に失敗しました。", true, true, FColor::Red, 2.f, TEXT(""));
+		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:PlayerControllerの取得に失敗しました。"), nullptr);
 		return;
 	}
 
@@ -150,7 +147,7 @@ void APlayerCharacter::ClickedMouseLeftButton()
 			if ( !HitActor || !( HitActor->GetClass()->ImplementsInterface( UMouseButtonEvent::StaticClass() ) ) )
 			{
 				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Actorの取得に失敗しました。")), true, true, FColor::Yellow, 2.f, TEXT(""));
-				UE_LOG(LogTemp, Warning, TEXT("Actorの取得に失敗しました。"));
+				UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:Actorの取得に失敗しました。"));
 				return;
 			}
 
@@ -163,21 +160,26 @@ void APlayerCharacter::ClickedMouseLeftButton()
 	}
 }
 
-/// <summary>
-/// 待機シーケンス
-/// </summary>
-/// <param name="DeltaTime"></param>
-/// <returns> 実行結果を返す。False：失敗 True：成功 </returns>
-bool APlayerCharacter::SeqIdle(float DeltaTime)
+//　----------------------------------------------------------------
+// 待機シーケンス
+// 
+// == 引数 ===
+// DeltaTime...
+// 
+// 実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
+bool APlayerCharacter::SeqIdle(const float DeltaTime)
 {
 	return true;
 }
 
+// ----------------------------------------------------------------
 // プレイヤーを目標位置に移動させる。
 // 移動が終了したら "SeqIdle" に戻る。
 //
-// 戻り値：実行結果を返す。False：失敗 True：成功 </returns>
-bool APlayerCharacter::SeqMoveTargetLocation(float DeltaTime)
+// 戻り値：実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
+bool APlayerCharacter::SeqMoveTargetLocation(const float DeltaTime)
 {
 	// ターゲットまでの方向ベクトルを計算
 	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
@@ -192,6 +194,7 @@ bool APlayerCharacter::SeqMoveTargetLocation(float DeltaTime)
 	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 20.f) {
 		SetActorLocation(TargetLocation);
 		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+		E_CharacterActState = ECharacterActState::Idle;
 	}
 	return true;
 }
