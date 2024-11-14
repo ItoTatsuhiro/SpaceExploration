@@ -20,5 +20,5 @@ void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoft
 		return;
 	}
 
-	LevelInterfaceRef->ChangeLevel(NextLevel, NowLevel);
+	LevelInterfaceRef->ChangeLevel(NextLevel, NowLevel, BeforeLevelUnload, BeforeLevelVisible);
 }

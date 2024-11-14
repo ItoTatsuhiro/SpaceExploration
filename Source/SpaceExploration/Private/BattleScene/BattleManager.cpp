@@ -19,32 +19,6 @@ ABattleManager::ABattleManager()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	//niagaraオブジェクトをコンポーネントに追加
-	niagara_player_attack_water = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlayerAttackWater"));
-	niagara_player_attack_water->SetupAttachment(RootComponent);
-	niagara_player_attack_fier = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlayerAttackFier"));
-	niagara_player_attack_fier->SetupAttachment(RootComponent);
-	niagara_player_attack_wind = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlayerAttackWind"));
-	niagara_player_attack_wind->SetupAttachment(RootComponent);
-	niagara_player_death = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlayerDeath"));
-	niagara_player_death->SetupAttachment(RootComponent);
-	niagara_player_hitreceive = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlayerHitreceive"));
-	niagara_player_hitreceive->SetupAttachment(RootComponent);
-	niagara_player_attack = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlayerAttack"));
-	niagara_player_attack->SetupAttachment(RootComponent);
-	niagara_enemy_attack_wind = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EnemyAttackwind"));
-	niagara_enemy_attack_wind->SetupAttachment(RootComponent);
-	niagara_enemy_attack_fier = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EnemyAttackFier"));
-	niagara_enemy_attack_fier->SetupAttachment(RootComponent);
-	niagara_enemy_attack_water = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EnemyAttackWater"));
-	niagara_enemy_attack_water->SetupAttachment(RootComponent);
-	niagara_enemy_attack = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EnemyAttack"));
-	niagara_enemy_attack->SetupAttachment(RootComponent);
-	niagara_enemy_death = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EnemyDeath"));
-	niagara_enemy_death->SetupAttachment(RootComponent);
-	niagara_enemy_hitreceive = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EnemyHitreceive"));
-	niagara_enemy_hitreceive->SetupAttachment(RootComponent);
 }
 
 ABattleManager::~ABattleManager()
@@ -72,7 +46,8 @@ void ABattleManager::BeginPlay()
 	//ゲームインスタンス取得
 	mygameinstance = Cast<UMyGameInstance>(GetGameInstance());
 
-//プレイヤー情報取得時の例外処理-----------------------------------------------------------------------
+//キャラクター情報取得時の例外処理-----------------------------------------------------------------------
+	//プレイヤー情報取得
 	if (!UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0)) {
 		UE_LOG(LogClass, Warning, TEXT("error : NO playerstatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
@@ -83,7 +58,6 @@ void ABattleManager::BeginPlay()
 		playerstatus_.Speed = 15.0f;
 		provplayerstatus_.hp_ = playerstatus_.HP;
 		provplayerstatus_.type_ = 1;
-		niagara_player_attack = niagara_player_attack_fier;
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
@@ -93,28 +67,13 @@ void ABattleManager::BeginPlay()
 		playerstatus_ = player->GetCharacterStatus();
 		provplayerstatus_.hp_ = playerstatus_.HP;
 		provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());
-		//戦闘攻撃エフェクト
-		if (provplayerstatus_.type_ == TYPE::fire) {
-			niagara_player_attack = niagara_player_attack_fier;
-		}
-		else if (provplayerstatus_.type_ == TYPE::water) {
-			niagara_player_attack = niagara_player_attack_water;
-		}
-		else if (provplayerstatus_.type_ == TYPE::wind) {
-			niagara_player_attack = niagara_player_attack_wind;
-		}
 	}
-	//ナイアガラ座標セット
-	niagara_player_attack->SetRelativeLocation(playerpos_actor->GetActorLocation());
-	niagara_player_attack->SetWorldRotation(FRotator3d(0, 180, 0));
-	niagara_player_hitreceive->SetRelativeLocation(playerpos_actor->GetActorLocation());
-	niagara_player_death->SetRelativeLocation(playerpos_actor->GetActorLocation());
-
 	//エネミー情報取得時の例外処理
 	if (!mygameinstance->GetterBattleEnemyStatus()) {
 		UE_LOG(LogClass, Warning, TEXT("error : NO enemystatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
 		enemystatus_.HP = 10.0f;
+		enemystatus_.MaxHp = 30.0f;
 		enemystatus_.AttackPower = 50.0f;
 		enemystatus_.DefencePower = 20.0f;
 		enemystatus_.Speed = 10.0f;
@@ -132,64 +91,46 @@ void ABattleManager::BeginPlay()
 	if (mygameinstance->GetterBattleEnemyElement() > 2 || mygameinstance->GetterBattleEnemyElement() < 0) {
 		UE_LOG(LogClass, Warning, TEXT("error : NO enemytype\n"));
 		provenemystatus_.type_ = 0;
-		niagara_enemy_attack = niagara_enemy_attack_water;
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("success enemyelement load\n"));
 		//エネミーのステータス、属性を取得
 		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
-
-		//戦闘攻撃エフェクト
-		if (provenemystatus_.type_ == TYPE::fire) {
-			niagara_enemy_attack = niagara_enemy_attack_fier;
-		}
-		else if (provenemystatus_.type_ == TYPE::water) {
-			niagara_enemy_attack = niagara_enemy_attack_water;
-		}
-		else if (provenemystatus_.type_ == TYPE::wind) {
-			niagara_enemy_attack = niagara_enemy_attack_wind;
-		}
 	}
-	//ナイアガラ座標セット
-	niagara_enemy_attack->SetRelativeLocation(enemypos_actor->GetActorLocation());
-	niagara_enemy_attack->SetWorldRotation(FRotator3d(0, 0, 0));
-	niagara_enemy_hitreceive->SetRelativeLocation(enemypos_actor->GetActorLocation());
-	niagara_enemy_death->SetRelativeLocation(enemypos_actor->GetActorLocation());
-
+	
 //-----------------------------------------------------------------------------------------------------
 
 	//カメラをバトルシーン全体を見る物に切り替え
-	playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
-	cameras = Camera::battlecamera;
+	playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 0.0);
 	//プレイヤーのカメラと座標設定
 	if (player) {
 		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
 		//カメラ設定
-		PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
+		//PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
 		//座標設定
 		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
 	}
 	else {
 		UE_LOG(LogClass, Warning, TEXT("error : No playerCamera\n"));
-		PlayerCamera = BattleSceneCamera;
+		//PlayerCamera = BattleSceneCamera;
 	}
 	//敵のカメラと座標設定
 	if (!enemy) {
 		UE_LOG(LogClass, Warning, TEXT("error : No enemyCamera\n"));
-		EnemyCamera = BattleSceneCamera;
+		//EnemyCamera = BattleSceneCamera;
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("success enemyCamera load\n"));
 		//カメラ設定
-		EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
+		//EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
 		//座標設定
 		enemy->SetActorLocation(enemypos_actor->GetActorLocation());
 	}
 
-	battlesequence.BindUObject(this, &ABattleManager::BATTLE_STANDBY);
-
 	//バトル順など初期化
 	ButtleInit();
+
+	battlesequence.BindUObject(this, &ABattleManager::SEQ_BATTLE_STANDBY);
 }
 
 // Called every frame
@@ -197,167 +138,13 @@ void ABattleManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//現在実行中のシーケンス
-	NowBattleSeq = attack_order[seqindex];
-
 	battlesequence.Execute(DeltaTime);
-
-	//テストバトルシーケンスそれぞれのシーケンス実行
-	switch (NowBattleSeq) {
-		//バトルスタンバイシーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY):
-		if (cameras != Camera::battlecamera) {
-			//バトルシーンのカメラに切り替え
-			playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
-			cameras = Camera::battlecamera;
-		}
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-		_count += DeltaTime;
-		//次のターンに進める
-		if (_count >= _time) {
-			SeqIndexAdd();
-			_count = 0.0f;
-		}		
-		break;
-		//プレイヤー攻撃シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK):
-		if (cameras != Camera::playercamera) {
-			//プレイヤーのカメラに切り替え
-			playercontroller->SetViewTargetWithBlend(PlayerCamera, 1.0);
-			cameras = Camera::playercamera;
-		}
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_PLAYERATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-		//プレイヤー攻撃関数
-		//player->StartAttackAction();
-		//パーティクル再生
-		//niagara_player_attack->Activate();
-
-		_count += DeltaTime;
-		//次のターンに進める
-		if (_count >= _time) {
-			SeqIndexAdd();
-			_count = 0.0f;
-		}
-		break;
-		//プレイヤー攻撃を受けるシーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE):
-		if (cameras != Camera::playercamera) {
-			//プレイヤーのカメラに切り替え
-			playercontroller->SetViewTargetWithBlend(PlayerCamera, 1.0);
-			cameras = Camera::playercamera;
-		}
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_PLAYERHIT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-		//プレイヤー攻撃を受ける関数
-		//player->TakeDamage(playerdamage);
-		//パーティクル再生
-		//niagara_player_hitreceive->Activate();
-
-		_count += DeltaTime;
-		//次のターンに進める
-		if (_count >= _time) {
-			SeqIndexAdd();
-			_count = 0.0f;
-		}
-
-		break;
-		//エネミー攻撃シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK):
-		if (cameras != Camera::enemycamera) {
-			//敵カメラに切り替え
-			playercontroller->SetViewTargetWithBlend(EnemyCamera, 1.0);
-			cameras = Camera::enemycamera;
-		}
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_ENEMYATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-		//敵攻撃関数
-		//enemy->StartAttackAction();
-		//パーティクル再生
-		//niagara_enemy_attack->Activate();
-
-		_count += DeltaTime;
-		//次のターンに進める
-		if (_count >= _time) {
-			SeqIndexAdd();
-			_count = 0.0f;
-		}
-
-		break;
-		//エネミー攻撃を受けるシーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE):
-		if (cameras != Camera::enemycamera) {
-			//敵カメラに切り替え
-			playercontroller->SetViewTargetWithBlend(EnemyCamera, 1.0);
-			cameras = Camera::enemycamera;
-		}
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_ENEMYHIT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-		//敵攻撃を受ける関数
-		//enemy->TakeDamage(enemydamage);
-		//パーティクル再生
-		//niagara_enemy_hitreceive->Activate();
-
-		_count += DeltaTime;
-		//次のターンに進める
-		if (_count >= _time) {
-			SeqIndexAdd();
-			_count = 0.0f;
-		}
-
-		break;
-		//バトルリザルト画面シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT):
-		if (cameras != Camera::battlecamera) {
-			////勝者のカメラに切り替え
-			//if (battlewinner == E_BatlleWinner::player) {
-			//	playercontroller->SetViewTargetWithBlend(PlayerCamera, 1.0);
-			//	cameras = Camera::playercamera;
-			//}
-			//else if (battlewinner == E_BatlleWinner::enemy) {
-			//	playercontroller->SetViewTargetWithBlend(EnemyCamera, 1.0);
-			//	cameras = Camera::enemycamera;
-			//}
-
-			//バトルシーンカメラに切り替え
-			playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 1.0);
-			cameras = Camera::battlecamera;
-		}
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-		
-		//敗者のパーティクル再生
-		if (battlewinner == E_BatlleWinner::player) {
-			niagara_player_death;
-		}
-		else if (battlewinner == E_BatlleWinner::enemy) {
-			niagara_enemy_death;
-		}
-
-		_count += DeltaTime;
-		//次のターンに進める
-		if (_count >= _time) {
-			SeqIndexAdd();
-			_count = 0.0f;
-		}
-		
-		break;
-		//バトル終了シーケンス
-	case std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END):		
-		UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-		//現在のバトル順初期化
-		seqindex = 0;
-
-		//シーン移動
-		gamemode->ChangeLevel(nextlevel,this);
-
-		break;
-	}
 }
 
 void ABattleManager::ButtleInit()
 {
+	UE_LOG(LogClass, Warning, TEXT("ButtleInit"));
+
 	//攻撃順初期化
 	attack_order.clear();
 	//attack_orderの始めにバトル前の準備シーンを設定
@@ -365,6 +152,7 @@ void ABattleManager::ButtleInit()
 
 	//現在のバトル順初期化
 	seqindex = 0;
+	NowBattleSeq = attack_order[seqindex];
 
 	//攻撃タイミング設定
 	attack_timing_ = playerstatus_.Speed + enemystatus_.Speed;
@@ -375,6 +163,8 @@ void ABattleManager::ButtleInit()
 
 void ABattleManager::BattleTurn()
 {
+	UE_LOG(LogClass, Warning, TEXT("BattleTurn"));
+
 	//ダメージの計算
 	enemydamage = DamageMath(playerstatus_.AttackPower, provplayerstatus_.type_, enemystatus_.DefencePower, provenemystatus_.type_);
 	playerdamage = DamageMath(enemystatus_.AttackPower, provenemystatus_.type_, playerstatus_.DefencePower, provplayerstatus_.type_);
@@ -441,50 +231,188 @@ float ABattleManager::DamageMath(const float& A_atk, const int& A_type, const fl
 	return damage;
 }
 
-bool ABattleManager::CAMERACHANGE(const float deltatime)
+bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	_count += deltatime;
+	//次のターンに進める
+	if (_count >= _time) {
+		SEQChange_CameraChange();
+		_count = 0.0f;
+	}
 
 	return true;
 }
 
-bool ABattleManager::BATTLE_STANDBY(const float deltatime)
+bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	//プレイヤー攻撃関数
+	//player->StartAttackAction();
+
+	playerpos_actor->AddActorLocalRotation(FQuat(1));
+
+	_count += deltatime;
+	//次のターンに進める
+	if (_count >= _time) {
+		SEQChange_CameraChange();
+		_count = 0.0f;
+	}
 
 	return true;
 }
 
-bool ABattleManager::PLAYER_ATTACK(const float deltatime)
+bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	//プレイヤー攻撃を受ける関数
+	//player->TakeDamage(playerdamage);
+
+	playerpos_actor->AddActorLocalRotation(FQuat(2));
+		
+	_count += deltatime;
+	//次のターンに進める
+	if (_count >= _time) {
+		SEQChange_CameraChange();
+		_count = 0.0f;
+	}
 
 	return true;
 }
 
-bool ABattleManager::PLAYER_ATTACKRECEIVE(const float deltatime)
+bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	//エネミー攻撃
+	//enemy->StartAttackAction();
+
+	enemypos_actor->AddActorLocalRotation(FQuat(1));
+	
+	_count += deltatime;
+	//次のターンに進める
+	if (_count >= _time) {
+		SEQChange_CameraChange();
+		_count = 0.0f;
+	}
 
 	return true;
 }
 
-bool ABattleManager::ENEMY_ATTACK(const float deltatime)
+bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	//エネミー攻撃を受ける
+	//enemy->TakeDamage(enemydamage);
+
+	enemypos_actor->AddActorLocalRotation(FQuat(2));
+
+	_count += deltatime;
+	//次のターンに進める
+	if (_count >= _time) {
+		SEQChange_CameraChange();
+		_count = 0.0f;
+	}
 
 	return true;
 }
 
-bool ABattleManager::ENEMY_ATTACKRECEIVE(const float deltatime)
+bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	if (battlewinner == E_BatlleWinner::player) {
+		UKismetSystemLibrary::PrintString(this, "~Winner Player~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+		playerpos_actor->AddActorLocalRotation(FQuat(1));
+	}
+	else if (battlewinner == E_BatlleWinner::enemy) {
+		UKismetSystemLibrary::PrintString(this, "~Winner Enemy~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+		enemypos_actor->AddActorLocalRotation(FQuat(1));
+	}
+
+	_count += deltatime;
+	//次のターンに進める
+	if (_count >= _time) {
+		SEQChange_CameraChange();
+		_count = 0.0f;
+	}
 
 	return true;
 }
 
-bool ABattleManager::BATTLE_RESULT(const float deltatime)
+bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 {
+	UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+	//シーン移動
+	gamemode->ChangeLevel(nextlevel, this);
 
 	return true;
 }
 
-bool ABattleManager::BATTLE_END(const float deltatime)
+void ABattleManager::SEQChange_CameraChange()
 {
+	for (int i = 0; i < attack_order.size(); i++) {
+		UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order[%d] %d"),i,attack_order[i]);
+	}
+	UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order size %d"), attack_order.size());
+	UKismetSystemLibrary::PrintString(this, "~SEQChange_CameraChange~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	UE_LOG(LogClass, Warning, TEXT("BattleTurn:now attack_order %d"), attack_order[seqindex]);
 
-	return true;
+	//attack_orderのindexを次のターンへ移行
+	SeqIndexAdd();
+	//現在のシーケンスと次のシーケンスが別の物ならばカメラを切り替え
+	if (NowBattleSeq != attack_order[seqindex]) {
+		//プレイヤーのカメラに切り替え
+		if (attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK) ||
+			attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE)) {
+			UE_LOG(LogClass, Warning, TEXT("SEQChange_CameraChange: camerachange player"));
+			playercontroller->SetViewTargetWithBlend(PlayerCamera, camerachangetime);
+		}
+		//敵のカメラに切り替え
+		else if (attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK) ||
+			attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE)) {
+			UE_LOG(LogClass, Warning, TEXT("SEQChange_CameraChange: camerachange enemy"))
+			playercontroller->SetViewTargetWithBlend(EnemyCamera, camerachangetime);
+		}
+		//バトルシーンのカメラに切り替え
+		else {
+			UE_LOG(LogClass, Warning, TEXT("SEQChange_CameraChange: camerachange battle"))
+			playercontroller->SetViewTargetWithBlend(BattleSceneCamera, camerachangetime);
+		}
+	}
+	//カメラ切り替え後、現在のシーケンスを設定
+	NowBattleSeq = attack_order[seqindex];
+
+	//camerachangetime経過後にシーケンス切り替え
+	UWorld* world = GEngine->GameViewport->GetWorld();
+	FTimerHandle timerhandle;
+	world->GetTimerManager().SetTimer(timerhandle, this, &ABattleManager::SEQChange, camerachangetime, false);
+}
+
+void ABattleManager::SEQChange()
+{
+	//次のシーケンスに切り替え
+	if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK)) {
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_PLAYER_ATTACK);
+	}
+	else if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE)) {
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_PLAYER_ATTACKRECEIVE);
+	}
+	else if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK)) {
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_ENEMY_ATTACK);
+	}
+	else if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE)) {
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_ENEMY_ATTACKRECEIVE);
+	}
+	else if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT)) {
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_BATTLE_RESULT);
+	}
+	else if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END)) {
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_BATTLE_END);
+	}
 }
