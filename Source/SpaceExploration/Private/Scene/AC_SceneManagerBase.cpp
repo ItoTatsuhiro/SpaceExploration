@@ -23,7 +23,7 @@ void AAC_SceneManagerBase::BeginPlay()
 	Super::BeginPlay();
 	
 	// プレイヤーキャラクター取得
-	playerCharacter_ = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	playerCharacter_ = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
 	if (!playerCharacter_) {
 		UKismetSystemLibrary::PrintString(this, "PlayerCharacter_ is nullptr", true, true, FColor::Red, 3.f);

@@ -5,6 +5,7 @@
 #include "Manager/PlaySceneGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include <Kismet/KismetSystemLibrary.h>
+#include "NiagaraComponent.h"
 #include "Character/PlayerCharacter.h"
 
 // Sets default values
@@ -33,6 +34,9 @@ AAC_MapTileBase::AAC_MapTileBase()
 
 	// スタティックメッシュのアタッチ
 	staticMesh_->SetupAttachment(RootComponent);
+
+	planetNiagaraComp_ = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PlanetNiagaraComponent"));
+	planetNiagaraComp_->SetupAttachment(RootComponent);
 
 	//和田
 	//GameMode取得
