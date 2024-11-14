@@ -31,7 +31,7 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	// ----------- カメラの作成 -----------------------------------------------------
 	LookingDownCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("LookingDownCameraSpringArm"));
-	LookingDownCameraSpringArm->SetupAttachment(CharacterStaticMeshComp);
+	LookingDownCameraSpringArm->SetupAttachment(DefaultSceneRoot);
 
 	LookingDownCameraSpringArm->TargetArmLength = 1000.f;
 	LookingDownCameraSpringArm->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));

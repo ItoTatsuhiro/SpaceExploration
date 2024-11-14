@@ -10,6 +10,7 @@
 #include "AC_MapTile.generated.h"
 
 class APlaySceneGameModeBase;
+class UNiagaraComponent;
 
 //********************************************************************
 // マップ上のマスのベースクラス
@@ -51,6 +52,11 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> staticMesh_;
+
+	// 惑星のナイアガラコンポーネント
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UNiagaraComponent> planetNiagaraComp_;
+
 
 	//シーン遷移ようGamemode
 	UPROPERTY(VisibleAnywhere)
