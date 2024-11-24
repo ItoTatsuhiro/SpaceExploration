@@ -72,3 +72,13 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+Content/graphics/alpha/Chmd_plane/material/ChMI_weaponfire.uasset
+Content/graphics/alpha/Chmd_plane/material/ChMI_weaponwater.uasset
+Content/graphics/alpha/Chmd_plane/material/ChMI_weaponwind.uasset
+Content/graphics/alpha/Chmd_plane/mesh/BgMIi_X54_TM.uasset
+Content/graphics/alpha/Chmd_plane/mesh/testplane.uasset
+Content/graphics/alpha/Chmd_plane/mesh/weapon_fire.uasset
+Content/graphics/alpha/Chmd_plane/mesh/weapon_water.uasset
+Content/graphics/alpha/Chmd_plane/mesh/weapon_wind.uasset
+Source/SpaceExploration/Private/GameData/PlayerData.cpp
+Source/SpaceExploration/Public/GameData/PlayerData.h

@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/Array.h"
+#include "Templates/Function.h"
 #include "GameFramework/Actor.h"
 #include "../Character/CharacterBase.h"
+#include "Library\GameLibrary.h"
 #include "BattleManager.generated.h"
 
 class APlayerCharacter;
@@ -87,7 +90,6 @@ private:
 	TObjectPtr<AEnemyBase> enemy = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	ALevelInterface* levelinterface = nullptr;
-	//UPROPERTY(VisibleAnywhere)
 
 	//勝敗用
 	enum class E_BatlleWinner{
@@ -105,6 +107,9 @@ private:
 
 	//シーケンス時間
 	float _time = 2.0f, _count = 0.0f;
+
+	//カメラ切り替えに掛かる時間
+	const float camerachangetime = 1.0f;
 
 	//バトルで使用するプレイヤーのカメラ
 	UPROPERTY(EditAnywhere, Category = "Camera")
@@ -135,8 +140,9 @@ private:
 	AActor* BattleSceneCamera = nullptr;
 
 public:
+
 	//実行中のシーケンス
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleManager")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BattleManager")
 	uint8 NowBattleSeq = 0;
 
 private:
@@ -158,47 +164,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "CharactorPos")
 	AActor* enemypos_actor;
 
-//エフェクト（Niagara）関係
-	//敵のエフェクト
-	//攻撃　炎
-	UPROPERTY(EditAnywhere, Category = "particl|enemy")
-	UNiagaraComponent* niagara_enemy_attack_fier;
-	//攻撃　水
-	UPROPERTY(EditAnywhere, Category = "particl|enemy")
-	UNiagaraComponent* niagara_enemy_attack_water;
-	//攻撃　風
-	UPROPERTY(EditAnywhere, Category = "particl|enemy")
-	UNiagaraComponent* niagara_enemy_attack_wind;
-	//攻撃
-	UPROPERTY(EditAnywhere, Category = "particl|enemy")
-	UNiagaraComponent* niagara_enemy_attack;
-	//攻撃ヒット
-	UPROPERTY(EditAnywhere, Category = "particl|enemy")
-	UNiagaraComponent* niagara_enemy_hitreceive;
-	//死亡
-	UPROPERTY(EditAnywhere, Category = "particl|enemy")
-	UNiagaraComponent* niagara_enemy_death;
-
-	//プレイヤーのエフェクト
-	//攻撃　炎
-	UPROPERTY(EditAnywhere, Category = "particl|player")
-	UNiagaraComponent* niagara_player_attack_fier;
-	//攻撃　水
-	UPROPERTY(EditAnywhere, Category = "particl|player")
-	UNiagaraComponent* niagara_player_attack_water;
-	//攻撃　風
-	UPROPERTY(EditAnywhere, Category = "particl|player")
-	UNiagaraComponent* niagara_player_attack_wind;
-	//攻撃
-	UPROPERTY(EditAnywhere, Category = "particl|player")
-	UNiagaraComponent* niagara_player_attack;
-	//攻撃ヒット
-	UPROPERTY(EditAnywhere, Category = "particl|player")
-	UNiagaraComponent* niagara_player_hitreceive;
-	//死亡
-	UPROPERTY(EditAnywhere, Category = "particl|player")
-	UNiagaraComponent* niagara_player_death;
-
 //関数
 
 	//バトルシーンに入った時の初期化関数
@@ -215,7 +180,18 @@ private:
 	//引数４：防御側の属性
 	float DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type);
 
+	Sequence battlesequence;
+	//バトルシーケンス
+	bool SEQ_BATTLE_STANDBY(const float deltatime);
+	bool SEQ_PLAYER_ATTACK(const float deltatime);
+	bool SEQ_PLAYER_ATTACKRECEIVE(const float deltatime);
+	bool SEQ_ENEMY_ATTACK(const float deltatime);
+	bool SEQ_ENEMY_ATTACKRECEIVE(const float deltatime);
+	bool SEQ_BATTLE_RESULT(const float deltatime);
+	bool SEQ_BATTLE_END(const float deltatime);
+	void SEQChange_CameraChange();
+	void SEQChange();
+
 	//現在のバトル順番を一つ進める
 	void SeqIndexAdd() { seqindex++; };
-	
 };

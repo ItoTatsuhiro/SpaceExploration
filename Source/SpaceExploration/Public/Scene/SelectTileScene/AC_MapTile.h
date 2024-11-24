@@ -9,6 +9,9 @@
 #include "../../Character/MouseButtonEvent.h"
 #include "AC_MapTile.generated.h"
 
+class APlaySceneGameModeBase;
+class UNiagaraComponent;
+
 //********************************************************************
 // マップ上のマスのベースクラス
 // 抽象クラス、それぞれのマスのクラスに継承して用いる
@@ -50,7 +53,18 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> staticMesh_;
 
+	// 惑星のナイアガラコンポーネント
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UNiagaraComponent> planetNiagaraComp_;
 
+
+	//シーン遷移ようGamemode
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APlaySceneGameModeBase> gamemode;
+
+	//遷移先のレベル
+	UPROPERTY(EditDefaultsOnly, Category = "Level")
+	TSoftObjectPtr<UWorld> NextLevel = nullptr;
 
 public:	
 
