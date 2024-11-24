@@ -21,28 +21,31 @@ void AAC_WeaponSelectManager::BeginPlay()
 {
 	Super::BeginPlay();
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::WeaponLevelUp);
+	
 }
 
 // Called every frame
 void AAC_WeaponSelectManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 void AAC_WeaponSelectManager::WeaponLevelUp()
 {
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (!PlayerController)return;
-	bool Hit = false;
-	FHitResult HitResult;
-	PlayerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility),Hit,HitResult);
-	if (!Hit)return;
-	AWeaponBase* WeaponBase = Cast<AWeaponBase>(HitResult.GetActor());
-	if (!WeaponBase)return;
-	APlayerCharacter* Player = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (!PlayerController) 
+	{
+		return;
+	}
+	AWeaponBase* WeaponBase = Cast<AWeaponBase>(PerformRaycast());
+	if (!WeaponBase)
+	{
+		return;
+	}
+	APlayerCharacter* Player = playerCharacter_;
 	if (!Player)return;
 	AWeaponBase* PlayerWeapon = Player->GetEquippedWeapon();
-	if (WeaponBase->GetWeaponElement() == PlayerWeapon->GetWeaponElement()) {
+	if (WeaponBase->GetWeaponElement() == PlayerWeapon->GetWeaponElement()) 
+	{
 		FStatus NewStatus = WeaponBase->GetWeaponStatus();
 		NewStatus.PlayerLevel += 1;
 		WeaponBase->SetWeaponStatus(NewStatus);
@@ -50,7 +53,7 @@ void AAC_WeaponSelectManager::WeaponLevelUp()
 	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (!PlaySceneGameMode)return;
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::MapLevelChange);
-	PlaySceneGameMode->ChangeLevel(World);
+	PlaySceneGameMode->ChangeLevel(World,this);
 }
 
 void AAC_WeaponSelectManager::MapLevelChange()

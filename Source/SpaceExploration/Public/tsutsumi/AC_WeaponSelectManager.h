@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../Scene/AC_SceneManagerBase.h"
 #include "AC_WeaponSelectManager.generated.h"
 
 DECLARE_DELEGATE(FWeaponSelectDelegate);
 UCLASS()
 
 
-class SPACEEXPLORATION_API AAC_WeaponSelectManager : public AActor
+class SPACEEXPLORATION_API AAC_WeaponSelectManager : public AAC_SceneManagerBase
 {
 	GENERATED_BODY()
 	
