@@ -28,7 +28,7 @@ public:
 
 	// 各属性の武器データの配列を返す
 	UFUNCTION(BlueprintCallable)
-	TArray< AWeaponBase* > GetElementWeapons() { return ElementWeapons; }
+	TArray< AWeaponBase* >& GetElementWeapons() { return ElementWeapons; }
 
 	// 設定したクラスから武器の生成を行う
 	UFUNCTION()

@@ -101,6 +101,30 @@ void APlayerCharacter::Tick(float DeltaTime)
 	PlayerSequence.Execute(DeltaTime);
 }
 
+// 指定した属性の武器を返す。
+AWeaponBase* APlayerCharacter::GetElementWeapon(EElement WeaponElement)
+{
+	TArray<AWeaponBase*>& ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
+
+	// インベントリの各属性の武器と、引数の属性を確認する
+	for (int i = 0; i < ElementWeapons.Num(); ++i)
+	{
+		if (!ElementWeapons[i])
+		{
+			continue;
+		}
+
+		// インベントリの武器と属性が一致したら、その武器のアドレスを返す。
+		if (ElementWeapons[i]->GetWeaponElement() == WeaponElement)
+		{
+			return ElementWeapons[i];
+		}
+	}
+
+	// 存在しない場合、nullptrを返す。（基本的にはエラー）
+	return nullptr;
+}
+
 // ----------------------------------------------------------------
 // 移動させたい位置をセットさせて、移動を開始させる。
 // ----------------------------------------------------------------

@@ -31,13 +31,31 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	// -----------------------------------------------------------------
+	// プレイヤーを見下ろしているカメラのコンポーネントを返す。
+	// -----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	UChildActorComponent* GetLookingDownCaemeraComponent() const { return LookingDownCameraComp; }
 
+	// -----------------------------------------------------------------
+	// プレイヤーの武器インベントリのコンポーネントを返す。
+	// -----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	UWeaponInventoryComponent* GetWeaponInventoryComponent() { return WeaponInventoryComponent; }
 
-	// 目標の位置に移動
+	// -----------------------------------------------------------------
+	// 指定した属性を持つ武器のアドレスを返す。
+	// 
+	// args1...取得したい武器の属性
+	// -----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	AWeaponBase* GetElementWeapon(EElement WeaponElement);
+
+	// -----------------------------------------------------------------
+	// 目標の位置にプレイヤーを移動させる
+	// 
+	// args1...プレイヤーを移動させたい位置
+	// -----------------------------------------------------------------
 	void BeginMoveTargetLocation(const FVector& Location);
 
 private:	
