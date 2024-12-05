@@ -7,7 +7,7 @@
 #include "NiagaraComponent.h"
 
 
-
+#include "TileData.generated.h"
 
 
 // ---------------------------------------------------------------------------------------------
@@ -15,13 +15,15 @@
 // シーン遷移等で一度リセットされる際に必要な情報を一時的に保持しておくために使用する
 // これを配列として持つStageMapDataクラスで管理（作成予定）
 // ---------------------------------------------------------------------------------------------
-UCLASS(BlueprintType)
-class SPACEEXPLORATION_API TileData
+UCLASS()
+class SPACEEXPLORATION_API UTileData : public UObject
 {
+	GENERATED_BODY()
+
 public:
 
-	TileData();
-	~TileData();
+	UTileData();
+	~UTileData();
 
 
 protected :
