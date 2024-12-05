@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GameData/TileData.h"
+#include "../Public/GameData/TileData.h"
 
-TileData::TileData()
+UTileData::UTileData()
 {
 }
 
-TileData::~TileData()
+UTileData::~UTileData()
 {
 }

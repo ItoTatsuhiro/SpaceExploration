@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../Scene/SelectTileScene/AC_StageMapManager.h"
-#include "TileData.h"
+#include "../../Public/GameData/TileData.h"
 #include "StageMapData.generated.h"
 
 // --------------------------------------------------------
@@ -21,7 +21,7 @@ struct FTileDataArray {
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere)
-	TArray<TileData> tileDataArray_;
+	TArray<UTileData*> tileDataArray_;
 
 };
 
