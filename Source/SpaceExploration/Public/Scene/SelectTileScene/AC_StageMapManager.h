@@ -12,8 +12,7 @@
 
 #include "AC_StageMapManager.generated.h"
 
-
-
+class APlayerController;
 
 // 二重のTArrayに使用する用
 // マスのベース型のTArrayをもつ構造体
@@ -156,8 +155,16 @@ private:
 	UPROPERTY(EditAnywhere)
 	FVector moveTargetOffset_ = { 0, 300, 300 };
 
+//和田記載-----------------------------------------------------------
 
+	//プレイヤーコントローラー
+	UPROPERTY(VisibleAnywhere)
+	APlayerController* playercontroller = nullptr;
 
+	UPROPERTY(EditAnywhere)
+	AActor* playerlookingdowncamera = nullptr;
+
+//-------------------------------------------------------------------
 
 public:	
 	// Called every frame

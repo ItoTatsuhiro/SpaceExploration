@@ -64,6 +64,23 @@ void AAC_StageMapManager::BeginPlay()
     }
 
 
+//和田記載-----------------------------------------------------------
+
+    playercontroller = UGameplayStatics::GetPlayerController(this, 0);
+    //カメラ切り替え
+    if (playerlookingdowncamera == nullptr) {
+        //playercamera = Cast<AActor>(playerCharacter_->GetBattleCameraComponent());
+        playerlookingdowncamera = playerCharacter_->GetLookingDownCaemeraComponent()->GetChildActor();
+
+        if (playerlookingdowncamera == nullptr) {
+            UE_LOG(LogClass, Warning, TEXT("AAC_StageMapManager::BeginPlay : error : No playerCamera\n"));
+        }
+    }
+
+
+    playercontroller->SetViewTargetWithBlend(playerlookingdowncamera,0.0f);
+
+//-------------------------------------------------------------------
 }
 
 // Called every frame
@@ -154,16 +171,13 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
 
     }
     else {
-
         hoveredTile_ = nullptr;
-
     }
 
     // デバッグ用に重なっているマスに目印を付ける
     if (hoveredTile_ != nullptr) {
 
         DrawDebugSphere(GetWorld(), hoveredTile_->GetActorLocation(), 100.0f, 12, FColor::Red, false);
-
     }
 
     // クリックされていない状態の時は処理しない

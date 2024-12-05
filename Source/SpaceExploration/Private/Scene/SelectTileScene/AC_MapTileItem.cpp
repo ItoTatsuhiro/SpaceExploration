@@ -2,7 +2,8 @@
 
 
 #include "Scene/SelectTileScene/AC_MapTileItem.h"
-
+#include "Manager/PlaySceneGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Scene/SelectTileScene/E_Tile.h"
 
 
@@ -22,6 +23,11 @@ void AAC_MapTileItem::BeginPlay() {
 	//FSoftObjectPath nextlevelpath(TEXT(""));
 	////パスで取得したレベルを設定
 	//NextLevel = TSoftObjectPtr<UWorld>(nextlevelpath);
+
+	//移動先のレベルをパスで取得
+	FSoftObjectPath nextlevelpath(TEXT("/Game/tsutsumi/Map/box_level1.box_level1"));
+	//パスで取得したレベルを設定
+	NextLevel = TSoftObjectPtr<UWorld>(nextlevelpath);
 }
 
 
@@ -38,6 +44,6 @@ void AAC_MapTileItem::Tick(float DeltaTime) {
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileItem::TileEvent() {
 	//宝箱シーンに移動
-	//gamemode->ChangeLevel(NextLevel, this, false, false);
+	gamemode->ChangeLevel(NextLevel, this, false, false);
 
 }
