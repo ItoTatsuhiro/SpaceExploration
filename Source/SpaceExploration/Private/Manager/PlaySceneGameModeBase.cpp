@@ -6,6 +6,11 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 
+APlaySceneGameModeBase::APlaySceneGameModeBase() : StageMapData(nullptr)
+{
+
+}
+
 void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoftObjectPtr<UWorld> NowLevel, bool BeforeLevelUnload, bool BeforeLevelVisible)
 {
 	if (!NextLevel) {
@@ -21,4 +26,16 @@ void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoft
 	}
 
 	LevelInterfaceRef->ChangeLevel(NextLevel, NowLevel, BeforeLevelUnload, BeforeLevelVisible);
+}
+
+bool APlaySceneGameModeBase::TryGetStageMapData(FStageMapData* _StageMapData)
+{
+	if (!StageMapData) 
+	{
+		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameModeBase::TryGetStageMapData(FStageMapData* _StageMapData) : StageMapDataÇ™nullptrÇ≈ÇµÇΩÅB"));
+		return false;
+	}
+
+	_StageMapData = StageMapData;
+	return true;
 }

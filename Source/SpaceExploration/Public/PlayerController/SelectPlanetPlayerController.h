@@ -28,6 +28,7 @@ public:
 		CurrentSceneManagerRef = StageMapManager;
 	}
 
+	// 入力アクションのセットアップを行う
 	virtual void SetupInputComponent() override;
 
 	virtual void BeginPlay() override;

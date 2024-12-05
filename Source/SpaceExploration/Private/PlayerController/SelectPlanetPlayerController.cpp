@@ -44,6 +44,7 @@ void ASelectPlanetPlayerController::BeginPlay()
 
 }
 
+// 左クリックを押したとき
 void ASelectPlanetPlayerController::LeftClickEvent()
 {
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("ASelectPlanetPlayerController:左クリック時のイベントが実行されました。")), true, true, FColor::Cyan, 2.f, TEXT(""));

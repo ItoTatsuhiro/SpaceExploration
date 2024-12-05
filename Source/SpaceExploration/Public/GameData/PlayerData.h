@@ -5,9 +5,13 @@
 #include "CoreMinimal.h"
 #include "PlayerData.generated.h"
 
+struct FStatus;
+
+
 USTRUCT(BlueprintType)
 struct FPlayerData
 {
 	GENERATED_BODY()
 
+	FStatus* Status;
 };

@@ -30,7 +30,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	// 武器のステータスを取得する
-	inline const FStatus& GetWeaponStatus() const { return CurrentLevelStatus; }
+	UFUNCTION(BlueprintCallable)
+	inline FStatus GetWeaponStatus() const { return CurrentLevelStatus; }
 	// 武器の属性を取得する
 	inline const EElement GetWeaponElement() const { return WeaponElement; }
 
