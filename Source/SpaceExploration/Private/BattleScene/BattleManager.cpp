@@ -10,9 +10,12 @@
 #include "GameFramework/PlayerController.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Manager/PlaySceneGameModeBase.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Blueprint/UserWidget.h"
+
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -106,7 +109,7 @@ void ABattleManager::BeginPlay()
 	if (player) {
 		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
 		//カメラ設定
-		//PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
+		PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
 		//座標設定
 		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
 	}
@@ -122,10 +125,23 @@ void ABattleManager::BeginPlay()
 	else {
 		UE_LOG(LogClass, Log, TEXT("success enemyCamera load\n"));
 		//カメラ設定
-		//EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
+		EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
 		//座標設定
 		enemy->SetActorLocation(enemypos_actor->GetActorLocation());
 	}
+
+//-----------------------------------------------------------------------------------------------------
+
+	//Widget関係
+
+	//widgetblueprintのclassを取得する
+	FString BattleStartWidgetPath = TEXT("/Game/BattleScene/WBP_BattleStart.WBP_BattleStart");
+	BattleStartWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*BattleStartWidgetPath)).LoadSynchronous();
+
+	//バトルスタートボタン生成
+	battlestartwidget = UWidgetBlueprintLibrary::Create(GetWorld(), BattleStartWidgetClass, playercontroller);
+
+//-----------------------------------------------------------------------------------------------------
 
 	//バトル順など初期化
 	ButtleInit();
@@ -233,11 +249,22 @@ float ABattleManager::DamageMath(const float& A_atk, const int& A_type, const fl
 
 bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 {
+	static bool once_seq_battle_standby = false;
+	if (once_seq_battle_standby == false) {
+		
+		//バトルスタートボタン表示
+		//battlestartwidget->AddToViewport(0);
+		
+		once_seq_battle_standby = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		once_seq_battle_standby = false;
+
 		SEQChange_CameraChange();
 		_count = 0.0f;
 	}
@@ -247,6 +274,12 @@ bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 
 bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 {
+	static bool once_seq_player_attack = false;
+	if (once_seq_player_attack == false) {
+
+		once_seq_player_attack = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//プレイヤー攻撃関数
@@ -257,6 +290,8 @@ bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		once_seq_player_attack = false;
+
 		SEQChange_CameraChange();
 		_count = 0.0f;
 	}
@@ -266,6 +301,12 @@ bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 
 bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 {
+	static bool once_seq_player_attackreceive = false;
+	if (once_seq_player_attackreceive == false) {
+
+		once_seq_player_attackreceive = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//プレイヤー攻撃を受ける関数
@@ -276,6 +317,8 @@ bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		once_seq_player_attackreceive = false;
+
 		SEQChange_CameraChange();
 		_count = 0.0f;
 	}
@@ -285,6 +328,12 @@ bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 
 bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 {
+	static bool once_seq_enemy_attack = false;
+	if (once_seq_enemy_attack == false) {
+
+		once_seq_enemy_attack = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//エネミー攻撃
@@ -295,6 +344,8 @@ bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		once_seq_enemy_attack = false;
+
 		SEQChange_CameraChange();
 		_count = 0.0f;
 	}
@@ -304,6 +355,12 @@ bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 
 bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 {
+	static bool once_seq_enemy_attackreceive = false;
+	if (once_seq_enemy_attackreceive == false) {
+
+		once_seq_enemy_attackreceive = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//エネミー攻撃を受ける
@@ -314,6 +371,8 @@ bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		once_seq_enemy_attackreceive = false;
+
 		SEQChange_CameraChange();
 		_count = 0.0f;
 	}
@@ -323,6 +382,12 @@ bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 
 bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 {
+	static bool once_seq_battle_result = false;
+	if (once_seq_battle_result == false) {
+
+		once_seq_battle_result = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	if (battlewinner == E_BatlleWinner::player) {
@@ -337,6 +402,8 @@ bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		once_seq_battle_result = false;
+
 		SEQChange_CameraChange();
 		_count = 0.0f;
 	}
@@ -346,8 +413,15 @@ bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 
 bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 {
+	static bool once_seq_battle_end = false;
+	if (once_seq_battle_end == false) {
+
+		once_seq_battle_end = true;
+	}
+
 	UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
+	once_seq_battle_end = false;
 	//シーン移動
 	gamemode->ChangeLevel(nextlevel, this);
 

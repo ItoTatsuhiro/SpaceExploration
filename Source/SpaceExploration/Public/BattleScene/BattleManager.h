@@ -19,6 +19,7 @@ class UNiagaraComponent;
 class UNiagaraSystem;
 class UMyGameInstance;
 class APlaySceneGameModeBase;
+class UUserWidget;
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -138,6 +139,16 @@ private:
 	//バトルシーンレベルのカメラ
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	AActor* BattleSceneCamera = nullptr;
+
+//---------------------------------------------------------------------------------------------
+
+//Widget関係
+
+	TSubclassOf<UUserWidget> BattleStartWidgetClass;
+	UPROPERTY()
+	UUserWidget* battlestartwidget;
+
+//--------------------------------------------------------------------------------------------
 
 public:
 
