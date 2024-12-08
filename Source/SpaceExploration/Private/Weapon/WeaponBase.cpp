@@ -32,9 +32,6 @@ AWeaponBase::AWeaponBase()
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ExecuteAttack();
-
 }
 
 void AWeaponBase::SettingWeapon()
@@ -43,25 +40,25 @@ void AWeaponBase::SettingWeapon()
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
 		if (PlayerCharacter)
 		{
-			AWeaponBase* EquippedWeapon = PlayerCharacter->GetEquippedWeapon();
-			if (!EquippedWeapon)
+			AWeaponBase* PlayerWeapon = PlayerCharacter->GetElementWeapon(WeaponElement);
+			if (!PlayerWeapon)
 			{
 				NextLevelStatus = CurrentLevelStatus;
 				UE_LOG(LogTemp, Error, TEXT("•Ší‚ª‹ó‚Å‚·"));
 				return;
 			}
-				if (EquippedWeapon->WeaponElement == WeaponElement)
-				{
-					NextLevelStatus.PlayerName   = CurrentLevelStatus.PlayerName;
-					NextLevelStatus.PlayerLevel  = CurrentLevelStatus.PlayerLevel + 1;
-					NextLevelStatus.HP           = CurrentLevelStatus.HP + ((NextLevelStatus.PlayerLevel - 1) * HpEnhancedValue);
-					NextLevelStatus.Speed        = CurrentLevelStatus.Speed + ((NextLevelStatus.PlayerLevel - 1) * SpeedEnhancedValue);
-					NextLevelStatus.AttackPower  = CurrentLevelStatus.AttackPower + ((NextLevelStatus.PlayerLevel - 1) * AttackEnhancedValue);
-					NextLevelStatus.DefencePower = CurrentLevelStatus.DefencePower + ((NextLevelStatus.PlayerLevel - 1) * DeffenceEnhancedValue);
-				}
-				else {
-					NextLevelStatus = CurrentLevelStatus;
-				}
+			if (PlayerWeapon->WeaponElement == WeaponElement)
+			{
+				NextLevelStatus.PlayerName   = CurrentLevelStatus.PlayerName;
+				NextLevelStatus.PlayerLevel  = PlayerWeapon->CurrentLevelStatus.PlayerLevel + 1;
+				NextLevelStatus.HP           = PlayerWeapon->CurrentLevelStatus.PlayerLevel + ((PlayerWeapon->CurrentLevelStatus.PlayerLevel - 1) * HpEnhancedValue);
+				NextLevelStatus.Speed        = PlayerWeapon->CurrentLevelStatus.PlayerLevel + ((PlayerWeapon->CurrentLevelStatus.PlayerLevel - 1) * SpeedEnhancedValue);
+				NextLevelStatus.AttackPower  = PlayerWeapon->CurrentLevelStatus.PlayerLevel + ((PlayerWeapon->CurrentLevelStatus.PlayerLevel - 1) * AttackEnhancedValue);
+				NextLevelStatus.DefencePower = PlayerWeapon->CurrentLevelStatus.PlayerLevel + ((PlayerWeapon->CurrentLevelStatus.PlayerLevel - 1) * DeffenceEnhancedValue);
+			}
+			else {
+				NextLevelStatus = CurrentLevelStatus;
+			}
 		}
 		
 }

@@ -32,6 +32,7 @@ public:
 	// 武器のステータスを取得する
 	UFUNCTION(BlueprintCallable)
 	inline FStatus GetWeaponStatus() const { return CurrentLevelStatus; }
+	inline FStatus GetWeaponNextLevelStatus() const { return NextLevelStatus; }
 	// 武器の属性を取得する
 	inline const EElement GetWeaponElement() const { return WeaponElement; }
 
