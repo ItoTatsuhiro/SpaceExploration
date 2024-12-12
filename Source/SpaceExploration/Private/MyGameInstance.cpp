@@ -3,18 +3,18 @@
 #include "MyGameInstance.h"
 
 
-void UMyGameInstance::SetterBattleEnemy(AEnemyBase* battleenemy, const uint8& battleenemyelement)
+void UMyGameInstance::SetterBattleEnemy(FStatus& battleenemy, const EElement& battleenemyelement)
 {
 	BattleEnemy = battleenemy;
 	BattleEnemyElement = battleenemyelement;
 }
 
-AEnemyBase* UMyGameInstance::GetterBattleEnemyStatus()
+FStatus UMyGameInstance::GetterBattleEnemyStatus()
 {
 	return BattleEnemy;
 }
 
-uint8 UMyGameInstance::GetterBattleEnemyElement()
+EElement UMyGameInstance::GetterBattleEnemyElement()
 {
 	return BattleEnemyElement;
 }

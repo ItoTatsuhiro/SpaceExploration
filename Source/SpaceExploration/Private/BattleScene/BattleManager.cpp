@@ -3,7 +3,6 @@
 #include "BattleScene/BattleManager.h"
 #include "Character/CharacterBase.h"
 #include "Character/EnemyBase.h"
-#include "LevelGroup/LevelInterface.h"
 #include "Character/PlayerCharacter.h"
 #include "MyGameInstance.h"
 #include "BattleScene/E_BattleSEQ.h"
@@ -26,7 +25,9 @@ ABattleManager::ABattleManager()
 
 ABattleManager::~ABattleManager()
 {
-
+	if (enemy) {
+		enemy->Destroy();
+	}
 }
 
 // Called when the game starts or when spawned
@@ -50,8 +51,20 @@ void ABattleManager::BeginPlay()
 	mygameinstance = Cast<UMyGameInstance>(GetGameInstance());
 
 //キャラクター情報取得時の例外処理-----------------------------------------------------------------------
+
 	//プレイヤー情報取得
-	if (!UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0)) {
+	if (UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0)) {
+		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
+		//プレイヤーの情報取得
+		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0));
+		//順番決めよう一時変数挿入
+		playerstatus_ = player->GetCharacterStatus();
+		provplayerstatus_.hp_ = playerstatus_.HP;
+		//現在プレイヤーが武器を持っていないため属性が取得できない
+		//provplayerstatus_.type_ = player->GetEquippedWeapon()->GetWeaponElement();
+		provplayerstatus_.type_ = EElement::fire;
+	}
+	else {
 		UE_LOG(LogClass, Warning, TEXT("error : NO playerstatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
 		playerstatus_.HP = 10.0f;
@@ -60,19 +73,11 @@ void ABattleManager::BeginPlay()
 		playerstatus_.DefencePower = 20.0f;
 		playerstatus_.Speed = 15.0f;
 		provplayerstatus_.hp_ = playerstatus_.HP;
-		provplayerstatus_.type_ = 1;
+		provplayerstatus_.type_ = EElement::fire;
 	}
-	else {
-		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
-		//プレイヤーの情報取得
-		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0));
-		//順番決めよう一時変数挿入
-		playerstatus_ = player->GetCharacterStatus();
-		provplayerstatus_.hp_ = playerstatus_.HP;
-		provplayerstatus_.type_ = static_cast<uint8>(player->GetEquippedWeapon()->GetWeaponElement());
-	}
+
 	//エネミー情報取得時の例外処理
-	if (!mygameinstance->GetterBattleEnemyStatus()) {
+	if (mygameinstance->GetterBattleEnemyStatus().MaxHp <= 1.f) {
 		UE_LOG(LogClass, Warning, TEXT("error : NO enemystatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
 		enemystatus_.HP = 10.0f;
@@ -85,20 +90,29 @@ void ABattleManager::BeginPlay()
 	else {
 		UE_LOG(LogClass, Log, TEXT("success enemystatus load\n"));
 		//エネミーのステータス、属性を取得
-		enemy = mygameinstance->GetterBattleEnemyStatus();
-		//順番決めよう一時変数挿入
-		enemystatus_ = enemy->GetCharacterStatus();
+		enemystatus_ = mygameinstance->GetterBattleEnemyStatus();
+		//順番決めようの一時変数挿入
 		provenemystatus_.hp_ = enemystatus_.HP;
 	}
 	//エネミー属性取得時の例外処理
-	if (mygameinstance->GetterBattleEnemyElement() > 2 || mygameinstance->GetterBattleEnemyElement() < 0) {
-		UE_LOG(LogClass, Warning, TEXT("error : NO enemytype\n"));
-		provenemystatus_.type_ = 0;
+	if (mygameinstance->GetterBattleEnemyElement() == EElement::none) {
+		UE_LOG(LogClass, Warning, TEXT("error : NO enemyelement\n"));
+		provenemystatus_.type_ = EElement::wind;
 	}
 	else {
 		UE_LOG(LogClass, Log, TEXT("success enemyelement load\n"));
 		//エネミーのステータス、属性を取得
 		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
+	}
+	//敵生成
+	FString bpenemypath = "/Game/Enemy/BP_EnemyType1.BP_EnemyType1_C";
+	TSubclassOf<APawn> bpenemyclass = TSoftClassPtr<APawn>(FSoftObjectPath(*bpenemypath)).LoadSynchronous();
+	if (bpenemyclass != nullptr) {
+		//敵スポン
+		enemy = Cast<AEnemyBase>(GetWorld()->SpawnActor<APawn>(bpenemyclass));
+	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("error enemyspawn\n"));
 	}
 	
 //-----------------------------------------------------------------------------------------------------
@@ -109,25 +123,28 @@ void ABattleManager::BeginPlay()
 	if (player) {
 		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
 		//カメラ設定
-		PlayerCamera = Cast<AActor>(player->GetBattleCameraComponent());
+		PlayerCamera = player->GetBattleCameraComponent()->GetChildActor();
 		//座標設定
 		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
+		UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"),player->GetActorLocation().X, player->GetActorLocation().Y, player->GetActorLocation().Z);
+		UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), playerpos_actor->GetActorLocation().X, playerpos_actor->GetActorLocation().Y, playerpos_actor->GetActorLocation().Z);
 	}
 	else {
 		UE_LOG(LogClass, Warning, TEXT("error : No playerCamera\n"));
-		//PlayerCamera = BattleSceneCamera;
 	}
+
 	//敵のカメラと座標設定
-	if (!enemy) {
-		UE_LOG(LogClass, Warning, TEXT("error : No enemyCamera\n"));
-		//EnemyCamera = BattleSceneCamera;
-	}
-	else {
+	if (enemy) {
 		UE_LOG(LogClass, Log, TEXT("success enemyCamera load\n"));
 		//カメラ設定
-		EnemyCamera = Cast<AActor>(enemy->GetBattleCameraComponent());
+		EnemyCamera = enemy->GetBattleCameraComponent()->GetChildActor();
 		//座標設定
-		enemy->SetActorLocation(enemypos_actor->GetActorLocation());
+		enemy->SetCharacterLocation(enemypos_actor->GetActorLocation());
+		UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"), enemy->GetActorLocation().X, enemy->GetActorLocation().Y, enemy->GetActorLocation().Z);
+		UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), enemypos_actor->GetActorLocation().X, enemypos_actor->GetActorLocation().Y, enemypos_actor->GetActorLocation().Z);
+	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("error : No enemyCamera\n"));
 	}
 
 //-----------------------------------------------------------------------------------------------------
@@ -182,11 +199,11 @@ void ABattleManager::BattleTurn()
 	UE_LOG(LogClass, Warning, TEXT("BattleTurn"));
 
 	//ダメージの計算
-	enemydamage = DamageMath(playerstatus_.AttackPower, provplayerstatus_.type_, enemystatus_.DefencePower, provenemystatus_.type_);
-	playerdamage = DamageMath(enemystatus_.AttackPower, provenemystatus_.type_, playerstatus_.DefencePower, provplayerstatus_.type_);
+	enemydamage = DamageMath(playerstatus_.AttackPower, static_cast<int>(provplayerstatus_.type_), enemystatus_.DefencePower, static_cast<int>(provenemystatus_.type_));
+	playerdamage = DamageMath(enemystatus_.AttackPower, static_cast<int>(provenemystatus_.type_), playerstatus_.DefencePower, static_cast<int>(provplayerstatus_.type_));
 
 	//プレイヤーか敵のどちらかの体力が0になるまで
-	while (playerstatus_.HP > 0.0f && enemystatus_.HP > 0.0f) {
+	while (provenemystatus_.hp_ > 0.0f && provplayerstatus_.hp_ > 0.0f) {
 		provplayerstatus_.attack_count_ += playerstatus_.Speed;
 		provenemystatus_.attack_count_ += enemystatus_.Speed;
 
@@ -194,7 +211,7 @@ void ABattleManager::BattleTurn()
 		if (provplayerstatus_.attack_count_ >= attack_timing_) {
 			provplayerstatus_.attack_count_ = 0.0f;
 			
-			enemystatus_.HP -= enemydamage;
+			provenemystatus_.hp_ -= enemydamage;
 
 			//順番を設定
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK));
@@ -205,7 +222,7 @@ void ABattleManager::BattleTurn()
 		if (provenemystatus_.attack_count_ >= attack_timing_) {
 			provenemystatus_.attack_count_ = 0.0f;
 
-			playerstatus_.HP -= playerdamage;
+			provplayerstatus_.hp_ -= playerdamage;
 
 			//順番を設定
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK));
@@ -213,10 +230,10 @@ void ABattleManager::BattleTurn()
 		}
 	}
 	//勝者を決定
-	if (enemystatus_.HP <= 0.0f) {
+	if (provenemystatus_.hp_ <= 0.0f) {
 		battlewinner = E_BatlleWinner::player;
 	}
-	else if (playerstatus_.HP <= 0.0f) {
+	else if (provplayerstatus_.hp_ <= 0.0f) {
 		battlewinner = E_BatlleWinner::enemy;
 	}
 
@@ -258,7 +275,7 @@ bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 		once_seq_battle_standby = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	_count += deltatime;
 	//次のターンに進める
@@ -280,7 +297,7 @@ bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 		once_seq_player_attack = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//プレイヤー攻撃関数
 	//player->StartAttackAction();
@@ -307,7 +324,7 @@ bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 		once_seq_player_attackreceive = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//プレイヤー攻撃を受ける関数
 	//player->TakeDamage(playerdamage);
@@ -334,7 +351,7 @@ bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 		once_seq_enemy_attack = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//エネミー攻撃
 	//enemy->StartAttackAction();
@@ -361,7 +378,7 @@ bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 		once_seq_enemy_attackreceive = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	//エネミー攻撃を受ける
 	//enemy->TakeDamage(enemydamage);
@@ -388,7 +405,7 @@ bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 		once_seq_battle_result = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	if (battlewinner == E_BatlleWinner::player) {
 		UKismetSystemLibrary::PrintString(this, "~Winner Player~", true, true, FColor::Cyan, 2.f, TEXT("None"));
@@ -419,7 +436,7 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 		once_seq_battle_end = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	once_seq_battle_end = false;
 	//シーン移動
@@ -430,12 +447,12 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 
 void ABattleManager::SEQChange_CameraChange()
 {
-	for (int i = 0; i < attack_order.size(); i++) {
+	/*for (int i = 0; i < attack_order.size(); i++) {
 		UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order[%d] %d"),i,attack_order[i]);
-	}
-	UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order size %d"), attack_order.size());
-	UKismetSystemLibrary::PrintString(this, "~SEQChange_CameraChange~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-	UE_LOG(LogClass, Warning, TEXT("BattleTurn:now attack_order %d"), attack_order[seqindex]);
+	}*/
+	//UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order size %d"), attack_order.size());
+	//UKismetSystemLibrary::PrintString(this, "~SEQChange_CameraChange~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UE_LOG(LogClass, Warning, TEXT("BattleTurn:now attack_order %d"), attack_order[seqindex]);
 
 	//attack_orderのindexを次のターンへ移行
 	SeqIndexAdd();

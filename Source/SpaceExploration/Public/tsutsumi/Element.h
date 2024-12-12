@@ -12,5 +12,6 @@ enum class EElement : uint8
 	
 	fire,
 	water,
-	wind
+	wind,
+	none
 };
