@@ -70,6 +70,7 @@ void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectP
 
 	//NowLevelの消去
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, NowLevel, LatentInfo, false);
+	
 
 	UKismetSystemLibrary::PrintString(this, "~~ChangeLevel~~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 	//次のレベル設定
@@ -90,12 +91,12 @@ void ALevelInterface::Load_LoadingLevel()
 	LatentInfo.UUID = __LINE__;
 	//ローディング画面レベル読み込み、表示
 	if (LoadingLevel.IsNull()) {
-		UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel Function"));
+		//UE_LOG(LogClass, Warning, TEXT("error : No LoadingLevel Function"));
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("Yes LoadingLevel Function"));
+		//UE_LOG(LogClass, Log, TEXT("Yes LoadingLevel Function"));
 		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, LoadingLevel, true, true, LatentInfo);
-		UKismetSystemLibrary::PrintString(this, "load LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+		//UKismetSystemLibrary::PrintString(this, "load LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	}	
 }
 
@@ -109,15 +110,15 @@ void ALevelInterface::testdelay() {
 	LatentInfo.UUID = __LINE__;
 	//次のレベル読み込み
 	if (NextLevel.IsNull()) {
-		UE_LOG(LogClass, Warning, TEXT("error : No NextLevel Function\n"));
+		//UE_LOG(LogClass, Warning, TEXT("error : No NextLevel Function\n"));
 	}
 	else {
 		//NextLevelが読み込まれてない場合
 		
-		UE_LOG(LogClass, Log, TEXT("Yes NextLevel noloaded Function"));
+		//UE_LOG(LogClass, Log, TEXT("Yes NextLevel noloaded Function"));
 		//読み込み
 		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, true, LatentInfo);
-		UKismetSystemLibrary::PrintString(this, "load FirstLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+		//UKismetSystemLibrary::PrintString(this, "load FirstLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
 	}
 }
 
@@ -135,8 +136,8 @@ void ALevelInterface::Unload_LoadingLevel()
 
 	//ローディング画面レベルunload
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, LoadingLevel, LatentInfo, false);
-	UKismetSystemLibrary::PrintString(this, "Unload LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
-	UE_LOG(LogClass, Log, TEXT("LevelInterface:Unload_Loading:Unload_LoadingLevel"));
+	//UKismetSystemLibrary::PrintString(this, "Unload LoadingLevel", true, true, FColor::Cyan, 5.f, TEXT("None"));
+	//UE_LOG(LogClass, Log, TEXT("LevelInterface:Unload_Loading:Unload_LoadingLevel"));
 
 	//NextLevelをNowLevelに設定
 	NowLevel = NextLevel;

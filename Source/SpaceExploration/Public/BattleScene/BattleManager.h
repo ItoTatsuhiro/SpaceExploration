@@ -7,12 +7,12 @@
 #include "Templates/Function.h"
 #include "GameFramework/Actor.h"
 #include "../Character/CharacterBase.h"
+#include "tsutsumi/Element.h"
 #include "Library\GameLibrary.h"
 #include "BattleManager.generated.h"
 
 class APlayerCharacter;
 class AEnemyBase;
-class ALevelInterface;
 struct FStatus;
 class APlayerController;
 class UNiagaraComponent;
@@ -69,7 +69,7 @@ private:
 	
 		//属性　0＝火　1＝水　2＝風
 		//属性相性　火＜水　水＜風　風＜火
-		uint8 type_ = 0;
+		EElement type_;
 
 		float attack_count_ = 0.0;
 	};
@@ -85,12 +85,12 @@ private:
  
 	//バトルの流れ
 private:
+	//プレイヤーの情報
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<APlayerCharacter> player = nullptr;
+	//敵の情報
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AEnemyBase> enemy = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	ALevelInterface* levelinterface = nullptr;
 
 	//勝敗用
 	enum class E_BatlleWinner{

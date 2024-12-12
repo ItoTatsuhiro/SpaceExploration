@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
-#include "Character\EnemyBase.h"
+#include "tsutsumi/Status.h"
+#include "tsutsumi/Element.h"
 #include "MyGameInstance.generated.h"
+
+struct FStatus;
 
 /**
  * 
@@ -20,14 +23,14 @@ public:
 
 public:
 	//バトルで使用する敵
-	AEnemyBase* BattleEnemy = nullptr;
+	FStatus BattleEnemy;
 	//バトルで使用する敵の属性
-	uint8 BattleEnemyElement = 5;
+	EElement BattleEnemyElement = EElement::none;
 
 	//バトルシーンで使用する敵の情報をセット
-	void SetterBattleEnemy(AEnemyBase* battleenemy, const uint8& battleenemyelement);
+	void SetterBattleEnemy(FStatus& battleenemy, const EElement& battleenemyelement);
 	//バトルシーンで使用する敵のステータスをゲット
-	AEnemyBase* GetterBattleEnemyStatus();
+	FStatus GetterBattleEnemyStatus();
 	//バトルシーンで使用する敵の属性をゲット
-	uint8 GetterBattleEnemyElement();
+	EElement GetterBattleEnemyElement();
 };
