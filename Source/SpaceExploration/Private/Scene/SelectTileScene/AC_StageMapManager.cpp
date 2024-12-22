@@ -17,11 +17,11 @@
 
 // Sets default values
 AAC_StageMapManager::AAC_StageMapManager()
-    : tileSpace_(500), basePos_({ 0, 0, 0 })/*, sequenceManager_(nullptr)*/, galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr), tileObjectComponent_(nullptr), hoveredTile_(nullptr),
+    : tileSpace_(500), basePos_({ 0, 0, 0 })/*, sequenceManager_(nullptr)*/, galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr)/*, tileObjectComponent_(nullptr)*/, hoveredTile_(nullptr),
     battleTileClass_(AAC_MapTileBattle::StaticClass()), healTileClass_(AAC_MapTileHeal::StaticClass()), itemTileClass_(AAC_MapTileItem::StaticClass())
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
 
 
 
@@ -32,9 +32,9 @@ AAC_StageMapManager::AAC_StageMapManager()
     galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
 
 
-    tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
-    tileObjectComponent_->SetupAttachment(RootComponent);
-    
+    //tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
+    //tileObjectComponent_->SetupAttachment(RootComponent);
+
 }
 
 
@@ -44,7 +44,7 @@ AAC_StageMapManager::AAC_StageMapManager()
 void AAC_StageMapManager::BeginPlay()
 {
 
-	Super::BeginPlay();
+    Super::BeginPlay();
 
     //-------------------------------------------------------------------------------
     // シーケンス制御用の処理
@@ -64,7 +64,7 @@ void AAC_StageMapManager::BeginPlay()
     }
 
 
-//和田記載-----------------------------------------------------------
+    //和田記載-----------------------------------------------------------
 
     playercontroller = UGameplayStatics::GetPlayerController(this, 0);
     //カメラ切り替え
@@ -78,15 +78,51 @@ void AAC_StageMapManager::BeginPlay()
     }
 
 
-    playercontroller->SetViewTargetWithBlend(playerlookingdowncamera,0.0f);
+    playercontroller->SetViewTargetWithBlend(playerlookingdowncamera, 0.0f);
 
-//-------------------------------------------------------------------
+    //-------------------------------------------------------------------
 }
+
+
+
+void AAC_StageMapManager::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+
+    AAC_SceneManagerBase::EndPlay(EndPlayReason);
+
+    int destroyCount = 0;
+
+    for (int i = tileObjArray_.Num() - 1; i >= 0; --i) {
+
+        int exeCount = tileObjArray_[i].TileArray.Num();
+
+        for (int j = exeCount - 1; j >= 0; --j) {
+
+            tileObjArray_[i].TileArray[j]->Destroy();
+
+            tileObjArray_[i].TileArray.RemoveAt(j);
+
+            ++destroyCount;
+
+
+
+        }
+
+    }
+
+    tileObjArray_.Empty();
+
+
+    UE_LOG(LogClass, Log, TEXT("AAC_StageMapManager::EndPlay : EndPlay\n"));
+
+    return;
+}
+
+
 
 // Called every frame
 void AAC_StageMapManager::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
 
 
@@ -138,7 +174,7 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
     // 実行するシーケンスを切り替え
     // 切り替え先：マス選択シーケンス
     sequenceManager_->ChangeSequence(selectTileDel_);
-    
+
     UE_LOG(LogTemp, Log, TEXT("シーケンス切り替え：selectTileDel_"));
 
 }
@@ -154,19 +190,19 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
     AActor* hoveredObj = PerformRaycast();
 
     // 重なっているオブジェクトがマスのクラスを継承している場合
-    if ( hoveredObj && hoveredObj->IsA(AAC_MapTileBase::StaticClass())) {
+    if (hoveredObj && hoveredObj->IsA(AAC_MapTileBase::StaticClass())) {
 
         // 重なっているオブジェクトをMapTileBaseのクラスにキャスト
         AAC_MapTileBase* hoveredTile = Cast<AAC_MapTileBase>(hoveredObj);
 
         // 現在変数として置いてあるものと比較
         if (hoveredTile_ != hoveredTile && hoveredTile) {
-            
+
             // 置き換え
             hoveredTile_ = hoveredTile;
 
             // ログを表示
-            UE_LOG(LogTemp, Log, TEXT("HoveredTile: %s"), *hoveredTile_->GetName() );
+            UE_LOG(LogTemp, Log, TEXT("HoveredTile: %s"), *hoveredTile_->GetName());
         }
 
     }
@@ -230,7 +266,7 @@ void AAC_StageMapManager::SeqPlayerMoveBegin(const float delta_time) {
     FVector movePos = selectTile_->GetActorLocation() + playerCharacter_->GetActorRotation().RotateVector(moveTargetOffset_);
 
     // 移動開始の指示
-    playerCharacter_->BeginMoveTargetLocation( movePos );
+    playerCharacter_->BeginMoveTargetLocation(movePos);
 
 
 
@@ -274,7 +310,7 @@ void AAC_StageMapManager::SeqExecuteTileEvent(const float delta_time) {
 
 
     // マスが選択されていないときは処理しない
-    if (!selectTile_) { 
+    if (!selectTile_) {
 
         // ログを表示
         UE_LOG(LogTemp, Log, TEXT("マスが選択されていません"));
@@ -332,11 +368,11 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
     }
 
 
-    if (!tileObjectComponent_) {
-        // 生成するマスを保持するためのコンポーネント作成
-        tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
-        tileObjectComponent_->SetupAttachment(RootComponent);
-    }
+    //if (!tileObjectComponent_) {
+    //    // 生成するマスを保持するためのコンポーネント作成
+    //    tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
+    //    tileObjectComponent_->SetupAttachment(RootComponent);
+    //}
 
 
 
@@ -350,6 +386,8 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
         // 二重配列に入れる用の仮の配列
         FTileArray tempTileArray;
 
+        AAC_MapTileBase* tempTile;
+
         // マスのオブジェクトを生成
         for (int col = 0; col < tileTypeArray_[row].typeArray.Num(); ++col)
         {
@@ -357,32 +395,45 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
             switch (tileTypeArray_[row].typeArray[col])
             {
             case E_TILE_TYPE::BATTLE:
-                tempTileArray.TileArray.Emplace(GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_));
+                tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
+
+                tempTileArray.TileArray.Emplace(tempTile);
                 break;
 
             case E_TILE_TYPE::ITEM:
-                tempTileArray.TileArray.Emplace(GetWorld()->SpawnActor<AAC_MapTileItem>(itemTileClass_));
+                tempTile = GetWorld()->SpawnActor<AAC_MapTileItem>(itemTileClass_);
+
+                tempTileArray.TileArray.Emplace(tempTile);
                 break;
 
             case E_TILE_TYPE::HEAL:
-                tempTileArray.TileArray.Emplace(GetWorld()->SpawnActor<AAC_MapTileHeal>(healTileClass_));
+
+                tempTile = GetWorld()->SpawnActor<AAC_MapTileHeal>(healTileClass_);
+                tempTileArray.TileArray.Emplace(tempTile);
                 break;
 
             case E_TILE_TYPE::NONE:
+                tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
+
                 // NONEのときはBattleのクラスを生成するようにしておく
-                tempTileArray.TileArray.Emplace(GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_));
+                tempTileArray.TileArray.Emplace(tempTile);
 
                 UE_LOG(LogTemp, Log, TEXT("tileTypeArray_[%d].typeArray[%d] = NONE"), row, col);
                 break;
 
             default:
+                tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
+
                 // 何にも当てはまらない場合は念のためBattleのクラスを生成するようにしておく
-                tempTileArray.TileArray.Emplace(GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_));
+                tempTileArray.TileArray.Emplace(tempTile);
 
                 UE_LOG(LogTemp, Log, TEXT("tileTypeArray_[%d].typeArray[%d] = OTHER"), row, col);
 
                 break;
             }
+
+            tempTile->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+
 
         }
 
@@ -399,17 +450,17 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
             // 中身が無ければログを表示
             if (tileObjArray_[row].TileArray[col] == nullptr) {
 
-                UE_LOG(LogTemp, Log, TEXT("tileObjArray_[%d].TileArray[5d] = nullptr"), row, col);
+                UE_LOG(LogTemp, Log, TEXT("tileObjArray_[%d].TileArray[%d] = nullptr"), row, col);
 
                 continue;
             }
 
 
             // x方向の位置
-            float colPos = col - ( (tileObjArray_[row].TileArray.Num() - 1) / 2.0f );
-            
+            float colPos = col - ((tileObjArray_[row].TileArray.Num() - 1) / 2.0f);
+
             // マスを配置する座標を計算
-            FVector tilePos = basePos_ + FVector{ colPos, static_cast<float>(row), 0.0f} * tileSpace_;
+            FVector tilePos = basePos_ + FVector{ colPos, static_cast<float>(row), 0.0f } *tileSpace_;
 
 
             // 座標を設定
@@ -417,7 +468,3 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
         }
     }
 }
-
-
-
-
