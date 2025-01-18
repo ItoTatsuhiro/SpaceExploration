@@ -144,9 +144,10 @@ private:
 
 //Widget関係
 
-	TSubclassOf<UUserWidget> BattleStartWidgetClass;
+	TSubclassOf<UUserWidget> BattleEndWidgetClass;
+
 	UPROPERTY()
-	UUserWidget* battlestartwidget;
+	UUserWidget* battleendwidget = nullptr;
 
 //--------------------------------------------------------------------------------------------
 
@@ -157,6 +158,16 @@ public:
 	uint8 NowBattleSeq = 0;
 
 private:
+	//プレイヤーのバトルシーン以外でのサイズ
+	FVector PlayerOriginSize;
+	//プレイヤーのバトルシーンでのサイズ
+	FVector PlayerBattleSceneSize;
+
+	//プレイヤーのバトルシーン以外での角度
+	FRotator PlayerOrigineRotate;
+	//プレイヤーのバトルシーンでの角度
+	FRotator PlayerBattleSceneRotate{0.0, 90.0, 0.0};
+
 	//ゲームインスタンス
 	UPROPERTY(VisibleAnywhere)
 	UMyGameInstance* mygameinstance = nullptr;
@@ -176,7 +187,7 @@ private:
 	AActor* enemypos_actor;
 
 //関数
-
+public:
 	//バトルシーンに入った時の初期化関数
 	UFUNCTION(BlueprintCallable, Category = "BattleManager")
 	void ButtleInit();
@@ -200,9 +211,16 @@ private:
 	bool SEQ_ENEMY_ATTACKRECEIVE(const float deltatime);
 	bool SEQ_BATTLE_RESULT(const float deltatime);
 	bool SEQ_BATTLE_END(const float deltatime);
+
 	void SEQChange_CameraChange();
 	void SEQChange();
 
-	//現在のバトル順番を一つ進める
+	//バトルシーンを終了してマップシーンに戻る関数
+	UFUNCTION()
+	void BattleEnd();
+
+	//現在のバトル順番を一つ進める(seqindexインクリメント)
 	void SeqIndexAdd() { seqindex++; };
+
+
 };

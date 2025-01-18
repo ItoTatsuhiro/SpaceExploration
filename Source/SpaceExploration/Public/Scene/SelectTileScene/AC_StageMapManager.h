@@ -21,7 +21,7 @@ struct FTileArray {
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TArray<class AAC_MapTileBase*> TileArray;
+	TArray<TObjectPtr< class AAC_MapTileBase > > TileArray;
 };
 
 
@@ -33,15 +33,20 @@ UCLASS(BlueprintType)
 class SPACEEXPLORATION_API AAC_StageMapManager : public AAC_SceneManagerBase
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AAC_StageMapManager();
+
+
 
 private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+
+	// 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 
 	//------------------------------------------------------------------------------------
@@ -86,7 +91,7 @@ private:
 	// マス生成関連
 
 	// マスランダム生成のためのクラスのインスタンス用
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	AGalaxyRandomSelect* galaxyRandomSelect_ = nullptr;
 
 	// マスをランダム生成するためのGalaxyRandomSelectクラスのコンポーネント
@@ -98,14 +103,14 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TSubclassOf<AGalaxyRandomSelect> galaxyRandomSelectClass_;
 
-	UPROPERTY(VisibleAnywhere)
 	// マスの種類の配列
 	// galaxyRandomSelectで生成した配列を持ってくる
+	UPROPERTY(VisibleAnywhere)
 	TArray< FTileEnumArray > tileTypeArray_;
 
-	// 生成したマスのオブジェクトを保持するためのコンポーネント
-	UPROPERTY(VisibleAnywhere)
-	class UChildActorComponent* tileObjectComponent_;
+	//// 生成したマスのオブジェクトを保持するためのコンポーネント
+	//UPROPERTY(VisibleAnywhere)
+	//class UChildActorComponent* tileObjectComponent_;
 
 	// マスのオブジェクトの配列
 	// tileTypeArrayから実際にオブジェクトを生成
@@ -155,18 +160,18 @@ private:
 	UPROPERTY(EditAnywhere)
 	FVector moveTargetOffset_ = { 0, 300, 300 };
 
-//和田記載-----------------------------------------------------------
+	//和田記載-----------------------------------------------------------
 
-	//プレイヤーコントローラー
+		//プレイヤーコントローラー
 	UPROPERTY(VisibleAnywhere)
 	APlayerController* playercontroller = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	AActor* playerlookingdowncamera = nullptr;
 
-//-------------------------------------------------------------------
+	//-------------------------------------------------------------------
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -180,6 +185,6 @@ public:
 	// 1	　〇　〇
 	// 0	　　〇
 	// ----------------------------------------------------------------------
-	void CreateTileObjArray( TArray<int> createTileNumArray );
+	void CreateTileObjArray(TArray<int> createTileNumArray);
 
 };
