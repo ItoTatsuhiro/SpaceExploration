@@ -51,7 +51,7 @@ void ALevelInterface::Tick(float DeltaTime)
 
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("Yes NextLevel Tick\n"));
+		//UE_LOG(LogClass, Log, TEXT("Yes NextLevel Tick\n"));
 		//ローディング画面レベルを読み込んだのち、NextLevel読み込み
 		Load_LoadingLevel();
 	}
@@ -62,17 +62,17 @@ void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectP
 	FLatentActionInfo LatentInfo;
 
 	if (nextlevel.IsNull()) {
-		UE_LOG(LogClass, Warning, TEXT("NO nextlevel LevelInterface ChangeLevel"));
+		//UE_LOG(LogClass, Warning, TEXT("NO nextlevel LevelInterface ChangeLevel"));
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("YES nextlevel LevelInterface ChangeLevel"));
+		//UE_LOG(LogClass, Log, TEXT("YES nextlevel LevelInterface ChangeLevel"));
 	}
 
 	//NowLevelの消去
 	UGameplayStatics::UnloadStreamLevelBySoftObjectPtr(this, NowLevel, LatentInfo, false);
 	
 
-	UKismetSystemLibrary::PrintString(this, "~~ChangeLevel~~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+	//UKismetSystemLibrary::PrintString(this, "~~ChangeLevel~~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 	//次のレベル設定
 	//NextLevelに何か入るとシーン遷移の処理が始まる
 	NextLevel = nextlevel;
@@ -80,7 +80,7 @@ void ALevelInterface::ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectP
 
 void ALevelInterface::Load_LoadingLevel()
 {
-	UE_LOG(LogClass, Log, TEXT("------------------------------------Level Loading----------------------------"));
+	//UE_LOG(LogClass, Log, TEXT("------------------------------------Level Loading----------------------------"));
 
 	//非同期処理よう構造体（処理後の関数を呼ぶよう）
 	FLatentActionInfo LatentInfo;

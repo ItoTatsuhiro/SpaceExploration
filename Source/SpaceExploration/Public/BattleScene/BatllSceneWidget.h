@@ -7,6 +7,7 @@
 #include "BatllSceneWidget.generated.h"
 
 class UButton;
+class ABattleManager;
 
 UCLASS()
 class SPACEEXPLORATION_API UBatllSceneWidget : public UUserWidget
@@ -15,9 +16,23 @@ class SPACEEXPLORATION_API UBatllSceneWidget : public UUserWidget
 	
 protected:
 	void NativeConstruct()override;
+	bool Initialize()override;
 
 private:
 	UPROPERTY()
-	TObjectPtr<UButton> BattleStart;
+	ABattleManager* battlemanager;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ButtonBattleEnd;
+
+	UFUNCTION(BlueprintCallable)
+	void OnButtonBattleEnd();
+
+public:
+
+	void SetBattleManager(ABattleManager* _battleManager)
+	{
+		battlemanager = _battleManager;
+	}
 
 };

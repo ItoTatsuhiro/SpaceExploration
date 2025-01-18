@@ -10,6 +10,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Manager/PlaySceneGameModeBase.h"
+#include "BattleScene/BatllSceneWidget.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -25,6 +26,7 @@ ABattleManager::ABattleManager()
 
 ABattleManager::~ABattleManager()
 {
+	//生成した敵を消去
 	if (enemy) {
 		enemy->Destroy();
 	}
@@ -119,7 +121,7 @@ void ABattleManager::BeginPlay()
 
 	//カメラをバトルシーン全体を見る物に切り替え
 	playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 0.0);
-	//プレイヤーのカメラと座標設定
+	//プレイヤーのカメラと座標とサイズ設定
 	if (player) {
 		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
 		//カメラ設定
@@ -128,14 +130,21 @@ void ABattleManager::BeginPlay()
 		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
 		UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"),player->GetActorLocation().X, player->GetActorLocation().Y, player->GetActorLocation().Z);
 		UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), playerpos_actor->GetActorLocation().X, playerpos_actor->GetActorLocation().Y, playerpos_actor->GetActorLocation().Z);
+		//元の角度取得
+		PlayerOrigineRotate = player->GetActorRotation();
+		//プレイヤー回転
+		player->SetActorRotation(PlayerBattleSceneRotate);
+
+		UStaticMeshComponent* playermesh = player->FindComponentByClass<UStaticMeshComponent>();
+		PlayerOriginSize = playermesh->Bounds.BoxExtent * 2.0f;
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("error : No playerCamera\n"));
+		UE_LOG(LogClass, Warning, TEXT("error : No player\n"));
 	}
 
 	//敵のカメラと座標設定
 	if (enemy) {
-		UE_LOG(LogClass, Log, TEXT("success enemyCamera load\n"));
+		UE_LOG(LogClass, Log, TEXT("success enemy load\n"));
 		//カメラ設定
 		EnemyCamera = enemy->GetBattleCameraComponent()->GetChildActor();
 		//座標設定
@@ -152,12 +161,28 @@ void ABattleManager::BeginPlay()
 	//Widget関係
 
 	//widgetblueprintのclassを取得する
-	FString BattleStartWidgetPath = TEXT("/Game/BattleScene/WBP_BattleStart.WBP_BattleStart");
-	BattleStartWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*BattleStartWidgetPath)).LoadSynchronous();
+	FString BattleStartWidgetPath = TEXT("/Game/BattleScene/WBP_BattleEnd.WBP_BattleEnd_C");
+	if (!BattleEndWidgetClass) {
+		BattleEndWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*BattleStartWidgetPath)).LoadSynchronous();
+	}
+	
+	if (BattleEndWidgetClass) {
+		//バトル終了ボタン生成
+		battleendwidget = UWidgetBlueprintLibrary::Create(GetWorld(), BattleEndWidgetClass, playercontroller);
 
-	//バトルスタートボタン生成
-	battlestartwidget = UWidgetBlueprintLibrary::Create(GetWorld(), BattleStartWidgetClass, playercontroller);
+		//バトル終了ボタンをAddViewportに追加
+		battleendwidget->AddToViewport(0);
+		
+		//バトル終了ボタンを非表示
+		battleendwidget->SetVisibility(ESlateVisibility::Hidden);
 
+		//UBatllSceneWidgetにBattleManagerを持たせる
+		UBatllSceneWidget* BattleWidgetRef = Cast<UBatllSceneWidget>(battleendwidget);
+		if (BattleWidgetRef) {
+			BattleWidgetRef->SetBattleManager(this);
+		}
+	}
+	
 //-----------------------------------------------------------------------------------------------------
 
 	//バトル順など初期化
@@ -432,6 +457,8 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 {
 	static bool once_seq_battle_end = false;
 	if (once_seq_battle_end == false) {
+		//バトル終了ボタンを表示
+		battleendwidget->SetVisibility(ESlateVisibility::Visible);
 
 		once_seq_battle_end = true;
 	}
@@ -439,21 +466,17 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 	//UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	once_seq_battle_end = false;
-	//シーン移動
-	gamemode->ChangeLevel(nextlevel, this);
+
+	player->SetActorRotation(PlayerOrigineRotate);
+
+	////シーン移動
+	//gamemode->ChangeLevel(nextlevel, this);
 
 	return true;
 }
 
 void ABattleManager::SEQChange_CameraChange()
 {
-	/*for (int i = 0; i < attack_order.size(); i++) {
-		UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order[%d] %d"),i,attack_order[i]);
-	}*/
-	//UE_LOG(LogClass, Warning, TEXT("BattleTurn:attack_order size %d"), attack_order.size());
-	//UKismetSystemLibrary::PrintString(this, "~SEQChange_CameraChange~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-	//UE_LOG(LogClass, Warning, TEXT("BattleTurn:now attack_order %d"), attack_order[seqindex]);
-
 	//attack_orderのindexを次のターンへ移行
 	SeqIndexAdd();
 	//現在のシーケンスと次のシーケンスが別の物ならばカメラを切り替え
@@ -506,4 +529,13 @@ void ABattleManager::SEQChange()
 	else if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END)) {
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_BATTLE_END);
 	}
+}
+
+void ABattleManager::BattleEnd()
+{
+	//シーン移動
+	gamemode->ChangeLevel(nextlevel, this);
+
+	//バトル終了ボタン消去
+	battleendwidget->RemoveFromParent();
 }

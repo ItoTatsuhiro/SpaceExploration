@@ -89,7 +89,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	inline void SetCharacterLocation(const FVector& Location) 
 	{
-		GetOwner()->SetActorLocation(Location);
+		SetActorLocation(Location);
 	}
 
 	// ----------------------------------------------------------------
