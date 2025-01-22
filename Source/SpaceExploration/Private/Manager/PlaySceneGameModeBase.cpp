@@ -2,13 +2,30 @@
 
 
 #include "Manager/PlaySceneGameModeBase.h"
+#include <Kismet/GameplayStatics.h>
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "LevelGroup/LevelInterface.h"
+#include "UI/HealingDisplay.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
-APlaySceneGameModeBase::APlaySceneGameModeBase() : StageMapData(nullptr)
+APlaySceneGameModeBase::APlaySceneGameModeBase() : StageMapData(nullptr), LevelInterfaceRef(nullptr), 
+	HealingDisplayClass(nullptr), HealingDisplayWidget(nullptr)
 {
 
+}
+
+void APlaySceneGameModeBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+	// 回復画面ウィジェットのセットアップ
+	if (HealingDisplayClass && PlayerController)
+	{
+		HealingDisplayWidget = Cast<UHealingDisplay>( UWidgetBlueprintLibrary::Create( GetWorld(), HealingDisplayClass, PlayerController ) );
+	}
 }
 
 void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoftObjectPtr<UWorld> NowLevel, bool BeforeLevelUnload, bool BeforeLevelVisible)
@@ -38,4 +55,14 @@ bool APlaySceneGameModeBase::TryGetStageMapData(FStageMapData* _StageMapData)
 
 	_StageMapData = StageMapData;
 	return true;
+}
+
+UHealingDisplay* APlaySceneGameModeBase::GetHealingDisplayWhidget()
+{
+	if (HealingDisplayWidget)
+	{
+		return HealingDisplayWidget;
+	}
+
+	return nullptr;
 }

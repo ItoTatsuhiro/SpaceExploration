@@ -1,31 +1,47 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Scene/SelectTileScene/AC_MapTileHeal.h"
 
 #include "Scene/SelectTileScene/E_Tile.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "Manager/PlaySceneGameModeBase.h"
+#include "UI/HealingDisplay.h"
 
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 AAC_MapTileHeal::AAC_MapTileHeal() {
 
+	HealingDisplayWidgetRef = nullptr;
 
 	tileType_ = E_TILE_TYPE::HEAL;
 
 }
 
 
-// ŠJn‚ÉÀs‚·‚éŠÖ”
-void AAC_MapTileHeal::BeginPlay() {
+// é–‹å§‹æ™‚ã«å®Ÿè¡Œã™ã‚‹é–¢æ•°
+void AAC_MapTileHeal::BeginPlay()
+{
+	Super::BeginPlay();
 
+	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>( UGameplayStatics::GetGameMode( GetWorld() ) );
 
+	if (!PlaySceneGameMode)
+	{
+		UE_LOG(LogClass, Error, TEXT("AAC_TileHeal::BeginPlay() : error PlaySceneGameMode ãŒ nullptr ã§ã—ãŸ"));
+
+		return;
+	}
+
+	HealingDisplayWidgetRef = PlaySceneGameMode->GetHealingDisplayWhidget();
 
 }
 
 
 
-// XV—pŠÖ”
+// æ›´æ–°ç”¨é–¢æ•°
 void AAC_MapTileHeal::Tick(float DeltaTime) {
 
 
@@ -33,10 +49,32 @@ void AAC_MapTileHeal::Tick(float DeltaTime) {
 }
 
 
-// ƒ}ƒX‚ÅÀs‚·‚éƒCƒxƒ“ƒg‚ÌŠÖ”
-// AAC_MapTileBaseƒNƒ‰ƒX‚ÌTileEventƒNƒ‰ƒX‚ğƒI[ƒo[ƒ‰ƒCƒh
+// ãƒã‚¹ã§å®Ÿè¡Œã™ã‚‹ã‚¤ãƒ™ãƒ³ãƒˆã®é–¢æ•°
+// AAC_MapTileBaseã‚¯ãƒ©ã‚¹ã®TileEventã‚¯ãƒ©ã‚¹ã‚’ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰
 void AAC_MapTileHeal::TileEvent() {
 
 	int32 RecoverHP(100000);
 
+	if (!HealingDisplayWidgetRef)
+	{
+		UE_LOG(LogClass, Error, TEXT("AAC_TileHeal::TileEvent() : error HealingDisplayWidgetRef ãŒ nullptr ã§ã—ãŸ"));
+		return;
+	}
+
+	// å›å¾©ç”»é¢ã‚’è¡¨ç¤º
+	HealingDisplayWidgetRef->AddToViewport(0);
+	IsEvnetCompleted = false;
+
+}
+
+void AAC_MapTileHeal::TileEventRunning()
+{
+	if ( !HealingDisplayWidgetRef->IsProcessCompleted() ) 
+	{
+		return;
+	}
+
+	// å›å¾©ç”»é¢ã‚’æ¶ˆã™
+	HealingDisplayWidgetRef->RemoveFromParent();
+	IsEvnetCompleted = true;
 }
