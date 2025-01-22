@@ -6,6 +6,8 @@
 #include "Scene/SelectTileScene/AC_MapTile.h"
 #include "AC_MapTileHeal.generated.h"
 
+class UHealingDisplay;
+
 // 回復を行うマスのクラス
 // 回復処理は後々
 UCLASS(BlueprintType)
@@ -36,5 +38,12 @@ public:
 	// マスで実行するイベントの関数
 	// AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 	void TileEvent() override;
+
+	void TileEventRunning() override;
+
+private:
+	// 回復画面のUserWidgetクラス
+	UPROPERTY()
+	UHealingDisplay* HealingDisplayWidgetRef;
 
 };

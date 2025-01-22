@@ -7,6 +7,7 @@
 #include "PlaySceneGameModeBase.generated.h"
 
 class ALevelInterface;
+class UHealingDisplay;
 
 struct FStageMapData;
 
@@ -24,6 +25,8 @@ private:
 
 public:
 	APlaySceneGameModeBase();
+
+	void BeginPlay() override;
 
 	// レベルインターフェースをセットする
 	void SetLevelInterface(ALevelInterface* LevelInterface)
@@ -63,8 +66,21 @@ public:
 	// --------------------------------------------------------------------------------------------
 	bool TryGetStageMapData(FStageMapData* _StageMapData);
 
+	// --------------------------------------------------------------------------------------------
+	// 回復画面のウィジェットを返す
+	// --------------------------------------------------------------------------------------------
+	UHealingDisplay* GetHealingDisplayWhidget();
+
 private:
 	// 現在のステージの各惑星データの持つ構造体
 	FStageMapData* StageMapData;
+
+	// 回復画面のUserWidgetクラス
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UHealingDisplay> HealingDisplayClass;
+
+	// 回復画面のUserWidget
+	UPROPERTY()
+	UHealingDisplay* HealingDisplayWidget;
 
 };

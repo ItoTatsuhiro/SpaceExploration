@@ -66,6 +66,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Level")
 	TSoftObjectPtr<UWorld> NextLevel = nullptr;
 
+	UPROPERTY()
+	bool IsEvnetCompleted;
+
 public:	
 
 
@@ -76,6 +79,9 @@ public:
 	// マスで実行するイベントの関数
 	// 継承先でこの関数をオーバーライドして処理を作成する
 	virtual void TileEvent() PURE_VIRTUAL(AAC_MapTileBase::TileEvent, );
+
+	// マスのイベント実行中の処理関数
+	virtual void TileEventRunning() PURE_VIRTUAL(AAC_MapTileBase::TileEventRunning, );
 
 	// スタティックメッシュをセットする関数
 	// 引数：fileName...スタティックメッシュの保存先のパス

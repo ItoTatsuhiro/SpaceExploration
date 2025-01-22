@@ -41,6 +41,9 @@ AAC_MapTileBase::AAC_MapTileBase()
 	//和田
 	//GameMode取得
 	gamemode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+	// マスイベント完了のフラグ
+	IsEvnetCompleted = false;
 }
 
 // Called when the game starts or when spawned
