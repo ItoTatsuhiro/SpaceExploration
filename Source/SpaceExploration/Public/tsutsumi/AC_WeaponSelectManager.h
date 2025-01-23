@@ -8,27 +8,26 @@
 #include "AC_WeaponSelectManager.generated.h"
 
 DECLARE_DELEGATE(FWeaponSelectDelegate);
+
 UCLASS()
-
-
 class SPACEEXPLORATION_API AAC_WeaponSelectManager : public AAC_SceneManagerBase
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+    
 public:	
-	// Sets default values for this actor's properties
-	AAC_WeaponSelectManager();
-	FWeaponSelectDelegate OnLevelUpDelegate;
-	void WeaponLevelUp();
-	void MapLevelChange();
+    // Sets default values for this actor's properties
+    AAC_WeaponSelectManager();
+    FWeaponSelectDelegate OnLevelUpDelegate;
+    void WeaponLevelUp();
+    void MapLevelChange();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	UPROPERTY(EditAnywhere);
-	UWorld* World;
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+    UFUNCTION(BlueprintCallable, Category = "WeaponSelectManager")
+    void WindowClose();
 };

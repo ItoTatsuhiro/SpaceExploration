@@ -1,13 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
+// Fill out your copyright notice in the Description page of Project Settings
 #include "tsutsumi/AC_WeaponSelectManager.h"
 #include "Weapon\WeaponBase.h"
 #include "Character\PlayerCharacter.h"
 #include "tsutsumi\Status.h"
 #include "Kismet/GameplayStatics.h"
 #include "Manager\PlaySceneGameModeBase.h"
-
 // Sets default values
 AAC_WeaponSelectManager::AAC_WeaponSelectManager()
 {
@@ -15,34 +12,30 @@ AAC_WeaponSelectManager::AAC_WeaponSelectManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 }
-
 // Called when the game starts or when spawned
 void AAC_WeaponSelectManager::BeginPlay()
 {
 	Super::BeginPlay();
 
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::WeaponLevelUp);
-	
 }
-
 // Called every frame
 void AAC_WeaponSelectManager::Tick(float DeltaTime)
 {
 	AActor::Tick(DeltaTime);
-	
-	if (isClickInput_) {
-		UE_LOG(LogTemp, Error, TEXT("true"));
-		OnLevelUpDelegate.Execute();
-	}
-
-	// ���͂̏�Ԃ��m�F
+	//クリックをしているか判定
+	OnLevelUpDelegate.Execute();
 	CheckClickInput();
+	Super::Tick(DeltaTime);
 }
-
-
-
 void AAC_WeaponSelectManager::WeaponLevelUp()
 {
+	// クリックが行われていない場合、抜ける
+	if (!isClickInput_) 
+	{
+		return;
+	}
+
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController) 
 	{
@@ -51,24 +44,29 @@ void AAC_WeaponSelectManager::WeaponLevelUp()
 	AWeaponBase* WeaponBase = Cast<AWeaponBase>(PerformRaycast());
 	if (!WeaponBase)
 	{
+		UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : error WeaponBase is nullptr"));
 		return;
 	}
-	APlayerCharacter* Player = playerCharacter_;
-	if (!Player)return;
-	AWeaponBase* SameWeapon = Player->GetElementWeapon(WeaponBase->GetWeaponElement());
+	if (!playerCharacter_)return;
+	AWeaponBase* SameWeapon = playerCharacter_->GetElementWeapon(WeaponBase->GetWeaponElement());
 	if(!SameWeapon)
 	{
+		UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : error SameWeapon is nullptr"));
 		return;
 	}
 	SameWeapon->SetWeaponStatus(WeaponBase->GetWeaponNextLevelStatus());
 	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (!PlaySceneGameMode)return;
+
+	UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : 武器を取得を完了"));
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::MapLevelChange);
-	UE_LOG(LogTemp, Error, TEXT("aaa"));
-	PlaySceneGameMode->ChangeLevel(World,this);
+	PlaySceneGameMode->ChangeLevel(GetWorld(), this);
+	WindowClose();
 }
 
 void AAC_WeaponSelectManager::MapLevelChange()
 {
 }
-
+void AAC_WeaponSelectManager::WindowClose()
+{
+}
