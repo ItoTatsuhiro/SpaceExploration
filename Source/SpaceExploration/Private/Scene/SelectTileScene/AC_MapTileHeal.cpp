@@ -7,6 +7,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Manager/PlaySceneGameModeBase.h"
+#include "Character/PlayerCharacter.h"
 #include "UI/HealingDisplay.h"
 
 
@@ -31,21 +32,25 @@ void AAC_MapTileHeal::BeginPlay()
 	if (!PlaySceneGameMode)
 	{
 		UE_LOG(LogClass, Error, TEXT("AAC_TileHeal::BeginPlay() : error PlaySceneGameMode が nullptr でした"));
-
 		return;
 	}
 
 	HealingDisplayWidgetRef = PlaySceneGameMode->GetHealingDisplayWhidget();
+	PlayerCharacterRef = Cast<APlayerCharacter>( UGameplayStatics::GetPlayerPawn( GetWorld(), 0 ) );
+
+	if (!PlayerCharacterRef)
+	{
+		UE_LOG(LogClass, Error, TEXT("AAC_TileHeal::BeginPlay() : error PlayerCharacterRef の取得に失敗しました。"));
+	}
 
 }
 
 
 
 // 更新用関数
-void AAC_MapTileHeal::Tick(float DeltaTime) {
-
-
-
+void AAC_MapTileHeal::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 
@@ -53,16 +58,25 @@ void AAC_MapTileHeal::Tick(float DeltaTime) {
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileHeal::TileEvent() {
 
-	int32 RecoverHP(100000);
+	if (!PlayerCharacterRef)
+	{
+		UE_LOG(LogClass, Error, TEXT("AAC_TileHeal::TileEvent() : error PlayerCharacterRef が nullptr でした"));
+		return;
+	}
 
 	if (!HealingDisplayWidgetRef)
 	{
+		PlayerCharacterRef->RecoverHP();
 		UE_LOG(LogClass, Error, TEXT("AAC_TileHeal::TileEvent() : error HealingDisplayWidgetRef が nullptr でした"));
 		return;
 	}
 
 	// 回復画面を表示
+	HealingDisplayWidgetRef->SetHpStatus(PlayerCharacterRef->GetCharacterStatus());
 	HealingDisplayWidgetRef->AddToViewport(0);
+
+	PlayerCharacterRef->RecoverHP();
+
 	IsEvnetCompleted = false;
 
 }
