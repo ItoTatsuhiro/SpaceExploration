@@ -51,6 +51,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ExecuteAttack();
 
+	UFUNCTION(BlueprintCallable)
+	bool IsAttack();
+
 protected:
 	// 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,9 +7,10 @@
 #include "AC_MapTileHeal.generated.h"
 
 class UHealingDisplay;
+class APlayerCharacter;
 
-// ‰ñ•œ‚ğs‚¤ƒ}ƒX‚ÌƒNƒ‰ƒX
-// ‰ñ•œˆ—‚ÍŒãX
+// å›å¾©ã‚’è¡Œã†ãƒã‚¹ã®ã‚¯ãƒ©ã‚¹
+// å›å¾©å‡¦ç†ã¯å¾Œã€…
 UCLASS(BlueprintType)
 class SPACEEXPLORATION_API AAC_MapTileHeal : public AAC_MapTileBase
 {
@@ -18,31 +19,35 @@ class SPACEEXPLORATION_API AAC_MapTileHeal : public AAC_MapTileBase
 
 public:
 
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	AAC_MapTileHeal();
 
 
 private:
 
-	// ŠJn‚ÉÀs‚·‚éŠÖ”
+	// é–‹å§‹æ™‚ã«å®Ÿè¡Œã™ã‚‹é–¢æ•°
 	void BeginPlay() override;
 
 
 public:
 
 
-	// XV—pŠÖ”
+	// æ›´æ–°ç”¨é–¢æ•°
 	void Tick(float DeltaTime) override;
 
 
-	// ƒ}ƒX‚ÅÀs‚·‚éƒCƒxƒ“ƒg‚ÌŠÖ”
-	// AAC_MapTileBaseƒNƒ‰ƒX‚ÌTileEventƒNƒ‰ƒX‚ğƒI[ƒo[ƒ‰ƒCƒh
+	// ãƒã‚¹ã§å®Ÿè¡Œã™ã‚‹ã‚¤ãƒ™ãƒ³ãƒˆã®é–¢æ•°
+	// AAC_MapTileBaseã‚¯ãƒ©ã‚¹ã®TileEventã‚¯ãƒ©ã‚¹ã‚’ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰
 	void TileEvent() override;
 
 	void TileEventRunning() override;
 
 private:
-	// ‰ñ•œ‰æ–Ê‚ÌUserWidgetƒNƒ‰ƒX
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‚ç…§
+	UPROPERTY()
+	APlayerCharacter* PlayerCharacterRef;
+
+	// å›å¾©ç”»é¢ã®UserWidgetã‚¯ãƒ©ã‚¹
 	UPROPERTY()
 	UHealingDisplay* HealingDisplayWidgetRef;
 

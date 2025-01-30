@@ -12,6 +12,7 @@
 #include "Weapon/WeaponBase.h"
 #include "GameFramework/PlayerController.h"
 #include "Character/MouseButtonEvent.h"
+#include "NiagaraComponent.h"
 #include <Blueprint/WidgetBlueprintLibrary.h>
 #include <Kismet/KismetSystemLibrary.h>
 
@@ -39,6 +40,11 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 	LookingDownCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("LookingDownCameraComponent"));
 	LookingDownCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
 	LookingDownCameraComp->SetupAttachment(LookingDownCameraSpringArm);
+
+	// ----------- ナイアガラの初期化 ------------------------------------------------
+
+	DamageNiagaraComp->SetActive(false);
+	DeathNiagaraComp->SetActive(false);
 
 	// ----------- 武器インベントリコンポーネントの生成 ------------------------------
 	WeaponInventoryComponent = CreateDefaultSubobject<UWeaponInventoryComponent>(TEXT("Weapon Inventory"));
@@ -99,6 +105,61 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 
 	PlayerSequence.Execute(DeltaTime);
+	SequenceElapsedTime += DeltaTime;
+}
+
+// --------------------------------------------------------------------------
+// 攻撃処理を行う
+// --------------------------------------------------------------------------
+void APlayerCharacter::Attack()
+{
+	if (!EquippedWeapon)
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::Attack() : EquippedWeapon が nullptr でした"));
+		return;
+	}
+
+	E_CharacterActState = ECharacterActState::Attack;
+	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqAttack);
+	SequenceElapsedTime = 0.0f;
+	EquippedWeapon->ExecuteAttack();
+
+	UE_LOG(LogTemp, Log, TEXT("APlayerCharacter::Attack() : 攻撃開始"));
+}
+
+// --------------------------------------------------------------------------
+// ダメージを受ける処理を行う
+// 
+// ・引数
+// Damage：ダメージ量
+// --------------------------------------------------------------------------
+void APlayerCharacter::TakeDamage(int32 Damage)
+{
+	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("プレイヤーは%dダメージ受けた"), Damage), true, true, FColor::Cyan, 2.f, TEXT(""));
+	UE_LOG(LogTemp, Log, TEXT("APlayerCharacter::TakeDamage() : プレイヤーは%dダメージ受けた"), Damage);
+	CharacterStatus.HP -= Damage;
+	E_CharacterActState = ECharacterActState::TakeDamage;
+
+	SequenceElapsedTime = 0.0f;
+	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqTakeDamage);
+	DamageNiagaraComp->Activate();
+}
+
+// --------------------------------------------------------------------------
+// 死亡時の処理を行う
+// --------------------------------------------------------------------------
+void APlayerCharacter::Death()
+{
+	// メッシュを非表示にする
+	CharacterStaticMeshComp->SetHiddenInGame(true);
+	EquippedWeapon->SetActorHiddenInGame(true);
+
+	DeathNiagaraComp->Activate();
+	SequenceElapsedTime = 0.0f;
+	E_CharacterActState = ECharacterActState::Death;
+	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqDeath);
+	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("プレイヤーはやられた")), true, true, FColor::Cyan, 2.f, TEXT(""));
+	UE_LOG(LogTemp, Log, TEXT("APlayerCharacter::Death() : プレイヤーはやられた"));
 }
 
 // 指定した属性の武器を返す。
@@ -220,6 +281,80 @@ bool APlayerCharacter::SeqMoveTargetLocation(const float DeltaTime)
 		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 		E_CharacterActState = ECharacterActState::Idle;
 	}
+	return true;
+}
+
+// ----------------------------------------------------------------
+// プレイヤーの攻撃処理を実行する。
+// 攻撃が終了または失敗したら "SeqIdle" に戻る。
+//
+// 戻り値：実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
+bool APlayerCharacter::SeqAttack(const float DeltaTime)
+{
+	if (!EquippedWeapon)
+	{
+		UE_LOG(LogClass, Log, TEXT("EquippedWeapon is nullptr"));
+		E_CharacterActState = ECharacterActState::Idle;
+		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+		return false;
+	}
+
+	if (!EquippedWeapon->IsAttack())
+	{
+		UE_LOG(LogClass, Log, TEXT("WeaponAttack is not Active"));
+		E_CharacterActState = ECharacterActState::Idle;
+		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+	}
+
+	return true;
+}
+
+// ----------------------------------------------------------------
+// プレイヤーの攻撃処理を実行する。
+// 攻撃が終了し、HPが 0 だったら "SeqDeath" に変更する
+// そうでない場合、"SeqIdle" に戻る。
+//
+// 戻り値：実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
+bool APlayerCharacter::SeqTakeDamage(const float DelataTime)
+{
+	if ( DamageNiagaraComp->IsActive() )
+	{
+		return true;
+	}
+
+	// HPが 0 の場合、死亡演出を行う
+	if (CharacterStatus.HP <= 0)
+	{
+		Death();
+		return true;
+	}
+
+	UE_LOG(LogClass, Log, TEXT("ダメージ演出終了"));
+	E_CharacterActState = ECharacterActState::Idle;
+	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+
+	return true;
+}
+
+// ----------------------------------------------------------------
+// プレイヤーの攻撃処理を実行する。
+// 攻撃が終了または失敗したら "SeqIdle" に戻る。
+//
+// 戻り値：実行結果を返す。False：失敗 True：成功
+// ----------------------------------------------------------------
+bool APlayerCharacter::SeqDeath(const float DeltaTime)
+{
+	if (DeathNiagaraComp->IsActive())
+	{
+		return true;
+	}
+
+	UE_LOG(LogClass, Log, TEXT("死亡時の演出終了"));
+	E_CharacterActState = ECharacterActState::Idle;
+	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
+
 	return true;
 }
 

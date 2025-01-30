@@ -29,9 +29,24 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// ----------------------------------------------------------------
-	// 攻撃関数
+	// 攻撃の演出を行う関数
 	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
 	virtual void Attack() PURE_VIRTUAL(ACharacterBase::Attack, );
+
+	// ----------------------------------------------------------------
+	// ダメージを受ける処理を行う関数
+	// 
+	// Damage...ダメージ量
+	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	virtual void TakeDamage(int32 Damage) PURE_VIRTUAL(ACharacterBase::TakeDamage, );
+
+	// ----------------------------------------------------------------
+	// 死亡したときの処理を行う関数
+	// ----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	virtual void Death() PURE_VIRTUAL(ACharacterBase::Death, );
 
 	// =========================================================================
 	// ゲッター
@@ -48,21 +63,15 @@ public:
 	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	inline FStatus& GetCharacterStatus() { return CharacterStatus; }
-	
-	// ----------------------------------------------------------------
-	// 装備中の武器を取得
-	// ----------------------------------------------------------------
-	UFUNCTION(BlueprintCallable)
-	UChildActorComponent* GetEquippedWeaponComp() { return EquippedWeaponComp; }
 
 	// ----------------------------------------------------------------
 	// 装備中の武器を取得
 	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
-	AWeaponBase* GetEquippedWeapon() const { return nullptr; };
+	AWeaponBase* GetEquippedWeapon() const;
 
 	// ----------------------------------------------------------------
-	// 装備中の武器を取得
+	// 現在、装備している武器の属性を返す。（ キャラクターの属性 ）
 	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	EElement GetAttackElement() const;
@@ -101,9 +110,11 @@ public:
 		CharacterStatus = Status; 
 	}
 	
-	// ----------------------------------------------------------------
+	// --------------------------------------------------------------------------
 	// 装備する武器を設定する。
-	// ----------------------------------------------------------------
+	// 
+	// Weapon...装備する武器
+	// --------------------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	void SetEquippedWeapon(AWeaponBase* Weapon);
 
@@ -128,19 +139,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartAttackAction();
 
-	// ----------------------------------------------------------------
-	// ダメージを受ける処理を行う
-	// 
-	// ・引数
-	// Damage：ダメージ量
-	// ----------------------------------------------------------------
-	UFUNCTION(BlueprintCallable)
-	void TakeDamage(int32 Damage);
-
 protected:
 	// キャラクターのルートコンポーネント
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
+
+	// 武器の配置するポイント
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> WeaponSpawnPoint;
 
 	// キャラクターの行動状態
 	UPROPERTY(EditAnywhere, Category = "State", BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -149,19 +155,27 @@ protected:
 	// ステータス
 	UPROPERTY(EditAnywhere)
 	FStatus CharacterStatus = FStatus();
-
-	// 武器コンポーネント
+	
+	// 装備中のウェポン
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UChildActorComponent> EquippedWeaponComp;
-
-	//// 装備中のウェポン
-	//UPROPERTY(EditAnywhere)
-	//TObjectPtr<AWeaponBase> EquippedWeapon;
+	TObjectPtr<AWeaponBase> EquippedWeapon;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class USpringArmComponent* BattleCameraSpringArm;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UChildActorComponent* BattleCameraComp;
+
+	// キャラクターのシーケンス経過時間
+	UPROPERTY(VisibleAnywhere)
+	float SequenceElapsedTime;
+
+	// ダメージを受けたときのエフェクト
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Naigara", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraComponent> DamageNiagaraComp;
+
+	// 死亡したときのエフェクト
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Naigara", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraComponent> DeathNiagaraComp;
 
 };

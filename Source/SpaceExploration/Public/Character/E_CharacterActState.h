@@ -10,5 +10,7 @@ enum class ECharacterActState : uint8
 {
 	Idle,
 	Move,
-	Attack
+	Attack,
+	TakeDamage,
+	Death
 };
