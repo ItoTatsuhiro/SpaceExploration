@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/BaseCamera.h"
 #include "Weapon/WeaponBase.h"
+#include "NiagaraComponent.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include "tsutsumi/Status.h"
 
@@ -19,12 +20,16 @@ ACharacterBase::ACharacterBase()
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = DefaultSceneRoot;
 
+	// 武器の生成ポイントコンポーネントの設定
+	WeaponSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponPoint"));
+	WeaponSpawnPoint->SetupAttachment(DefaultSceneRoot);
+
 	// バトルシーンのカメラ設定
 	BattleCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("BattleCameraSpringArm"));
 	BattleCameraSpringArm->SetupAttachment(DefaultSceneRoot);
 
 	BattleCameraSpringArm->TargetArmLength = 300.f;
-	BattleCameraSpringArm->SetWorldRotation(FRotator(-150.f, 0.f, 0.f));
+	BattleCameraSpringArm->SetWorldRotation(FRotator(0.f, 0.f, 0.f));
 
 	BattleCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("BattleCamera"));
 	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
@@ -32,13 +37,21 @@ ACharacterBase::ACharacterBase()
 
 	BattleCameraComp->SetWorldRotation(FRotator(0.f, 0.f, 180.f));
 
-	EquippedWeaponComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("EuippedWeapon"));
-	EquippedWeaponComp->SetupAttachment(DefaultSceneRoot);
+	// ナイアガラの設定
+	DamageNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DamageNiagara"));
+	DamageNiagaraComp->SetupAttachment(DefaultSceneRoot);
+	DamageNiagaraComp->SetAutoActivate(false);
 
-	// 装備品初期化
-	// EquippedWeapon = nullptr;
+	DeathNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DeathNiagara"));
+	DeathNiagaraComp->SetupAttachment(DefaultSceneRoot);
+	DeathNiagaraComp->SetAutoActivate(false);
 
+	// その他
 	E_CharacterActState = ECharacterActState::Idle;
+
+	EquippedWeapon = nullptr;
+
+	SequenceElapsedTime = 0.0f;
 }
 
 // Called when the game starts or when spawned
@@ -55,38 +68,65 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
-EElement ACharacterBase::GetAttackElement() const
+// --------------------------------------------------------------------------
+// 装備中の武器を返す
+// --------------------------------------------------------------------------
+AWeaponBase* ACharacterBase::GetEquippedWeapon() const
 {
-	// return EquippedWeapon->GetWeaponElement();
-	return EElement::fire;
+	if (!EquippedWeapon)
+	{
+		UE_LOG(LogClass, Error, TEXT("ACharaterBase::GetEquippedWeapon() EquippedWeaponが nullptr でした。"));
+		return nullptr;
+	}
+
+	return EquippedWeapon;
 }
 
+EElement ACharacterBase::GetAttackElement() const
+{
+	if (!EquippedWeapon)
+	{
+		return EElement::none;
+	}
+
+	return EquippedWeapon->GetWeaponElement();
+}
+
+// --------------------------------------------------------------------------
 // 装備する武器を設定する。
+// 
+// Weapon...装備する武器
+// --------------------------------------------------------------------------
 void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 {
 	if (!Weapon) {
 		UE_LOG(LogClass, Display, TEXT("nullptrがセットされました"));
+		return;
 	}
 
-	// EquippedWeapon = Weapon;
+	// 装備する武器をクラスにアタッチし、装備中の武器に設定する。
+	Weapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+	EquippedWeapon = Weapon;
+	EquippedWeapon->SetActorRelativeTransform(WeaponSpawnPoint->GetRelativeTransform());
 
 	FString ResultLog = Weapon->GetWeaponStatus().PlayerName + " equipped";
-	UKismetSystemLibrary::PrintString(this, ResultLog, true, true, FColor::Cyan, 2.f, TEXT(""));
+
 	UE_LOG(LogTemp, Log, TEXT("%s"), *ResultLog);
 }
 
-// =========================================================================
+// --------------------------------------------------------------------------
 // キャラクターのHPを回復させて、回復量を返す関数
 // 
 // ・引数
 // RecoveryAmount：回復する値（デフォルト値の場合、全回復する）
 // 
 // 戻り値：回復した値
-// =========================================================================
+// --------------------------------------------------------------------------
 int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 {
 	int32 ResultAmount = RecoveryAmount;
 
+	// -1 の場合、HPを全回復する。
 	if (RecoveryAmount == -1) {
 		ResultAmount = CharacterStatus.MaxHp - CharacterStatus.HP;
 		CharacterStatus.HP = CharacterStatus.MaxHp;
@@ -94,6 +134,7 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 		UE_LOG(LogTemp, Warning, TEXT("HP fully recovered."));
 		return ResultAmount;
 	}
+
 	CharacterStatus.HP += RecoveryAmount;
 
 	if (CharacterStatus.HP > CharacterStatus.MaxHp) {
@@ -107,25 +148,12 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 	return ResultAmount;
 }
 
-// =========================================================================
+// --------------------------------------------------------------------------
 // 攻撃行動を開始
-// =========================================================================
+// --------------------------------------------------------------------------
 void ACharacterBase::StartAttackAction()
 {
 
 	UKismetSystemLibrary::PrintString(this, "StartAttack", true, true, FColor::Cyan, 2.f, TEXT(""));
 	UE_LOG(LogTemp, Log, TEXT("攻撃開始"));
-}
-
-// =========================================================================
-// ダメージを受ける処理を行う
-// 
-// ・引数
-// Damage：ダメージ量
-// =========================================================================
-void ACharacterBase::TakeDamage(int32 Damage)
-{
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%d damaged"), Damage), true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("%d damaged"), Damage);
-	CharacterStatus.HP -= Damage;
 }

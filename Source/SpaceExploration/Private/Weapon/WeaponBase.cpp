@@ -25,7 +25,8 @@ AWeaponBase::AWeaponBase()
 
 	// 武器の攻撃エフェクトの設定
 	WeaponAttackNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeaponAttackEffect"));
-	WeaponAttackNiagaraComp->SetupAttachment(MeshComponent);
+	WeaponAttackNiagaraComp->SetupAttachment(RootComponent);
+	WeaponAttackNiagaraComp->SetActive(false);
 
 }
 // Called when the game starts or when spawned
@@ -70,11 +71,19 @@ void AWeaponBase::ExecuteAttack()
 	WeaponAttackNiagaraComp->Activate();
 }
 
+bool AWeaponBase::IsAttack()
+{
+	return WeaponAttackNiagaraComp->IsActive();
+}
+
 // Called every frame
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 }
+
+
 void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter)
 {
 	if (!PlayerCharacter) {

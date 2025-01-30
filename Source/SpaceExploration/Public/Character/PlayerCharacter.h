@@ -27,9 +27,25 @@ public:
 
 	virtual void BeginPlay() override;
 
-	// virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	virtual void Tick(float DeltaTime) override;
+
+	// --------------------------------------------------------------------------
+	// 攻撃処理を行う
+	// --------------------------------------------------------------------------
+	void Attack() override;
+
+	// --------------------------------------------------------------------------
+	// ダメージを受ける処理を行う
+	// 
+	// ・引数
+	// Damage：ダメージ量
+	// --------------------------------------------------------------------------
+	void TakeDamage(int32 Damage) override;
+
+	// --------------------------------------------------------------------------
+	// 死亡時の処理を行う
+	// --------------------------------------------------------------------------
+	void Death() override;
 
 	// -----------------------------------------------------------------
 	// プレイヤーを見下ろしているカメラのコンポーネントを返す。
@@ -98,4 +114,11 @@ private:
 	bool SeqIdle(const float DeltaTime);
 	// 移動シーケンス
 	bool SeqMoveTargetLocation(const float DeltaTime);
+	// 攻撃シーケンス
+	bool SeqAttack(const float DeltaTime);
+	// ダメージを受けるシーケンス
+	bool SeqTakeDamage(const float DelataTime);
+	// 死亡演出を行うシーケンス
+	bool SeqDeath(const float DeltaTime);
+
 };
