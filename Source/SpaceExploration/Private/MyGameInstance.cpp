@@ -2,7 +2,6 @@
 
 #include "MyGameInstance.h"
 
-
 void UMyGameInstance::SetterBattleEnemy(FStatus& battleenemy, const EElement& battleenemyelement)
 {
 	BattleEnemy = battleenemy;

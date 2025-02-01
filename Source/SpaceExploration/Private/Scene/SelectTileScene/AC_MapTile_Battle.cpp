@@ -17,9 +17,10 @@ void AAC_MapTileBattle::BeginPlay() {
 	Super::BeginPlay();
 
 	//移動先のレベルをパスで取得
-	FSoftObjectPath nextlevelpath(TEXT("/Game/graphics/alpha/Master_Lv_battlemap/Lv_battle_map"));
+	FSoftObjectPath nextlevelpath(BPPath_BattleLevel);
 	//パスで取得したレベルを設定
 	NextLevel = TSoftObjectPtr<UWorld>(nextlevelpath);
+
 }
 
 // 更新用関数
@@ -35,7 +36,4 @@ void AAC_MapTileBattle::Tick(float DeltaTime) {
 void AAC_MapTileBattle::TileEvent() {
 	//バトルシーンに移動
 	gamemode->ChangeLevel(NextLevel,this, false, false);
-
-	//バトルで使用する敵のステータスをgameinstanceに
-
 }
