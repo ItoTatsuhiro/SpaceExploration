@@ -39,7 +39,13 @@ struct FStageMapData
 	GENERATED_BODY()
 
 
+	// この構造体が既に有効なものであるか確認するための変数
+	// デフォルトはfalse, データを入れて使用する際にtrueにする
+	bool bIsValid_ = false;
+
+
 	// マスのデータの配列
+	// 最初にデータを入れる際にはbIsValidをtrueに切り替えること！
 	UPROPERTY(VisibleAnywhere)
 	TArray<FTileDataArray> tileDataArray_;
 

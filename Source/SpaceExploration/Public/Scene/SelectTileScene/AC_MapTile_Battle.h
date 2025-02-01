@@ -7,6 +7,7 @@
 #include "AC_MapTile_Battle.generated.h"
 
 class APlaySceneGameModeBase;
+class AEnemyBase;
 
 // バトルを行うマスのクラス
 // バトル処理は後々
@@ -26,9 +27,11 @@ private :
 	// 開始時に実行する関数
 	void BeginPlay() override;
 
+	//バトルレベルのPath
+	const FString BPPath_BattleLevel = "/Game/graphics/alpha/Master_Lv_battlemap/Lv_battle_map";
+
 public :
 	
-
 	// 更新用関数
 	void Tick(float DeltaTime) override;
 

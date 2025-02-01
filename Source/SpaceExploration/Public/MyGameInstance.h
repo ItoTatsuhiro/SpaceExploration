@@ -8,24 +8,20 @@
 #include "tsutsumi/Element.h"
 #include "MyGameInstance.generated.h"
 
-struct FStatus;
-
-/**
- * 
- */
 UCLASS()
 class SPACEEXPLORATION_API UMyGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
-public:
-	
-
-public:
+private:
 	//バトルで使用する敵
 	FStatus BattleEnemy;
 	//バトルで使用する敵の属性
 	EElement BattleEnemyElement = EElement::none;
+	//バトルで使用する敵のタイプ
+
+public:
+	
 
 	//バトルシーンで使用する敵の情報をセット
 	void SetterBattleEnemy(FStatus& battleenemy, const EElement& battleenemyelement);
