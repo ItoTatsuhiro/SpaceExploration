@@ -3,11 +3,22 @@
 
 #include "Manager/StageDataManager.h"
 
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "NiagaraSystem.h"
+#include "Algo/RandomShuffle.h"
+
 // Sets default values
 AStageDataManager::AStageDataManager()
+	:tileDataClass_( UTileData::StaticClass() )
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+
+	// ランダム生成するためのクラスのコンポーネント生成
+	galaxyRandomSelectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("GalaxyRandomSelectComponent"));
+	galaxyRandomSelectComponent_->SetChildActorClass(AGalaxyRandomSelect::StaticClass());
+	galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
 
 }
 
@@ -16,6 +27,11 @@ void AStageDataManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// 念のため空にしておく
+	tileNiagaraArray_.Empty();
+	// 指定したフォルダのナイアガラを読み込む
+	GetNiagaraSystemsFromFolder("/Game/graphics/alpha/Master_planet/FX_planet_naiagara");
+
 }
 
 // Called every frame
@@ -27,7 +43,7 @@ void AStageDataManager::Tick(float DeltaTime)
 
 
 
-// ----------------------------------------------------------------------------------------------
+// =================================================================================================================
 // ステージのデータの確認・取得を行う関数
 // 
 // 引数：stagaMapData...既に存在するデータを代入するための変数。
@@ -50,4 +66,139 @@ bool AStageDataManager::TryGetStageMapData(FStageMapData& stageMapData)
 	// 有効なマップデータが存在しなかったときfalse
 	return false;
 }
+
+
+
+// =================================================================================================================
+// マスを移動する際に呼び出す関数
+// 現在いるマス nowTilePosIndex_ を移動先のマスに変更する
+// 次のマスに移動する際は呼び出すこと！
+void AStageDataManager::MoveTile(const FVector2D& nextTileIndex)
+{
+
+	nowTilePosIndex_ = nextTileIndex;
+
+}
+
+
+
+
+
+// =================================================================================================================
+// マスを追加で生成する関数
+// 引数：tileNumArray...新しく生成するマスの配列の大きさ
+// ----------------------------------------------------------------------
+// 例）{ 1, 2, 3, 2 }とした場合、以下のようなマスを生成することを想定
+// 3	　〇　〇	
+// 2	〇　〇　〇
+// 1	　〇　〇
+// 0	　　〇
+// ----------------------------------------------------------------------
+void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
+{
+	// -----------------------------------------------------------------------------------
+	// マスの種類をランダムで生成
+
+
+	if (galaxyRandomSelectComponent_)
+	{
+		// 子オブジェクトを取得
+		AActor* childActor = galaxyRandomSelectComponent_->GetChildActor();
+
+		UE_LOG(LogTemp, Log, TEXT("コンポーネント確認"));
+
+		if (childActor) {
+
+			galaxyRandomSelect_ = Cast<AGalaxyRandomSelect>(childActor);
+
+			UE_LOG(LogTemp, Log, TEXT("子オブジェクト確認"));
+
+			if (galaxyRandomSelect_) {
+
+				UE_LOG(LogTemp, Log, TEXT("マス種類生成"));
+
+				// マスの種類の配列を作成
+				tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(tileNumArray);
+
+			}
+
+		}
+
+	}
+
+
+	// -----------------------------------------------------------------------------------
+	// 種類に基づいてデータを作成
+
+	// 保存されているナイアガラの数を確認
+	int niagaraCount = tileNiagaraArray_.Num();
+
+
+	for (int y = 0; y < tileTypeArray_.Num(); ++y) {
+
+		// ステージデータに追加する用のマスの配列
+		FTileDataArray newTileDataArray;
+		
+
+		for (int x = 0; x < tileTypeArray_[y].typeArray.Num(); ++x) {			
+			
+			UTileData* newTileData = GetWorld()->SpawnActor<UTileData>(tileDataClass_);
+
+			//------------------------------------------------------------------
+			// データをセット
+
+			// セットするナイアガラの番号を決定
+			int setNiagaraNum = FMath::RandRange(0, niagaraCount - 1);
+			
+			newTileData->SetTileNiagaraSys(tileNiagaraArray_[setNiagaraNum]);	// ナイアガラをセット
+			newTileData->SetTileType(tileTypeArray_[y].typeArray[x]);			// マスの種類
+			newTileData->SetTileArrayIndex( FVector2D( x, y ) );				// マスの配列内での番号
+
+			// 配列に追加
+			newTileDataArray.tileDataArray_.Add(newTileData);
+		}
+
+		// 配列をステージデータに追加
+		stageMapData_.tileDataArray_.Add( newTileDataArray );
+
+	}
+
+
+}
+
+
+
+// =================================================================================================================
+// 指定したフォルダ内のナイアガラを読み込んで保存する関数
+// 
+// 引数：FolderPath...ナイアガラの保存フォルダのパス
+void AStageDataManager::GetNiagaraSystemsFromFolder(const FString& folderPath)
+{
+	// アセットレジストリを取得
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// フォルダ内のアセットを取得
+	FARFilter Filter;
+	Filter.PackagePaths.Add(*folderPath); // 指定したフォルダ内を検索
+	Filter.bRecursivePaths = true;        // サブフォルダも検索
+	Filter.ClassPaths.Add(UNiagaraSystem::StaticClass()->GetClassPathName()); // ナイアガラシステムのみ
+
+
+	TArray<FAssetData> AssetDataList;
+	AssetRegistry.GetAssets(Filter, AssetDataList);
+
+	// ナイアガラシステムを配列に追加
+	for (const FAssetData& AssetData : AssetDataList)
+	{
+		TSoftObjectPtr<UNiagaraSystem> NiagaraSystem = TSoftObjectPtr<UNiagaraSystem>(AssetData.ToSoftObjectPath());
+		if (NiagaraSystem.IsValid())
+		{
+
+			tileNiagaraArray_.Add(NiagaraSystem);
+			
+		}
+	}
+}
+
 
