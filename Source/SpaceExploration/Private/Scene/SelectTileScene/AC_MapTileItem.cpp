@@ -18,7 +18,7 @@ AAC_MapTileItem::AAC_MapTileItem() {
 
 // 開始時に実行する関数
 void AAC_MapTileItem::BeginPlay() {
-
+	Super::BeginPlay();
 	////移動先のレベルをパスで取得
 	//FSoftObjectPath nextlevelpath(TEXT(""));
 	////パスで取得したレベルを設定
@@ -34,7 +34,7 @@ void AAC_MapTileItem::BeginPlay() {
 
 // 更新用関数
 void AAC_MapTileItem::Tick(float DeltaTime) {
-
+	Super::Tick(DeltaTime);
 
 
 }
