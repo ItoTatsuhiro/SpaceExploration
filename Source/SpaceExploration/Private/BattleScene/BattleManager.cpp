@@ -4,12 +4,12 @@
 #include "Character/CharacterBase.h"
 #include "Character/EnemyBase.h"
 #include "Character/PlayerCharacter.h"
-#include "MyGameInstance.h"
 #include "BattleScene/E_BattleSEQ.h"
 #include "GameFramework/PlayerController.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Manager/PlaySceneGameModeBase.h"
+#include "Manager/EnemyManager.h"
 #include "BattleScene/BatllSceneWidget.h"
 #include "BattleScene/BattleStandoff_Widget.h"
 #include "BattleScene/GameOverWidget.h"
@@ -18,7 +18,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Blueprint/UserWidget.h"
-
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -40,42 +39,51 @@ void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//各シーケンスで一度だけ処理する事の確認変数を初期化
+	Seq_IsOnce_ = false;
+
 	if (nextlevel.IsNull()) {
-		UE_LOG(LogClass, Warning, TEXT("NO nextlevel battlemanager beginplay\n"));
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO nextlevel\n"));
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("YES nextlevel battlemanager beginplay\n"));
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : YES nextlevel\n"));
 	}
 
 	//GameMode取得
 	gamemode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
-
-	//カメラ切り替え用PlayerControllerを取得
+	//PlayerControllerを取得
 	playercontroller = UGameplayStatics::GetPlayerController(this, 0);
-	//ゲームインスタンス取得
-	mygameinstance = Cast<UMyGameInstance>(GetGameInstance());
 
+	if (gamemode) {
+		//エネミーマネージャー取得
+		enemymanager = gamemode->GetEnemyManager();
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : getEnemyManager\n"));
+	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : getEnemyManager\n"));
+	}
+	
 //******************************************************************************
 //敵のステータスはゲームインスタンスではなく、伊藤氏が作るStageManagerから受け取る
 //敵をインスタンス化するのはEnemyManager（ParentLevelに設置）で行う
 //******************************************************************************
 
-//キャラクター情報取得時の例外処理-----------------------------------------------------------------------
+//キャラクター情報取得時----------------------------------------------------------------------
 
 //プレイヤー情報取得
-	if (UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0)) {
-		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success playerstatus load\n"));
-		//プレイヤーの情報取得
-		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0));
+
+	//プレイヤーの情報取得
+	player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0));
+
+	if (player) {
 		//順番決めよう一時変数挿入
 		playerstatus_ = player->GetCharacterStatus();
 		provplayerstatus_.hp_ = playerstatus_.HP;
-		//現在プレイヤーが武器を持っていないため属性が取得できない
-		//provplayerstatus_.type_ = player->GetEquippedWeapon()->GetWeaponElement();
-		provplayerstatus_.type_ = EElement::fire;
+		//プレイヤー属性取得
+		provplayerstatus_.type_ = player->GetEquippedWeapon()->GetWeaponElement();
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : playerstatus load\n"));
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO playerstatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
 		playerstatus_.HP = 30.0f;
 		playerstatus_.MaxHp = 30.0f;
@@ -84,99 +92,88 @@ void ABattleManager::BeginPlay()
 		playerstatus_.Speed = 15.0f;
 		provplayerstatus_.hp_ = playerstatus_.HP;
 		provplayerstatus_.type_ = EElement::fire;
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO playerstatus\n"));
 	}
 	//現在のhpとmaxhpの比率
 	playerHP_ratio = playerstatus_.HP / playerstatus_.MaxHp;
 	//プレイヤーの属性をwidgetで取得できるように変数に保存
 	playerelement = static_cast<int>(provplayerstatus_.type_);
 
-//エネミー情報取得時の例外処理
-	if (mygameinstance->GetterBattleEnemyStatus().MaxHp <= 1.f) {
+//エネミー生成、情報取得
+
+	//敵生成
+	if (enemymanager) {
+		//敵のステータス（CreateEnemyの引数）はStageManagerから取る
+		enemy = enemymanager->CreateEnemy(1, 1, EElement::wind);
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : create enemy\n"));
+	}
+	else {
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : no enemy create\n"));
+	}
+	//ステータス取得
+	if (enemy) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : enemystatus load\n"));
+		//エネミーのステータスを取得
+		enemystatus_ = enemy->GetCharacterStatus();
+		//順番決めようの一時変数挿入
+		provenemystatus_.hp_ = enemystatus_.HP;
+		//エネミーのステータス、属性を取得
+		provenemystatus_.type_ = enemy->GetEquippedWeapon()->GetWeaponElement();
+	}
+	else {
 		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO enemystatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
 		enemystatus_.HP = 2.0f;
 		enemystatus_.MaxHp = 2.0f;
 		enemystatus_.AttackPower = 2.0f;
-		enemystatus_.DefencePower = 2.0f;
+		enemystatus_.DefencePower = 1.0f;
 		enemystatus_.Speed = 1.0f;
 		provenemystatus_.hp_ = enemystatus_.HP;
-	}
-	else {
-		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success enemystatus load\n"));
-		//エネミーのステータス、属性を取得
-		enemystatus_ = mygameinstance->GetterBattleEnemyStatus();
-		//順番決めようの一時変数挿入
-		provenemystatus_.hp_ = enemystatus_.HP;
+		provenemystatus_.type_ = EElement::wind;
 	}
 	//現在のhpとmaxhpの比率
 	enemyHP_ratio = enemystatus_.HP / enemystatus_.MaxHp;
-	
-	//エネミー属性取得時の例外処理
-	if (mygameinstance->GetterBattleEnemyElement() == EElement::none) {
-		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO enemyelement\n"));
-		provenemystatus_.type_ = EElement::wind;
-	}
-	else {
-		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success enemyelement load\n"));
-		//エネミーのステータス、属性を取得
-		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
-	}
 	//エネミーの属性をwidgetで取得できるように変数に保存
 	enemyelement = static_cast<int>(provenemystatus_.type_);
-
-	//敵生成
-	TSubclassOf<APawn> bpenemyclass = TSoftClassPtr<APawn>(FSoftObjectPath(*BPPath_EnemyType2)).LoadSynchronous();
-	if (bpenemyclass != nullptr) {
-		//敵スポン
-		enemy = Cast<AEnemyBase>(GetWorld()->SpawnActor<APawn>(bpenemyclass));
-		
-	}
-	else {
-		UE_LOG(LogClass, Warning, TEXT("error enemyspawn\n"));
-	}
 	
 //-----------------------------------------------------------------------------------------------------
+//カメラ設定、座標移動
 
 	//カメラをバトルシーン全体を見る物に切り替え
 	playercontroller->SetViewTargetWithBlend(BattleSceneCamera, 0.0);
+	
 	//プレイヤーのカメラと座標とサイズ設定
-	if (player) {
-		UE_LOG(LogClass, Log, TEXT("success playerCamera load\n"));
+	if (player && playerpos_actor) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : playerCamera playerPos\n"));
 		//カメラ設定
 		PlayerCamera = player->GetBattleCameraComponent()->GetChildActor();
 		//座標設定
 		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
-		//UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"),player->GetActorLocation().X, player->GetActorLocation().Y, player->GetActorLocation().Z);
-		//UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), playerpos_actor->GetActorLocation().X, playerpos_actor->GetActorLocation().Y, playerpos_actor->GetActorLocation().Z);
 		//元の角度取得
 		PlayerOrigineRotate = player->GetActorRotation();
 		//プレイヤー回転
-		player->SetActorRotation(PlayerBattleSceneRotate);
-
-		UStaticMeshComponent* playermesh = player->FindComponentByClass<UStaticMeshComponent>();
-		PlayerOriginSize = playermesh->Bounds.BoxExtent * 2.0f;
+		player->SetActorRelativeRotation(PlayerBattleSceneRotate);
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("error : No player\n"));
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : playerCamera playerPos\n"));
 	}
 
 	//敵のカメラと座標設定
-	if (enemy) {
-		UE_LOG(LogClass, Log, TEXT("success enemy load\n"));
+	if (enemy && enemypos_actor) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : enemyCamera enemyPos\n"));
 		//カメラ設定
 		EnemyCamera = enemy->GetBattleCameraComponent()->GetChildActor();
 		//座標設定
 		enemy->SetCharacterLocation(enemypos_actor->GetActorLocation());
-		UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"), enemy->GetActorLocation().X, enemy->GetActorLocation().Y, enemy->GetActorLocation().Z);
-		UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), enemypos_actor->GetActorLocation().X, enemypos_actor->GetActorLocation().Y, enemypos_actor->GetActorLocation().Z);
+		//向き変更
+		enemy->SetActorRelativeRotation(EnemyBattleSceneRotate);
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("error : No enemyCamera\n"));
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : enemyCamera enemyPos\n"));
 	}
 
 //-----------------------------------------------------------------------------------------------------
-
-	//Widget関係
+//Widget関係
 
 	//バトル終了のwidgetblueprintのclassを取得する
 	FString BattleEndWidgetPath = TEXT("/Game/BattleScene/WBP_BattleEnd.WBP_BattleEnd_C");
@@ -245,8 +242,6 @@ void ABattleManager::BeginPlay()
 
 	//バトル順など初期化
 	ButtleInit();
-
-	battlesequence.BindUObject(this, &ABattleManager::SEQ_BATTLE_STANDBY);
 }
 
 // Called every frame
@@ -265,6 +260,7 @@ void ABattleManager::ButtleInit()
 	attack_order.clear();
 	//attack_orderの始めにバトル前の準備シーンを設定
 	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_STANDBY));
+	battlesequence.BindUObject(this, &ABattleManager::SEQ_BATTLE_STANDBY);
 
 	//現在のバトル順初期化
 	seqindex = 0;
@@ -348,19 +344,17 @@ float ABattleManager::DamageMath(const float& A_atk, const int& A_type, const fl
 
 bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 {
-	static bool once_seq_battle_standby = false;
-	if (once_seq_battle_standby == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_STANDBY start"))
 	
-		once_seq_battle_standby = true;
+		Seq_IsOnce_ = true;
 	}
 
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_STANDBY end"))
-
-		once_seq_battle_standby = false;
+		Seq_IsOnce_ = false;
 
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
@@ -370,21 +364,19 @@ bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 
 bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 {
-	static bool once_seq_player_attack = false;
-	if (once_seq_player_attack == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACK start"))
 
 		//プレイヤー攻撃関数
 		player->Attack();
 
-		once_seq_player_attack = true;
+		Seq_IsOnce_ = true;
 	}
 
 	//次のターンに進める
 	if (player->GetCharaterActState() == ECharacterActState::Idle) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACK end"))
-
-		once_seq_player_attack = false;
+		Seq_IsOnce_ = false;
 
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
@@ -394,8 +386,7 @@ bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 
 bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 {
-	static bool once_seq_player_attackreceive = false;
-	if (once_seq_player_attackreceive == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACKRECEIVE start"))
 
 		//プレイヤー攻撃を受ける関数
@@ -404,15 +395,13 @@ bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 		playerstatus_.HP -= playerdamage;
 		playerHP_ratio = playerstatus_.HP / playerstatus_.MaxHp;
 
-		once_seq_player_attackreceive = true;
+		Seq_IsOnce_ = true;
 	}
 
 	//次のターンに進める
 	if (player->GetCharaterActState() == ECharacterActState::Idle) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACKRECEIVE end"))
-
-		once_seq_player_attackreceive = false;
-
+		Seq_IsOnce_ = false;
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
@@ -421,22 +410,19 @@ bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 
 bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 {
-	static bool once_seq_enemy_attack = false;
-	if (once_seq_enemy_attack == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACK start"))
 
 		//エネミー攻撃
 		enemy->Attack();
 
-		once_seq_enemy_attack = true;
+		Seq_IsOnce_ = true;
 	}
 
 	//次のターンに進める
 	if (enemy->GetCharaterActState() == ECharacterActState::Idle) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACK end"))
-
-		once_seq_enemy_attack = false;
-
+		Seq_IsOnce_ = false;
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
@@ -445,8 +431,7 @@ bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 
 bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 {
-	static bool once_seq_enemy_attackreceive = false;
-	if (once_seq_enemy_attackreceive == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACKRECEIVE start"))
 
 		//エネミー攻撃を受ける
@@ -455,15 +440,13 @@ bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 		enemystatus_.HP -= enemydamage;
 		enemyHP_ratio = enemystatus_.HP / enemystatus_.MaxHp;
 
-		once_seq_enemy_attackreceive = true;
+		Seq_IsOnce_ = true;
 	}
 
 	//次のターンに進める
 	if (enemy->GetCharaterActState() == ECharacterActState::Idle) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACKRECEIVE end"))
-
-		once_seq_enemy_attackreceive = false;
-
+		Seq_IsOnce_ = false;
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
@@ -472,23 +455,21 @@ bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 
 bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 {
-	static bool once_seq_battle_result = false;
-	if (once_seq_battle_result == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_RESULT start"))
 
 		battlestartwidget->SetVisibility(ESlateVisibility::Hidden);
-		once_seq_battle_result = true;
+		Seq_IsOnce_ = true;
 	}
 
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_RESULT end"))
-
-		once_seq_battle_result = false;
-
-		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
+		Seq_IsOnce_ = false;
 		_count = 0.0f;
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
+		
 	}
 
 	return true;
@@ -496,8 +477,7 @@ bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 
 bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 {
-	static bool once_seq_battle_end = false;
-	if (once_seq_battle_end == false) {
+	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_END start"))
 
 		if (battlewinner == E_BatlleWinner::player) {
@@ -513,19 +493,15 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 			gameoberwidget->SetVisibility(ESlateVisibility::Visible);
 		}
 
-		once_seq_battle_end = true;
+		Seq_IsOnce_ = true;
 	}
-
-	////シーン移動a
-	//gamemode->ChangeLevel(nextlevel, this);
 
 	return true;
 }
 
 bool ABattleManager::SEQ_CAMERA_CHANGE(const float deltatime)
 {
-	static bool once_seq_camera_change = false;
-	if (once_seq_camera_change == false) {
+	if (Seq_IsOnce_ == false) {
 		//attack_orderのindexを次のターンへ移行
 		SeqIndexAdd();
 		//プレイヤーのカメラに切り替え
@@ -546,18 +522,18 @@ bool ABattleManager::SEQ_CAMERA_CHANGE(const float deltatime)
 				playercontroller->SetViewTargetWithBlend(BattleSceneCamera, camerachangetime);
 		}
 
-		once_seq_camera_change = true;
+		Seq_IsOnce_ = true;
 	}
 
 	camerachangecount += deltatime;
 	if (camerachangecount >= camerachangetime) {
 		//カメラ切り替え後、現在のシーケンスを設定
 		NowBattleSeq = attack_order[seqindex];
+		camerachangecount = 0;
+		Seq_IsOnce_ = false;
+
 		//シーケンス切り替え
 		SEQChange();
-
-		camerachangecount = 0;
-		once_seq_camera_change = false;
 	}
 
 	return false;
@@ -565,7 +541,7 @@ bool ABattleManager::SEQ_CAMERA_CHANGE(const float deltatime)
 
 void ABattleManager::SEQChange()
 {
-	UE_LOG(LogClass, Log, TEXT("ABattleManager::SEQChange : SEQチェンジしました"));
+	UE_LOG(LogClass, Log, TEXT("ABattleManager::SEQChange : success SEQchange"));
 
 	//次のシーケンスに切り替え
 	if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK)) {
@@ -592,6 +568,9 @@ void ABattleManager::BattleEnd()
 {
 	//シーン移動
 	gamemode->ChangeLevel(nextlevel, this);
+
+	//プレイヤーの向きを元に戻す
+	player->SetActorRelativeRotation(PlayerOrigineRotate);
 
 	//バトル終了UI消去
 	battleendwidget->RemoveFromParent();

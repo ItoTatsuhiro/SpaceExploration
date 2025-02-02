@@ -17,9 +17,9 @@ struct FStatus;
 class APlayerController;
 class UNiagaraComponent;
 class UNiagaraSystem;
-class UMyGameInstance;
 class APlaySceneGameModeBase;
 class UUserWidget;
+class AEnemyManager;
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -138,6 +138,9 @@ private:
 	//現在のバトル順番のインデックス
 	uint8 seqindex = 0;
 
+	//各シーケンスで一度だけ処理する事の確認変数
+	bool Seq_IsOnce_ = false;
+
 	//バトルシーンレベル
 	UPROPERTY(EditAnywhere, Category = "Level")
 	TSoftObjectPtr<UWorld> MyLevel;
@@ -188,23 +191,20 @@ public:
 	uint8 NowBattleSeq = 0;
 
 private:
-	//プレイヤーのバトルシーン以外でのサイズ
-	FVector PlayerOriginSize;
-	//プレイヤーのバトルシーンでのサイズ
-	FVector PlayerBattleSceneSize;
-
 	//プレイヤーのバトルシーン以外での角度
 	FRotator PlayerOrigineRotate;
 	//プレイヤーのバトルシーンでの角度
-	FRotator PlayerBattleSceneRotate{0.0, 90.0, 0.0};
+	FRotator PlayerBattleSceneRotate{0.0, -90.0, 0.0};
+	//敵のバトルシーンでの角度
+	FRotator EnemyBattleSceneRotate{ 0.0, 90.0, 0.0 };
 
-	//ゲームインスタンス
-	UPROPERTY(VisibleAnywhere)
-	UMyGameInstance* mygameinstance = nullptr;
 
 	//ゲームモード
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<APlaySceneGameModeBase> gamemode;
+
+	//エネミーマネージャー
+	TObjectPtr<AEnemyManager> enemymanager;
 
 	//移動先のレベル
 	UPROPERTY(EditAnywhere, Category = "Level")
