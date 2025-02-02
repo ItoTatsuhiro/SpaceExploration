@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/CharacterBase.h"
@@ -13,22 +13,24 @@
 // Sets default values
 ACharacterBase::ACharacterBase()
 {
+	UE_LOG(LogClass, Log, TEXT("ACharacterBaseã®ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãŒå®Ÿè¡Œã•ã‚Œã¾ã—ãŸã€‚"));
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// ƒ‹[ƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ìİ’è
+	// ãƒ«ãƒ¼ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®è¨­å®š
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = DefaultSceneRoot;
 
-	// •Ší‚Ì¶¬ƒ|ƒCƒ“ƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ìİ’è
+	// æ­¦å™¨ã®ç”Ÿæˆãƒã‚¤ãƒ³ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®è¨­å®š
 	WeaponSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponPoint"));
 	WeaponSpawnPoint->SetupAttachment(DefaultSceneRoot);
 
-	// ƒoƒgƒ‹ƒV[ƒ“‚ÌƒJƒƒ‰İ’è
+	// ãƒãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã®ã‚«ãƒ¡ãƒ©è¨­å®š
 	BattleCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("BattleCameraSpringArm"));
 	BattleCameraSpringArm->SetupAttachment(DefaultSceneRoot);
 
-	BattleCameraSpringArm->TargetArmLength = 300.f;
+	BattleCameraSpringArm->TargetArmLength = 2000.f;
 	BattleCameraSpringArm->SetWorldRotation(FRotator(0.f, 0.f, 0.f));
 
 	BattleCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("BattleCamera"));
@@ -37,7 +39,7 @@ ACharacterBase::ACharacterBase()
 
 	BattleCameraComp->SetWorldRotation(FRotator(0.f, 0.f, 180.f));
 
-	// ƒiƒCƒAƒKƒ‰‚Ìİ’è
+	// ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã®è¨­å®š
 	DamageNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DamageNiagara"));
 	DamageNiagaraComp->SetupAttachment(DefaultSceneRoot);
 	DamageNiagaraComp->SetAutoActivate(false);
@@ -46,7 +48,7 @@ ACharacterBase::ACharacterBase()
 	DeathNiagaraComp->SetupAttachment(DefaultSceneRoot);
 	DeathNiagaraComp->SetAutoActivate(false);
 
-	// ‚»‚Ì‘¼
+	// ãã®ä»–
 	E_CharacterActState = ECharacterActState::Idle;
 
 	EquippedWeapon = nullptr;
@@ -69,13 +71,13 @@ void ACharacterBase::Tick(float DeltaTime)
 }
 
 // --------------------------------------------------------------------------
-// ‘•”õ’†‚Ì•Ší‚ğ•Ô‚·
+// è£…å‚™ä¸­ã®æ­¦å™¨ã‚’è¿”ã™
 // --------------------------------------------------------------------------
 AWeaponBase* ACharacterBase::GetEquippedWeapon() const
 {
 	if (!EquippedWeapon)
 	{
-		UE_LOG(LogClass, Error, TEXT("ACharaterBase::GetEquippedWeapon() EquippedWeapon‚ª nullptr ‚Å‚µ‚½B"));
+		UE_LOG(LogClass, Error, TEXT("ACharaterBase::GetEquippedWeapon() EquippedWeaponãŒ nullptr ã§ã—ãŸã€‚"));
 		return nullptr;
 	}
 
@@ -93,18 +95,18 @@ EElement ACharacterBase::GetAttackElement() const
 }
 
 // --------------------------------------------------------------------------
-// ‘•”õ‚·‚é•Ší‚ğİ’è‚·‚éB
+// è£…å‚™ã™ã‚‹æ­¦å™¨ã‚’è¨­å®šã™ã‚‹ã€‚
 // 
-// Weapon...‘•”õ‚·‚é•Ší
+// Weapon...è£…å‚™ã™ã‚‹æ­¦å™¨
 // --------------------------------------------------------------------------
 void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 {
 	if (!Weapon) {
-		UE_LOG(LogClass, Display, TEXT("nullptr‚ªƒZƒbƒg‚³‚ê‚Ü‚µ‚½"));
+		UE_LOG(LogClass, Display, TEXT("nullptrãŒã‚»ãƒƒãƒˆã•ã‚Œã¾ã—ãŸ"));
 		return;
 	}
 
-	// ‘•”õ‚·‚é•Ší‚ğƒNƒ‰ƒX‚ÉƒAƒ^ƒbƒ`‚µA‘•”õ’†‚Ì•Ší‚Éİ’è‚·‚éB
+	// è£…å‚™ã™ã‚‹æ­¦å™¨ã‚’ã‚¯ãƒ©ã‚¹ã«ã‚¢ã‚¿ãƒƒãƒã—ã€è£…å‚™ä¸­ã®æ­¦å™¨ã«è¨­å®šã™ã‚‹ã€‚
 	Weapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 	EquippedWeapon = Weapon;
 	EquippedWeapon->SetActorRelativeTransform(WeaponSpawnPoint->GetRelativeTransform());
@@ -115,18 +117,18 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 }
 
 // --------------------------------------------------------------------------
-// ƒLƒƒƒ‰ƒNƒ^[‚ÌHP‚ğ‰ñ•œ‚³‚¹‚ÄA‰ñ•œ—Ê‚ğ•Ô‚·ŠÖ”
+// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®HPã‚’å›å¾©ã•ã›ã¦ã€å›å¾©é‡ã‚’è¿”ã™é–¢æ•°
 // 
-// Eˆø”
-// RecoveryAmountF‰ñ•œ‚·‚é’liƒfƒtƒHƒ‹ƒg’l‚Ìê‡A‘S‰ñ•œ‚·‚éj
+// ãƒ»å¼•æ•°
+// RecoveryAmountï¼šå›å¾©ã™ã‚‹å€¤ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã®å ´åˆã€å…¨å›å¾©ã™ã‚‹ï¼‰
 // 
-// –ß‚è’lF‰ñ•œ‚µ‚½’l
+// æˆ»ã‚Šå€¤ï¼šå›å¾©ã—ãŸå€¤
 // --------------------------------------------------------------------------
 int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 {
 	int32 ResultAmount = RecoveryAmount;
 
-	// -1 ‚Ìê‡AHP‚ğ‘S‰ñ•œ‚·‚éB
+	// -1 ã®å ´åˆã€HPã‚’å…¨å›å¾©ã™ã‚‹ã€‚
 	if (RecoveryAmount == -1) {
 		ResultAmount = CharacterStatus.MaxHp - CharacterStatus.HP;
 		CharacterStatus.HP = CharacterStatus.MaxHp;
@@ -149,11 +151,11 @@ int32 ACharacterBase::RecoverHP(int32 RecoveryAmount)
 }
 
 // --------------------------------------------------------------------------
-// UŒ‚s“®‚ğŠJn
+// æ”»æ’ƒè¡Œå‹•ã‚’é–‹å§‹
 // --------------------------------------------------------------------------
 void ACharacterBase::StartAttackAction()
 {
 
 	UKismetSystemLibrary::PrintString(this, "StartAttack", true, true, FColor::Cyan, 2.f, TEXT(""));
-	UE_LOG(LogTemp, Log, TEXT("UŒ‚ŠJn"));
+	UE_LOG(LogTemp, Log, TEXT("æ”»æ’ƒé–‹å§‹"));
 }
