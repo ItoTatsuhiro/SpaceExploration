@@ -77,7 +77,7 @@ void AAC_MapTileHeal::TileEvent() {
 
 	PlayerCharacterRef->RecoverHP();
 
-	IsEvnetCompleted = false;
+	bIsEvnetCompleted = false;
 
 }
 
@@ -90,5 +90,5 @@ void AAC_MapTileHeal::TileEventRunning()
 
 	// 回復画面を消す
 	HealingDisplayWidgetRef->RemoveFromParent();
-	IsEvnetCompleted = true;
+	bIsEvnetCompleted = true;
 }
