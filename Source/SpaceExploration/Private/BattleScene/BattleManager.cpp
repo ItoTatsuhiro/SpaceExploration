@@ -11,6 +11,9 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Manager/PlaySceneGameModeBase.h"
 #include "BattleScene/BatllSceneWidget.h"
+#include "BattleScene/BattleStandoff_Widget.h"
+#include "BattleScene/GameOverWidget.h"
+#include "Character/E_CharacterActState.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -52,11 +55,16 @@ void ABattleManager::BeginPlay()
 	//ゲームインスタンス取得
 	mygameinstance = Cast<UMyGameInstance>(GetGameInstance());
 
+//******************************************************************************
+//敵のステータスはゲームインスタンスではなく、伊藤氏が作るStageManagerから受け取る
+//敵をインスタンス化するのはEnemyManager（ParentLevelに設置）で行う
+//******************************************************************************
+
 //キャラクター情報取得時の例外処理-----------------------------------------------------------------------
 
-	//プレイヤー情報取得
+//プレイヤー情報取得
 	if (UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0)) {
-		UE_LOG(LogClass, Log, TEXT("success playerstatus load\n"));
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success playerstatus load\n"));
 		//プレイヤーの情報取得
 		player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0));
 		//順番決めよう一時変数挿入
@@ -67,9 +75,9 @@ void ABattleManager::BeginPlay()
 		provplayerstatus_.type_ = EElement::fire;
 	}
 	else {
-		UE_LOG(LogClass, Warning, TEXT("error : NO playerstatus\n"));
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO playerstatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
-		playerstatus_.HP = 10.0f;
+		playerstatus_.HP = 30.0f;
 		playerstatus_.MaxHp = 30.0f;
 		playerstatus_.AttackPower = 50.0f;
 		playerstatus_.DefencePower = 20.0f;
@@ -77,41 +85,51 @@ void ABattleManager::BeginPlay()
 		provplayerstatus_.hp_ = playerstatus_.HP;
 		provplayerstatus_.type_ = EElement::fire;
 	}
+	//現在のhpとmaxhpの比率
+	playerHP_ratio = playerstatus_.HP / playerstatus_.MaxHp;
+	//プレイヤーの属性をwidgetで取得できるように変数に保存
+	playerelement = static_cast<int>(provplayerstatus_.type_);
 
-	//エネミー情報取得時の例外処理
+//エネミー情報取得時の例外処理
 	if (mygameinstance->GetterBattleEnemyStatus().MaxHp <= 1.f) {
-		UE_LOG(LogClass, Warning, TEXT("error : NO enemystatus\n"));
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO enemystatus\n"));
 		//エラー落ちしないように仮のステータスを挿入
-		enemystatus_.HP = 10.0f;
-		enemystatus_.MaxHp = 30.0f;
-		enemystatus_.AttackPower = 50.0f;
-		enemystatus_.DefencePower = 20.0f;
-		enemystatus_.Speed = 10.0f;
+		enemystatus_.HP = 2.0f;
+		enemystatus_.MaxHp = 2.0f;
+		enemystatus_.AttackPower = 2.0f;
+		enemystatus_.DefencePower = 2.0f;
+		enemystatus_.Speed = 1.0f;
 		provenemystatus_.hp_ = enemystatus_.HP;
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("success enemystatus load\n"));
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success enemystatus load\n"));
 		//エネミーのステータス、属性を取得
 		enemystatus_ = mygameinstance->GetterBattleEnemyStatus();
 		//順番決めようの一時変数挿入
 		provenemystatus_.hp_ = enemystatus_.HP;
 	}
+	//現在のhpとmaxhpの比率
+	enemyHP_ratio = enemystatus_.HP / enemystatus_.MaxHp;
+	
 	//エネミー属性取得時の例外処理
 	if (mygameinstance->GetterBattleEnemyElement() == EElement::none) {
-		UE_LOG(LogClass, Warning, TEXT("error : NO enemyelement\n"));
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : NO enemyelement\n"));
 		provenemystatus_.type_ = EElement::wind;
 	}
 	else {
-		UE_LOG(LogClass, Log, TEXT("success enemyelement load\n"));
+		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success enemyelement load\n"));
 		//エネミーのステータス、属性を取得
 		provenemystatus_.type_ = mygameinstance->GetterBattleEnemyElement();
 	}
+	//エネミーの属性をwidgetで取得できるように変数に保存
+	enemyelement = static_cast<int>(provenemystatus_.type_);
+
 	//敵生成
-	FString bpenemypath = "/Game/Enemy/BP_EnemyType1.BP_EnemyType1_C";
-	TSubclassOf<APawn> bpenemyclass = TSoftClassPtr<APawn>(FSoftObjectPath(*bpenemypath)).LoadSynchronous();
+	TSubclassOf<APawn> bpenemyclass = TSoftClassPtr<APawn>(FSoftObjectPath(*BPPath_EnemyType2)).LoadSynchronous();
 	if (bpenemyclass != nullptr) {
 		//敵スポン
 		enemy = Cast<AEnemyBase>(GetWorld()->SpawnActor<APawn>(bpenemyclass));
+		
 	}
 	else {
 		UE_LOG(LogClass, Warning, TEXT("error enemyspawn\n"));
@@ -128,8 +146,8 @@ void ABattleManager::BeginPlay()
 		PlayerCamera = player->GetBattleCameraComponent()->GetChildActor();
 		//座標設定
 		player->SetCharacterLocation(playerpos_actor->GetActorLocation());
-		UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"),player->GetActorLocation().X, player->GetActorLocation().Y, player->GetActorLocation().Z);
-		UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), playerpos_actor->GetActorLocation().X, playerpos_actor->GetActorLocation().Y, playerpos_actor->GetActorLocation().Z);
+		//UE_LOG(LogClass, Warning, TEXT("player pos : %f %f %f\n"),player->GetActorLocation().X, player->GetActorLocation().Y, player->GetActorLocation().Z);
+		//UE_LOG(LogClass, Warning, TEXT("playerpos_actor pos : %f %f %f\n"), playerpos_actor->GetActorLocation().X, playerpos_actor->GetActorLocation().Y, playerpos_actor->GetActorLocation().Z);
 		//元の角度取得
 		PlayerOrigineRotate = player->GetActorRotation();
 		//プレイヤー回転
@@ -160,26 +178,66 @@ void ABattleManager::BeginPlay()
 
 	//Widget関係
 
-	//widgetblueprintのclassを取得する
-	FString BattleStartWidgetPath = TEXT("/Game/BattleScene/WBP_BattleEnd.WBP_BattleEnd_C");
+	//バトル終了のwidgetblueprintのclassを取得する
+	FString BattleEndWidgetPath = TEXT("/Game/BattleScene/WBP_BattleEnd.WBP_BattleEnd_C");
 	if (!BattleEndWidgetClass) {
-		BattleEndWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*BattleStartWidgetPath)).LoadSynchronous();
+		BattleEndWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*BattleEndWidgetPath)).LoadSynchronous();
 	}
-	
 	if (BattleEndWidgetClass) {
-		//バトル終了ボタン生成
+		//バトル終了生成
 		battleendwidget = UWidgetBlueprintLibrary::Create(GetWorld(), BattleEndWidgetClass, playercontroller);
 
-		//バトル終了ボタンをAddViewportに追加
+		//バトル終了をAddViewportに追加
 		battleendwidget->AddToViewport(0);
 		
-		//バトル終了ボタンを非表示
+		//バトル終了を非表示
 		battleendwidget->SetVisibility(ESlateVisibility::Hidden);
 
 		//UBatllSceneWidgetにBattleManagerを持たせる
 		UBatllSceneWidget* BattleWidgetRef = Cast<UBatllSceneWidget>(battleendwidget);
 		if (BattleWidgetRef) {
 			BattleWidgetRef->SetBattleManager(this);
+		}
+	}
+
+	//ゲームオーバーのwidgetblueprintのclassを取得する
+	FString GameOverWidgetPath = TEXT("/Game/BattleScene/WBP_GameOver.WBP_GameOver_C");
+	if (!GameOverWidgetClass) {
+		GameOverWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*GameOverWidgetPath)).LoadSynchronous();
+	}
+	if (GameOverWidgetClass) {
+		//ゲームオーバー生成
+		gameoberwidget = UWidgetBlueprintLibrary::Create(GetWorld(), GameOverWidgetClass, playercontroller);
+
+		//ゲームオーバーをAddViewportに追加
+		gameoberwidget->AddToViewport(0);
+
+		//ゲームオーバーを非表示
+		gameoberwidget->SetVisibility(ESlateVisibility::Hidden);
+
+		//UGameOverWidgetにBattleManagerを持たせる
+		UGameOverWidget* gameoverref = Cast<UGameOverWidget>(gameoberwidget);
+		if (gameoverref) {
+			gameoverref->SetBattleManager(this);
+		}
+	}
+
+	//バトルスタートのwidgetbluprintのclassを取得する
+	FString BattleStartWidgetPath = TEXT("/Game/BattleScene/WBP_BattleStandoff.WBP_BattleStandoff_C");
+	if (!BattleStartWidgetClass) {
+		BattleStartWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*BattleStartWidgetPath)).LoadSynchronous();
+	}
+	if (BattleStartWidgetClass) {
+		//バトルスタートwidget生成
+		battlestartwidget = UWidgetBlueprintLibrary::Create(GetWorld(), BattleStartWidgetClass, playercontroller);
+
+		//バトルスタートwidgetをAddviewportに追加
+		battlestartwidget->AddToViewport(0);
+
+		//UBattleStandoff_WidgetにBattleManagerを持たせる
+		UBattleStandoff_Widget* BattleStandoff = Cast<UBattleStandoff_Widget>(battlestartwidget);
+		if (BattleStandoff) {
+			BattleStandoff->SetBattleManager(this);
 		}
 	}
 	
@@ -221,8 +279,6 @@ void ABattleManager::ButtleInit()
 
 void ABattleManager::BattleTurn()
 {
-	UE_LOG(LogClass, Warning, TEXT("BattleTurn"));
-
 	//ダメージの計算
 	enemydamage = DamageMath(playerstatus_.AttackPower, static_cast<int>(provplayerstatus_.type_), enemystatus_.DefencePower, static_cast<int>(provenemystatus_.type_));
 	playerdamage = DamageMath(enemystatus_.AttackPower, static_cast<int>(provenemystatus_.type_), playerstatus_.DefencePower, static_cast<int>(provplayerstatus_.type_));
@@ -233,7 +289,7 @@ void ABattleManager::BattleTurn()
 		provenemystatus_.attack_count_ += enemystatus_.Speed;
 
 		//プレイヤーの攻撃
-		if (provplayerstatus_.attack_count_ >= attack_timing_) {
+		if (provplayerstatus_.attack_count_ >= attack_timing_ && provenemystatus_.hp_ > 0.0f) {
 			provplayerstatus_.attack_count_ = 0.0f;
 			
 			provenemystatus_.hp_ -= enemydamage;
@@ -244,7 +300,7 @@ void ABattleManager::BattleTurn()
 		}
 
 		//敵の攻撃
-		if (provenemystatus_.attack_count_ >= attack_timing_) {
+		if (provenemystatus_.attack_count_ >= attack_timing_ && provenemystatus_.hp_ > 0.0f) {
 			provenemystatus_.attack_count_ = 0.0f;
 
 			provplayerstatus_.hp_ -= playerdamage;
@@ -254,6 +310,7 @@ void ABattleManager::BattleTurn()
 			attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE));
 		}
 	}
+
 	//勝者を決定
 	if (provenemystatus_.hp_ <= 0.0f) {
 		battlewinner = E_BatlleWinner::player;
@@ -261,7 +318,7 @@ void ABattleManager::BattleTurn()
 	else if (provplayerstatus_.hp_ <= 0.0f) {
 		battlewinner = E_BatlleWinner::enemy;
 	}
-
+	
 	//バトル終了シーケンス設定
 	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_RESULT));
 	attack_order.emplace_back(std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::BATTLE_END));
@@ -293,22 +350,19 @@ bool ABattleManager::SEQ_BATTLE_STANDBY(const float deltatime)
 {
 	static bool once_seq_battle_standby = false;
 	if (once_seq_battle_standby == false) {
-		
-		//バトルスタートボタン表示
-		//battlestartwidget->AddToViewport(0);
-		
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_STANDBY start"))
+	
 		once_seq_battle_standby = true;
 	}
-
-	//UKismetSystemLibrary::PrintString(this, "~BATTLE_STANDBY~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_STANDBY end"))
+
 		once_seq_battle_standby = false;
 
-		SEQChange_CameraChange();
-		_count = 0.0f;
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
 	return true;
@@ -318,24 +372,21 @@ bool ABattleManager::SEQ_PLAYER_ATTACK(const float deltatime)
 {
 	static bool once_seq_player_attack = false;
 	if (once_seq_player_attack == false) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACK start"))
+
+		//プレイヤー攻撃関数
+		player->Attack();
 
 		once_seq_player_attack = true;
 	}
 
-	//UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-	//プレイヤー攻撃関数
-	//player->StartAttackAction();
-
-	playerpos_actor->AddActorLocalRotation(FQuat(1));
-
-	_count += deltatime;
 	//次のターンに進める
-	if (_count >= _time) {
+	if (player->GetCharaterActState() == ECharacterActState::Idle) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACK end"))
+
 		once_seq_player_attack = false;
 
-		SEQChange_CameraChange();
-		_count = 0.0f;
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
 	return true;
@@ -345,24 +396,24 @@ bool ABattleManager::SEQ_PLAYER_ATTACKRECEIVE(const float deltatime)
 {
 	static bool once_seq_player_attackreceive = false;
 	if (once_seq_player_attackreceive == false) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACKRECEIVE start"))
+
+		//プレイヤー攻撃を受ける関数
+		player->TakeDamage(playerdamage);
+
+		playerstatus_.HP -= playerdamage;
+		playerHP_ratio = playerstatus_.HP / playerstatus_.MaxHp;
 
 		once_seq_player_attackreceive = true;
 	}
 
-	//UKismetSystemLibrary::PrintString(this, "~PLAYER_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-	//プレイヤー攻撃を受ける関数
-	//player->TakeDamage(playerdamage);
-
-	playerpos_actor->AddActorLocalRotation(FQuat(2));
-		
-	_count += deltatime;
 	//次のターンに進める
-	if (_count >= _time) {
+	if (player->GetCharaterActState() == ECharacterActState::Idle) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_PLAYER_ATTACKRECEIVE end"))
+
 		once_seq_player_attackreceive = false;
 
-		SEQChange_CameraChange();
-		_count = 0.0f;
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
 	return true;
@@ -372,24 +423,21 @@ bool ABattleManager::SEQ_ENEMY_ATTACK(const float deltatime)
 {
 	static bool once_seq_enemy_attack = false;
 	if (once_seq_enemy_attack == false) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACK start"))
+
+		//エネミー攻撃
+		enemy->Attack();
 
 		once_seq_enemy_attack = true;
 	}
 
-	//UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACK~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-	//エネミー攻撃
-	//enemy->StartAttackAction();
-
-	enemypos_actor->AddActorLocalRotation(FQuat(1));
-	
-	_count += deltatime;
 	//次のターンに進める
-	if (_count >= _time) {
+	if (enemy->GetCharaterActState() == ECharacterActState::Idle) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACK end"))
+
 		once_seq_enemy_attack = false;
 
-		SEQChange_CameraChange();
-		_count = 0.0f;
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
 	return true;
@@ -399,24 +447,24 @@ bool ABattleManager::SEQ_ENEMY_ATTACKRECEIVE(const float deltatime)
 {
 	static bool once_seq_enemy_attackreceive = false;
 	if (once_seq_enemy_attackreceive == false) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACKRECEIVE start"))
+
+		//エネミー攻撃を受ける
+		enemy->TakeDamage(enemydamage);
+
+		enemystatus_.HP -= enemydamage;
+		enemyHP_ratio = enemystatus_.HP / enemystatus_.MaxHp;
 
 		once_seq_enemy_attackreceive = true;
 	}
 
-	//UKismetSystemLibrary::PrintString(this, "~ENEMY_ATTACKRECEIVE~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-	//エネミー攻撃を受ける
-	//enemy->TakeDamage(enemydamage);
-
-	enemypos_actor->AddActorLocalRotation(FQuat(2));
-
-	_count += deltatime;
 	//次のターンに進める
-	if (_count >= _time) {
+	if (enemy->GetCharaterActState() == ECharacterActState::Idle) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_ENEMY_ATTACKRECEIVE end"))
+
 		once_seq_enemy_attackreceive = false;
 
-		SEQChange_CameraChange();
-		_count = 0.0f;
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 	}
 
 	return true;
@@ -426,27 +474,20 @@ bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 {
 	static bool once_seq_battle_result = false;
 	if (once_seq_battle_result == false) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_RESULT start"))
 
+		battlestartwidget->SetVisibility(ESlateVisibility::Hidden);
 		once_seq_battle_result = true;
-	}
-
-	//UKismetSystemLibrary::PrintString(this, "~BATTLE_RESULT~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-	if (battlewinner == E_BatlleWinner::player) {
-		UKismetSystemLibrary::PrintString(this, "~Winner Player~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-		playerpos_actor->AddActorLocalRotation(FQuat(1));
-	}
-	else if (battlewinner == E_BatlleWinner::enemy) {
-		UKismetSystemLibrary::PrintString(this, "~Winner Enemy~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-		enemypos_actor->AddActorLocalRotation(FQuat(1));
 	}
 
 	_count += deltatime;
 	//次のターンに進める
 	if (_count >= _time) {
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_RESULT end"))
+
 		once_seq_battle_result = false;
 
-		SEQChange_CameraChange();
+		battlesequence.BindUObject(this, &ABattleManager::SEQ_CAMERA_CHANGE);
 		_count = 0.0f;
 	}
 
@@ -457,59 +498,75 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 {
 	static bool once_seq_battle_end = false;
 	if (once_seq_battle_end == false) {
-		//バトル終了ボタンを表示
-		battleendwidget->SetVisibility(ESlateVisibility::Visible);
+		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_END start"))
+
+		if (battlewinner == E_BatlleWinner::player) {
+			UKismetSystemLibrary::PrintString(this, "~Winner Player~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+			//バトル終了（勝利）を表示
+			battleendwidget->SetVisibility(ESlateVisibility::Visible);
+		}
+		else if (battlewinner == E_BatlleWinner::enemy) {
+			UKismetSystemLibrary::PrintString(this, "~Winner Enemy~", true, true, FColor::Cyan, 2.f, TEXT("None"));
+
+			//ゲームオーバーを表示
+			gameoberwidget->SetVisibility(ESlateVisibility::Visible);
+		}
 
 		once_seq_battle_end = true;
 	}
 
-	//UKismetSystemLibrary::PrintString(this, "~BATTLE_END~", true, true, FColor::Cyan, 2.f, TEXT("None"));
-
-	once_seq_battle_end = false;
-
-	player->SetActorRotation(PlayerOrigineRotate);
-
-	////シーン移動
+	////シーン移動a
 	//gamemode->ChangeLevel(nextlevel, this);
 
 	return true;
 }
 
-void ABattleManager::SEQChange_CameraChange()
+bool ABattleManager::SEQ_CAMERA_CHANGE(const float deltatime)
 {
-	//attack_orderのindexを次のターンへ移行
-	SeqIndexAdd();
-	//現在のシーケンスと次のシーケンスが別の物ならばカメラを切り替え
-	if (NowBattleSeq != attack_order[seqindex]) {
+	static bool once_seq_camera_change = false;
+	if (once_seq_camera_change == false) {
+		//attack_orderのindexを次のターンへ移行
+		SeqIndexAdd();
 		//プレイヤーのカメラに切り替え
 		if (attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK) ||
 			attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACKRECEIVE)) {
-			UE_LOG(LogClass, Warning, TEXT("SEQChange_CameraChange: camerachange player"));
+			UE_LOG(LogClass, Warning, TEXT("SEQ_CAMERA_CHANGE: camerachange player"));
 			playercontroller->SetViewTargetWithBlend(PlayerCamera, camerachangetime);
 		}
 		//敵のカメラに切り替え
 		else if (attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACK) ||
 			attack_order[seqindex] == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::ENEMY_ATTACKRECEIVE)) {
-			UE_LOG(LogClass, Warning, TEXT("SEQChange_CameraChange: camerachange enemy"))
-			playercontroller->SetViewTargetWithBlend(EnemyCamera, camerachangetime);
+			UE_LOG(LogClass, Warning, TEXT("SEQ_CAMERA_CHANGE: camerachange enemy"))
+				playercontroller->SetViewTargetWithBlend(EnemyCamera, camerachangetime);
 		}
 		//バトルシーンのカメラに切り替え
 		else {
-			UE_LOG(LogClass, Warning, TEXT("SEQChange_CameraChange: camerachange battle"))
-			playercontroller->SetViewTargetWithBlend(BattleSceneCamera, camerachangetime);
+			UE_LOG(LogClass, Warning, TEXT("SEQ_CAMERA_CHANGE: camerachange battle"))
+				playercontroller->SetViewTargetWithBlend(BattleSceneCamera, camerachangetime);
 		}
-	}
-	//カメラ切り替え後、現在のシーケンスを設定
-	NowBattleSeq = attack_order[seqindex];
 
-	//camerachangetime経過後にシーケンス切り替え
-	UWorld* world = GEngine->GameViewport->GetWorld();
-	FTimerHandle timerhandle;
-	world->GetTimerManager().SetTimer(timerhandle, this, &ABattleManager::SEQChange, camerachangetime, false);
+		once_seq_camera_change = true;
+	}
+
+	camerachangecount += deltatime;
+	if (camerachangecount >= camerachangetime) {
+		//カメラ切り替え後、現在のシーケンスを設定
+		NowBattleSeq = attack_order[seqindex];
+		//シーケンス切り替え
+		SEQChange();
+
+		camerachangecount = 0;
+		once_seq_camera_change = false;
+	}
+
+	return false;
 }
 
 void ABattleManager::SEQChange()
 {
+	UE_LOG(LogClass, Log, TEXT("ABattleManager::SEQChange : SEQチェンジしました"));
+
 	//次のシーケンスに切り替え
 	if (NowBattleSeq == std::underlying_type<E_BattleSEQ>::type(E_BattleSEQ::PLAYER_ATTACK)) {
 		battlesequence.BindUObject(this, &ABattleManager::SEQ_PLAYER_ATTACK);
@@ -536,6 +593,10 @@ void ABattleManager::BattleEnd()
 	//シーン移動
 	gamemode->ChangeLevel(nextlevel, this);
 
-	//バトル終了ボタン消去
+	//バトル終了UI消去
 	battleendwidget->RemoveFromParent();
+	//バトルスタートUI消去
+	battlestartwidget->RemoveFromParent();
+	//ゲームオーバーUI消去
+	gameoberwidget->RemoveFromParent();
 }

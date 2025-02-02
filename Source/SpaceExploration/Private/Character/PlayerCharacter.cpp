@@ -22,7 +22,7 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	UE_LOG(LogClass, Log, TEXT("PlayerCharacterのコンストラクタが実行されました。"), nullptr);
+	UE_LOG(LogClass, Log, TEXT("PlayerCharacterのコンストラクタが実行されました。"));
 
 	CharacterStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayeMesh"));
 
@@ -276,7 +276,7 @@ bool APlayerCharacter::SeqMoveTargetLocation(const float DeltaTime)
 	FVector NewLocation = GetActorLocation() + MoveDirection;
 	SetActorLocation(NewLocation);
 
-	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 20.f) {
+	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 100.f) {
 		SetActorLocation(TargetLocation);
 		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 		E_CharacterActState = ECharacterActState::Idle;
@@ -302,7 +302,7 @@ bool APlayerCharacter::SeqAttack(const float DeltaTime)
 
 	if (!EquippedWeapon->IsAttack())
 	{
-		UE_LOG(LogClass, Log, TEXT("WeaponAttack is not Active"));
+		UE_LOG(LogClass, Log, TEXT("APlayerCharacter::SeqAttack() : WeaponAttack is not Active"));
 		E_CharacterActState = ECharacterActState::Idle;
 		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 	}

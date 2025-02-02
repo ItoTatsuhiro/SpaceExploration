@@ -26,7 +26,7 @@ bool UBatllSceneWidget::Initialize()
 
 void UBatllSceneWidget::OnButtonBattleEnd()
 {
-	battlemanager->BattleEnd();
+	Cast<ABattleManager>(battlemanager)->BattleEnd();
 	UKismetSystemLibrary::PrintString(this, "~Click ButtonBattleEnd~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 	UE_LOG(LogClass, Warning, TEXT("~Click ButtonBattleEnd~\n"));
 }

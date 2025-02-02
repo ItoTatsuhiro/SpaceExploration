@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Manager/PlaySceneGameModeBase.h"
@@ -21,7 +21,7 @@ void APlaySceneGameModeBase::BeginPlay()
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-	// ‰ñ•œ‰æ–ÊƒEƒBƒWƒFƒbƒg‚ÌƒZƒbƒgƒAƒbƒv
+	// å›å¾©ç”»é¢ã‚¦ã‚£ã‚¸ã‚§ãƒƒãƒˆã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—
 	if (HealingDisplayClass && PlayerController)
 	{
 		HealingDisplayWidget = Cast<UHealingDisplay>( UWidgetBlueprintLibrary::Create( GetWorld(), HealingDisplayClass, PlayerController ) );
@@ -31,14 +31,14 @@ void APlaySceneGameModeBase::BeginPlay()
 void APlaySceneGameModeBase::ChangeLevel(TSoftObjectPtr<UWorld> NextLevel, TSoftObjectPtr<UWorld> NowLevel, bool BeforeLevelUnload, bool BeforeLevelVisible)
 {
 	if (!NextLevel) {
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlaySceneGameMode:NextLevel‚ª‹ó‚Å‚·B")), true, true, FColor::Yellow, 2.f, TEXT(""));
-		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameMode:NextLevel‚ª‹ó‚Å‚·B"));
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlaySceneGameMode:NextLevelãŒç©ºã§ã™ã€‚")), true, true, FColor::Yellow, 2.f, TEXT(""));
+		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameMode:NextLevelãŒç©ºã§ã™ã€‚"));
 	}
 
 	if (!LevelInterfaceRef) 
 	{
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlaySceneGameMode:ChangeLevelŠÖ”‚ğÀs‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B")), true, true, FColor::Yellow, 2.f, TEXT(""));
-		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameMode:ChangeLevelŠÖ”‚ğÀs‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"));
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlaySceneGameMode:ChangeLevelé–¢æ•°ã‚’å®Ÿè¡Œã§ãã¾ã›ã‚“ã§ã—ãŸã€‚")), true, true, FColor::Yellow, 2.f, TEXT(""));
+		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameMode:ChangeLevelé–¢æ•°ã‚’å®Ÿè¡Œã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"));
 		return;
 	}
 
@@ -49,7 +49,7 @@ bool APlaySceneGameModeBase::TryGetStageMapData(FStageMapData* _StageMapData)
 {
 	if (!StageMapData) 
 	{
-		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameModeBase::TryGetStageMapData(FStageMapData* _StageMapData) : StageMapData‚ªnullptr‚Å‚µ‚½B"));
+		UE_LOG(LogClass, Warning, TEXT("APlaySceneGameModeBase::TryGetStageMapData(FStageMapData* _StageMapData) : StageMapDataãŒnullptrã§ã—ãŸã€‚"));
 		return false;
 	}
 
@@ -65,4 +65,14 @@ UHealingDisplay* APlaySceneGameModeBase::GetHealingDisplayWhidget()
 	}
 
 	return nullptr;
+}
+
+void APlaySceneGameModeBase::SetEnemyManager(AEnemyManager* EnemyManager)
+{
+	EnemyManagerRef = EnemyManager;
+}
+
+void APlaySceneGameModeBase::SetStageDataManager(AStageDataManager* StageDataManager)
+{
+	StageDataManagerRef = StageDataManager;
 }

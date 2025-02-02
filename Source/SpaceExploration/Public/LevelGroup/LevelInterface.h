@@ -29,8 +29,6 @@ public:
 	//シーン変更（シーン変更時に一度だけ呼んでね）
 	//引数１：次のレベル
 	//引数２：移動前のレベル
-	//引数３：移動前のレベルを消去するかフラグ（trueで消去）
-	//引数４：移動前のレベルを表示するかのフラグ（引数３がfalseの場合のみ有効、falseで非表示）
 	void ChangeLevel(TSoftObjectPtr<UWorld> nextlevel, TSoftObjectPtr<UWorld> nowlevel = nullptr,
 		bool BeforeLevelUnload = true, bool BeforeLevelVisible = false);
 	

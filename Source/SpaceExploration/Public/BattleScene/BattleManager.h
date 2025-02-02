@@ -91,6 +91,9 @@ private:
 	//敵の情報
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AEnemyBase> enemy = nullptr;
+	//敵のBPのパス
+	const FString BPPath_EnemyType1 = "/Game/Enemy/BP_EnemyType1.BP_EnemyType1_C";
+	const FString BPPath_EnemyType2 = "/Game/Enemy/BP_EnemyType2.BP_EnemyType2_C";
 
 	//勝敗用
 	enum class E_BatlleWinner{
@@ -98,7 +101,7 @@ private:
 		player,
 		enemy,
 	};
-	E_BatlleWinner battlewinner = E_BatlleWinner::none;
+	E_BatlleWinner battlewinner = E_BatlleWinner::none; 
 
 	//カメラ切り替え用
 	APlayerController* playercontroller = nullptr;
@@ -111,6 +114,8 @@ private:
 
 	//カメラ切り替えに掛かる時間
 	const float camerachangetime = 1.0f;
+	//カメラ切り替えカウント
+	float camerachangecount = 0.0f;
 
 	//バトルで使用するプレイヤーのカメラ
 	UPROPERTY(EditAnywhere, Category = "Camera")
@@ -141,13 +146,38 @@ private:
 	AActor* BattleSceneCamera = nullptr;
 
 //---------------------------------------------------------------------------------------------
-
 //Widget関係
 
+	//バトル終了UI
+	UPROPERTY()
 	TSubclassOf<UUserWidget> BattleEndWidgetClass;
-
 	UPROPERTY()
 	UUserWidget* battleendwidget = nullptr;
+
+	//ゲームオーバー終了UI
+	UPROPERTY()
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+	UPROPERTY()
+	UUserWidget* gameoberwidget = nullptr;
+
+	//バトル開始UI
+	UPROPERTY()
+	TSubclassOf<UUserWidget> BattleStartWidgetClass;
+	UPROPERTY()
+	UUserWidget* battlestartwidget = nullptr;
+
+public:
+	//HPBar用HPの比率
+	UPROPERTY(BlueprintReadOnly)
+	float playerHP_ratio = 1.0f;
+	UPROPERTY(BlueprintReadOnly)
+	float enemyHP_ratio = 1.0f;
+
+	//属性
+	UPROPERTY(BlueprintReadOnly)
+	int playerelement = 1;
+	UPROPERTY(BlueprintReadOnly)
+	int enemyelement = 0;
 
 //--------------------------------------------------------------------------------------------
 
@@ -211,8 +241,8 @@ public:
 	bool SEQ_ENEMY_ATTACKRECEIVE(const float deltatime);
 	bool SEQ_BATTLE_RESULT(const float deltatime);
 	bool SEQ_BATTLE_END(const float deltatime);
+	bool SEQ_CAMERA_CHANGE(const float deltatime);
 
-	void SEQChange_CameraChange();
 	void SEQChange();
 
 	//バトルシーンを終了してマップシーンに戻る関数

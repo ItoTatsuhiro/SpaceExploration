@@ -54,7 +54,8 @@ void AAC_StageMapManager::BeginPlay()
     selectTileDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqSelectTile);
     playerMoveBeginDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqPlayerMoveBegin);
     playerMoveIdleDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqPlayerMoveIdle);
-    executeTileEventDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqExecuteTileEvent);
+    startTileEventDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqStartTileEvent);
+    tileEventProcessDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqTileEventProcess);
 
 
 
@@ -295,7 +296,7 @@ void AAC_StageMapManager::SeqPlayerMoveIdle(const float delta_time) {
 
     // 実行するシーケンスを切り替え
     // 切り替え先：マスのイベント実行シーケンス
-    sequenceManager_->ChangeSequence(executeTileEventDel_);
+    sequenceManager_->ChangeSequence(startTileEventDel_);
 
 }
 
@@ -303,7 +304,7 @@ void AAC_StageMapManager::SeqPlayerMoveIdle(const float delta_time) {
 
 
 // マスのイベント実行シーケンス
-void AAC_StageMapManager::SeqExecuteTileEvent(const float delta_time) {
+void AAC_StageMapManager::SeqStartTileEvent(const float delta_time) {
 
 
     // マスのイベントを実行する処理（仮）
@@ -333,9 +334,22 @@ void AAC_StageMapManager::SeqExecuteTileEvent(const float delta_time) {
 
     // 実行するシーケンスを切り替え
     // 切り替え先：マス選択シーケンス
+    sequenceManager_->ChangeSequence(tileEventProcessDel_);
+
+
+
+}
+
+void AAC_StageMapManager::SeqTileEventProcess(const float)
+{
+    selectTile_->TileEventRunning();
+
+    if (!selectTile_->IsEventCompleted())
+    {
+        return;
+    }
+
     sequenceManager_->ChangeSequence(selectTileDel_);
-
-
 
 }
 

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -14,8 +14,8 @@
 
 class APlayerController;
 
-// “ñd‚ÌTArray‚Ég—p‚·‚é—p
-// ƒ}ƒX‚Ìƒx[ƒXŒ^‚ÌTArray‚ğ‚à‚Â\‘¢‘Ì
+// äºŒé‡ã®TArrayã«ä½¿ç”¨ã™ã‚‹ç”¨
+// ãƒã‚¹ã®ãƒ™ãƒ¼ã‚¹å‹ã®TArrayã‚’ã‚‚ã¤æ§‹é€ ä½“
 USTRUCT()
 struct FTileArray {
 	GENERATED_BODY()
@@ -25,10 +25,10 @@ struct FTileArray {
 };
 
 
-// ì¬ÒFˆÉ“¡
-// ƒXƒe[ƒWƒ}ƒbƒv‚ğŠÇ—‚·‚é‚½‚ß‚ÌƒNƒ‰ƒX
-// ƒXƒe[ƒW‚Ì”z—ñ‚Ì¶¬A•ÛAæ“¾“™‚Ìˆ—‚ğs‚¤
-// eƒNƒ‰ƒX‚ÍSceneManagerBase
+// ä½œæˆè€…ï¼šä¼Šè—¤
+// ã‚¹ãƒ†ãƒ¼ã‚¸ãƒãƒƒãƒ—ã‚’ç®¡ç†ã™ã‚‹ãŸã‚ã®ã‚¯ãƒ©ã‚¹
+// ã‚¹ãƒ†ãƒ¼ã‚¸ã®é…åˆ—ã®ç”Ÿæˆã€ä¿æŒã€å–å¾—ç­‰ã®å‡¦ç†ã‚’è¡Œã†
+// è¦ªã‚¯ãƒ©ã‚¹ã¯SceneManagerBase
 UCLASS(BlueprintType)
 class SPACEEXPLORATION_API AAC_StageMapManager : public AAC_SceneManagerBase
 {
@@ -50,119 +50,123 @@ private:
 
 
 	//------------------------------------------------------------------------------------
-	// MapScene‚Ì§Œä—p
-	// ƒfƒŠƒQ[ƒg‚ğ—p‚¢‚Ä§Œä‚ğs‚¤
+	// MapSceneã®åˆ¶å¾¡ç”¨
+	// ãƒ‡ãƒªã‚²ãƒ¼ãƒˆã‚’ç”¨ã„ã¦åˆ¶å¾¡ã‚’è¡Œã†
 
 
-	// ƒV[ƒPƒ“ƒX—p‚ÌŠÖ”‚ÆƒfƒŠƒQ[ƒg
+	// ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ã®é–¢æ•°ã¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆ
 
-	// ƒ}ƒX¶¬ƒV[ƒPƒ“ƒX
+	// ãƒã‚¹ç”Ÿæˆã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	void SeqCreateTile(const float delta_time);
-	// ƒ}ƒX¶¬ƒV[ƒPƒ“ƒX—pƒfƒŠƒQ[ƒg(ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»)
+	// ãƒã‚¹ç”Ÿæˆã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆ(ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–)
 	FSequenceDelegate createTileDel_;
 
 
 
-	// ƒ}ƒX‘I‘ğƒV[ƒPƒ“ƒX
+	// ãƒã‚¹é¸æŠã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	void SeqSelectTile(const float delta_time);
-	// ƒ}ƒX‘I‘ğƒV[ƒPƒ“ƒX—pƒfƒŠƒQ[ƒg(ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»)
+	// ãƒã‚¹é¸æŠã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆ(ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–)
 	FSequenceDelegate selectTileDel_;
 
 
-	// ƒvƒŒƒCƒ„[ˆÚ“®ŠJnƒV[ƒPƒ“ƒX
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•é–‹å§‹ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	void SeqPlayerMoveBegin(const float delta_time);
-	// ƒvƒŒƒCƒ„[ˆÚ“®ŠJnƒV[ƒPƒ“ƒX—pƒfƒŠƒQ[ƒgiƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»j
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•é–‹å§‹ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆï¼ˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–ï¼‰
 	FSequenceDelegate playerMoveBeginDel_;
 
 
-	// ƒvƒŒƒCƒ„[ˆÚ“®‘Ò‹@ƒV[ƒPƒ“ƒX
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•å¾…æ©Ÿã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	void SeqPlayerMoveIdle(const float delta_time);
-	// ƒvƒŒƒCƒ„[ˆÚ“®‘Ò‹@ƒV[ƒPƒ“ƒX—pƒfƒŠƒQ[ƒgiƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»j
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•å¾…æ©Ÿã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆï¼ˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–ï¼‰
 	FSequenceDelegate playerMoveIdleDel_;
 
 
-	// ƒ}ƒX‚ÌƒCƒxƒ“ƒgÀsƒV[ƒPƒ“ƒX
-	void SeqExecuteTileEvent(const float delta_time);
-	// ƒ}ƒX‚ÌƒCƒxƒ“ƒgÀsƒV[ƒPƒ“ƒX—pƒfƒŠƒQ[ƒgiƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»j
-	FSequenceDelegate executeTileEventDel_;
+	// ãƒã‚¹ã®ã‚¤ãƒ™ãƒ³ãƒˆé–‹å§‹ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
+	void SeqStartTileEvent(const float delta_time);
+	// ãƒã‚¹ã®ã‚¤ãƒ™ãƒ³ãƒˆé–‹å§‹ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆï¼ˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–ï¼‰
+	FSequenceDelegate startTileEventDel_;
 
+	// ãƒã‚¹ã®ã‚¤ãƒ™ãƒ³ãƒˆå‡¦ç†ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
+	void SeqTileEventProcess(const float);
+	// ãƒã‚¹ã®ã‚¤ãƒ™ãƒ³ãƒˆé–‹å§‹ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç”¨ãƒ‡ãƒªã‚²ãƒ¼ãƒˆï¼ˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–ï¼‰
+	FSequenceDelegate tileEventProcessDel_;
 
 	//------------------------------------------------------------------------------------
-	// ƒ}ƒX¶¬ŠÖ˜A
+	// ãƒã‚¹ç”Ÿæˆé–¢é€£
 
-	// ƒ}ƒXƒ‰ƒ“ƒ_ƒ€¶¬‚Ì‚½‚ß‚ÌƒNƒ‰ƒX‚ÌƒCƒ“ƒXƒ^ƒ“ƒX—p
+	// ãƒã‚¹ãƒ©ãƒ³ãƒ€ãƒ ç”Ÿæˆã®ãŸã‚ã®ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ç”¨
 	UPROPERTY(VisibleAnywhere)
 	AGalaxyRandomSelect* galaxyRandomSelect_ = nullptr;
 
-	// ƒ}ƒX‚ğƒ‰ƒ“ƒ_ƒ€¶¬‚·‚é‚½‚ß‚ÌGalaxyRandomSelectƒNƒ‰ƒX‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg
-	// ƒ‰ƒ“ƒ_ƒ€‚Éƒ}ƒX‚ğ¶¬‚·‚éÛ‚ÉAMakeTileArrayŠÖ”‚ğŒÄ‚Ño‚µ‚Äg—p‚·‚é
+	// ãƒã‚¹ã‚’ãƒ©ãƒ³ãƒ€ãƒ ç”Ÿæˆã™ã‚‹ãŸã‚ã®GalaxyRandomSelectã‚¯ãƒ©ã‚¹ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+	// ãƒ©ãƒ³ãƒ€ãƒ ã«ãƒã‚¹ã‚’ç”Ÿæˆã™ã‚‹éš›ã«ã€MakeTileArrayé–¢æ•°ã‚’å‘¼ã³å‡ºã—ã¦ä½¿ç”¨ã™ã‚‹
 	UPROPERTY(VisibleAnywhere)
 	class UChildActorComponent* galaxyRandomSelectComponent_;
 
-	// AGalaxyRandomSelect‚ÌƒNƒ‰ƒX
+	// AGalaxyRandomSelectã®ã‚¯ãƒ©ã‚¹
 	UPROPERTY(VisibleAnywhere)
 	TSubclassOf<AGalaxyRandomSelect> galaxyRandomSelectClass_;
 
-	// ƒ}ƒX‚Ìí—Ş‚Ì”z—ñ
-	// galaxyRandomSelect‚Å¶¬‚µ‚½”z—ñ‚ğ‚Á‚Ä‚­‚é
+	// ãƒã‚¹ã®ç¨®é¡ã®é…åˆ—
+	// galaxyRandomSelectã§ç”Ÿæˆã—ãŸé…åˆ—ã‚’æŒã£ã¦ãã‚‹
 	UPROPERTY(VisibleAnywhere)
 	TArray< FTileEnumArray > tileTypeArray_;
 
-	//// ¶¬‚µ‚½ƒ}ƒX‚ÌƒIƒuƒWƒFƒNƒg‚ğ•Û‚·‚é‚½‚ß‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg
+	//// ç”Ÿæˆã—ãŸãƒã‚¹ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä¿æŒã™ã‚‹ãŸã‚ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	//UPROPERTY(VisibleAnywhere)
 	//class UChildActorComponent* tileObjectComponent_;
 
-	// ƒ}ƒX‚ÌƒIƒuƒWƒFƒNƒg‚Ì”z—ñ
-	// tileTypeArray‚©‚çÀÛ‚ÉƒIƒuƒWƒFƒNƒg‚ğ¶¬
+	// ãƒã‚¹ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®é…åˆ—
+	// tileTypeArrayã‹ã‚‰å®Ÿéš›ã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
 	UPROPERTY()
 	TArray< FTileArray > tileObjArray_;
 
 
-	// ƒ}ƒX“¯m‚ÌŠÔŠu
+	// ãƒã‚¹åŒå£«ã®é–“éš”
 	UPROPERTY(EditAnywhere, Category = "tileDetail")
 	float tileSpace_;
 
-	// ƒ}ƒX‚ğ”z’u‚·‚éÛ‚ÌŠî€‚Æ‚È‚éÀ•W
+	// ãƒã‚¹ã‚’é…ç½®ã™ã‚‹éš›ã®åŸºæº–ã¨ãªã‚‹åº§æ¨™
 	UPROPERTY(EditAnywhere, Category = "tileDetail")
 	FVector basePos_;
 
 
-	// ƒoƒgƒ‹ƒ}ƒX‚ÌƒNƒ‰ƒX
+	// ãƒãƒˆãƒ«ãƒã‚¹ã®ã‚¯ãƒ©ã‚¹
 	UPROPERTY(EditDefaultsOnly, Category = "tileDetail")
 	TSubclassOf<class AAC_MapTileBattle> battleTileClass_;
 
-	// ‰ñ•œƒ}ƒX‚ÌƒNƒ‰ƒX
+	// å›å¾©ãƒã‚¹ã®ã‚¯ãƒ©ã‚¹
 	UPROPERTY(EditDefaultsOnly, Category = "tileDetail")
 	TSubclassOf<class AAC_MapTileHeal> healTileClass_;
 
-	// ƒAƒCƒeƒ€ƒ}ƒX‚ÌƒNƒ‰ƒX
+	// ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã®ã‚¯ãƒ©ã‚¹
 	UPROPERTY(EditDefaultsOnly, Category = "tileDetail")
 	TSubclassOf<class AAC_MapTileItem> itemTileClass_;
 
 
-	//// ƒvƒŒƒCƒ„[‚ÌQÆ
+	//// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‚ç…§
 	//UPROPERTY(EditAnywhere)
 	//APlayerCharacter* playerCharacter_;
 
 
 
-	// ƒJ[ƒ\ƒ‹‚ªd‚È‚Á‚Ä‚¢‚éƒ}ƒX
+	// ã‚«ãƒ¼ã‚½ãƒ«ãŒé‡ãªã£ã¦ã„ã‚‹ãƒã‚¹
 	UPROPERTY(VisibleAnywhere)
 	AAC_MapTileBase* hoveredTile_;
 
 
-	// ‘I‘ğ‚ğs‚Á‚½ƒ}ƒX
+	// é¸æŠã‚’è¡Œã£ãŸãƒã‚¹
 	UPROPERTY(VisibleAnywhere)
 	AAC_MapTileBase* selectTile_;
 
-	// ˆÚ“®æ‚Ìƒ}ƒX‚É‘Î‚µ‚Ä‰ÁZ‚·‚éÀ•W
-	// ‰ÁZ‚·‚é‘O‚ÉƒvƒŒƒCƒ„[‚ÌŒü‚«‚É’²®‚µ‚½‚¤‚¦‚Å‰ÁZ‚·‚é
+	// ç§»å‹•å…ˆã®ãƒã‚¹ã«å¯¾ã—ã¦åŠ ç®—ã™ã‚‹åº§æ¨™
+	// åŠ ç®—ã™ã‚‹å‰ã«ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã«èª¿æ•´ã—ãŸã†ãˆã§åŠ ç®—ã™ã‚‹
 	UPROPERTY(EditAnywhere)
 	FVector moveTargetOffset_ = { 0, 300, 300 };
 
-	//˜a“c‹LÚ-----------------------------------------------------------
+	//å’Œç”°è¨˜è¼‰-----------------------------------------------------------
 
-		//ƒvƒŒƒCƒ„[ƒRƒ“ƒgƒ[ƒ‰[
+		//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
 	UPROPERTY(VisibleAnywhere)
 	APlayerController* playercontroller = nullptr;
 
@@ -176,14 +180,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 
-	// ƒ}ƒX‚ğ’Ç‰Á‚Å¶¬‚·‚éŠÖ”
-	// ˆø”FcreateTileNumArray...V‚µ‚­¶¬‚·‚éƒ}ƒX‚Ì”z—ñ‚Ì‘å‚«‚³
+	// ãƒã‚¹ã‚’è¿½åŠ ã§ç”Ÿæˆã™ã‚‹é–¢æ•°
+	// å¼•æ•°ï¼šcreateTileNumArray...æ–°ã—ãç”Ÿæˆã™ã‚‹ãƒã‚¹ã®é…åˆ—ã®å¤§ãã•
 	// ----------------------------------------------------------------------
-	// —áj{ 1, 2, 3, 2 }‚Æ‚µ‚½ê‡AˆÈ‰º‚Ì‚æ‚¤‚Èƒ}ƒX‚ğ¶¬‚·‚é‚±‚Æ‚ğ‘z’è
-	// 3	@Z@Z	
-	// 2	Z@Z@Z
-	// 1	@Z@Z
-	// 0	@@Z
+	// ä¾‹ï¼‰{ 1, 2, 3, 2 }ã¨ã—ãŸå ´åˆã€ä»¥ä¸‹ã®ã‚ˆã†ãªãƒã‚¹ã‚’ç”Ÿæˆã™ã‚‹ã“ã¨ã‚’æƒ³å®š
+	// 3	ã€€ã€‡ã€€ã€‡	
+	// 2	ã€‡ã€€ã€‡ã€€ã€‡
+	// 1	ã€€ã€‡ã€€ã€‡
+	// 0	ã€€ã€€ã€‡
 	// ----------------------------------------------------------------------
 	void CreateTileObjArray(TArray<int> createTileNumArray);
 

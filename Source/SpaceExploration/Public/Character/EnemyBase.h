@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "Character/CharacterBase.h"
 #include "../tsutsumi/Element.h"
+#include "NiagaraDataInterfaceExport.h"
 #include "EnemyBase.generated.h"
 
 /**
  * 
  */
 UCLASS(Abstract)
-class SPACEEXPLORATION_API AEnemyBase : public ACharacterBase
+class SPACEEXPLORATION_API AEnemyBase : public ACharacterBase, public INiagaraParticleCallbackHandler
 {
 	GENERATED_BODY()
 	
@@ -41,11 +42,17 @@ public:
 	void Death() override;
 
 protected:
+	// --------------------------------------------------------------------------
+	// 
+	// --------------------------------------------------------------------------
+	virtual void ReceiveParticleData_Implementation(const TArray<FBasicParticleData>& Data, UNiagaraSystem* NiagaraSystem, const FVector& SimulationPositionOffset) override;
+
+protected:
 	// 敵の各行動シーケンスの処理を行うデリゲート
 	Sequence EnemyActionSequence;
 
 	// スケルタルメッシュコンポーネント
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> CharacterMeshComp;
 
 	// 敵の属性
