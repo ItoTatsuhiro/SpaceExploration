@@ -3,11 +3,12 @@
 
 #include "Character/EnemyBase.h"
 #include "NiagaraComponent.h"
-#include "NiagaraDataInterface.h"
 #include <Kismet/KismetSystemLibrary.h>
 
 AEnemyBase::AEnemyBase() : EnemyElement(EElement::fire)
 {
+	UE_LOG(LogClass, Log, TEXT("EnemyBaseのコンストラクタが実行されました。"));
+
 	CharacterMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>("EnemyMesh");
 	CharacterMeshComp->SetupAttachment(DefaultSceneRoot);
 
@@ -17,6 +18,11 @@ AEnemyBase::AEnemyBase() : EnemyElement(EElement::fire)
 void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if ( DeathNiagaraComp )
+	{
+		DeathNiagaraComp->SetVariableActor( "Owner", this );
+	}
 
 }
 
@@ -73,6 +79,16 @@ void AEnemyBase::Death()
 	EnemyActionSequence.BindUObject(this, &AEnemyBase::SeqDeath);
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%sはやられた"), *(CharacterStatus.PlayerName)), true, true, FColor::Cyan, 2.f, TEXT(""));
 	UE_LOG(LogTemp, Log, TEXT("AEnemyBase::Death() : %sはやられた"), *(CharacterStatus.PlayerName));
+}
+
+// --------------------------------------------------------------------------
+// 
+// --------------------------------------------------------------------------
+void AEnemyBase::ReceiveParticleData_Implementation(const TArray<FBasicParticleData>& Data, UNiagaraSystem* NiagaraSystem, const FVector& SimulationPositionOffset)
+{
+	DeathNiagaraComp->SetNiagaraVariableBool("IsSentEvent", true);
+
+	CharacterMeshComp->SetHiddenInGame(true);
 }
 
 // --------------------------------------------------------------------------
