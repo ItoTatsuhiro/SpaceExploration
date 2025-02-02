@@ -57,10 +57,9 @@ void AAC_WeaponSelectManager::WeaponLevelUp()
 	SameWeapon->SetWeaponStatus(WeaponBase->GetWeaponNextLevelStatus());
 	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (!PlaySceneGameMode)return;
-
 	UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : 武器を取得を完了"));
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::MapLevelChange);
-	PlaySceneGameMode->ChangeLevel(GetWorld(), this);
+	PlaySceneGameMode->ChangeLevel(nextLevel,GetWorld());
 	WindowClose();
 }
 

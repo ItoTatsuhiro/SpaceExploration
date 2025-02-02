@@ -18,6 +18,9 @@ public:
     // Sets default values for this actor's properties
     AAC_WeaponSelectManager();
     FWeaponSelectDelegate OnLevelUpDelegate;
+
+    UPROPERTY(EditAnywhere,Category = "NextLevel")
+    TSoftObjectPtr<UWorld> nextLevel;
     void WeaponLevelUp();
     void MapLevelChange();
 
