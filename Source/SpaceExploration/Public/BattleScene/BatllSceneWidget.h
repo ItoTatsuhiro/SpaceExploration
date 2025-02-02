@@ -17,10 +17,11 @@ protected:
 	void NativeConstruct()override;
 	bool Initialize()override;
 
-private:
-	UPROPERTY()
+public:
+	UPROPERTY(BlueprintReadOnly)
 	AActor* battlemanager;
 
+private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ButtonBattleEnd;
 

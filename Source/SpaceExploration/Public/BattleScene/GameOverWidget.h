@@ -18,7 +18,8 @@ protected:
 	void NativeConstruct()override;
 	bool Initialize()override;
 
-private:
+public:
+	UPROPERTY(BlueprintReadOnly)
 	AActor* battlemanager;
 
 public:

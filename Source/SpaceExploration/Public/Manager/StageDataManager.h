@@ -23,11 +23,49 @@ protected:
 	virtual void BeginPlay() override;
 
 
+	//------------------------------------------------------------------------------------
+	// 現在のステージの情報
+
+	// マスの種類の配列
+	// galaxyRandomSelectで生成した配列を持ってくる
+	UPROPERTY(VisibleAnywhere)
+	TArray< FTileEnumArray > tileTypeArray_;
+	
+
 	// ステージのデータを保存しておく変数
+	UPROPERTY(VisibleAnywhere)
 	FStageMapData stageMapData_;
 
+	// 現在いるステージ上のマスの番号を表す配列
+	UPROPERTY(VisibleAnywhere)
+	FVector2D nowTilePosIndex_;
 
 
+	//------------------------------------------------------------------------------------
+	// マス生成関連
+
+	// マスランダム生成のためのクラスのインスタンス用
+	UPROPERTY(VisibleAnywhere)
+	AGalaxyRandomSelect* galaxyRandomSelect_ = nullptr;
+
+	// マスをランダム生成するためのGalaxyRandomSelectクラスのコンポーネント
+	// ランダムにマスを生成する際に、MakeTileArray関数を呼び出して使用する
+	UPROPERTY(VisibleAnywhere)
+	class UChildActorComponent* galaxyRandomSelectComponent_;
+
+
+	// マスの情報を保存するUTileDataのクラス
+	UPROPERTY(VisibleAnywhere)
+	TSubclassOf<UTileData> tileDataClass_;
+
+	
+	//------------------------------------------------------------------------------------
+	// ナイアガラ
+
+	// マスに使用するナイアガラの配列
+	// BP化した先で使用するナイアガラを設定する
+	UPROPERTY(EditAnywhere)
+	TArray< TSoftObjectPtr<UNiagaraSystem> > tileNiagaraArray_;
 
 
 public:	
@@ -46,7 +84,32 @@ public:
 	bool TryGetStageMapData(FStageMapData& stageMapData);
 
 
-	
+	// ----------------------------------------------------------------------------------------------
+	// マスを移動する際に呼び出す関数
+	// 現在いるマス nowTilePosIndex_ を移動先のマスに変更する
+	// 次のマスに移動する際は呼び出すこと！
+	void MoveTile(const FVector2D& nextTileIndex);
 
+
+
+	// ----------------------------------------------------------------------------------------------
+	// マスを追加で生成する関数
+	// 引数：tileNumArray...新しく生成するマスの配列の大きさ
+	// ----------------------------------------------------------------------
+	// 例）{ 1, 2, 3, 2 }とした場合、以下のようなマスを生成することを想定
+	// 3	　〇　〇	
+	// 2	〇　〇　〇
+	// 1	　〇　〇
+	// 0	　　〇
+	// ----------------------------------------------------------------------
+	void CreateTileArray(TArray<int> tileNumArray);
+
+
+
+	// ----------------------------------------------------------------------------------------------
+	// 指定したフォルダ内のナイアガラを読み込んで保存する関数
+	// 
+	// 引数：FolderPath...ナイアガラの保存フォルダのパス
+	void GetNiagaraSystemsFromFolder(const FString& FolderPath);
 
 };
