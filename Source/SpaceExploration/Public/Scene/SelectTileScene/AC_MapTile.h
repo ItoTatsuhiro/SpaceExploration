@@ -27,6 +27,12 @@ public:
 	// マスの種類のゲッター
 	inline E_TILE_TYPE getTileType() { return tileType_; }
 
+	// マスのイベントが完了したか判定を返す
+	bool IsEventCompleted()
+	{
+		return bIsEvnetCompleted;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -66,8 +72,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Level")
 	TSoftObjectPtr<UWorld> NextLevel = nullptr;
 
+	// マスのイベントが完了したか判定を取る
 	UPROPERTY()
-	bool IsEvnetCompleted;
+	bool bIsEvnetCompleted;
 
 public:	
 

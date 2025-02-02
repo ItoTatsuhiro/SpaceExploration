@@ -111,6 +111,18 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 	EquippedWeapon = Weapon;
 	EquippedWeapon->SetActorRelativeTransform(WeaponSpawnPoint->GetRelativeTransform());
 
+	// 衝突判定を "No Collision" に設定する。
+	UPrimitiveComponent* PrimitiveComp = EquippedWeapon->FindComponentByClass<UPrimitiveComponent>();
+
+	if (PrimitiveComp)
+	{
+		PrimitiveComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else
+	{
+		UE_LOG(LogClass, Error, TEXT("ACharcterBase::SetEquippedWeapon() : PrimitiveComponentの取得に失敗しました"));
+	}
+
 	FString ResultLog = Weapon->GetWeaponStatus().PlayerName + " equipped";
 
 	UE_LOG(LogTemp, Log, TEXT("%s"), *ResultLog);
