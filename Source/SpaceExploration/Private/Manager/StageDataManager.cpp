@@ -15,10 +15,10 @@ AStageDataManager::AStageDataManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 
-	// ランダム生成するためのクラスのコンポーネント生成
-	galaxyRandomSelectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("GalaxyRandomSelectComponent"));
-	galaxyRandomSelectComponent_->SetChildActorClass(AGalaxyRandomSelect::StaticClass());
-	galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
+	//// ランダム生成するためのクラスのコンポーネント生成
+	//galaxyRandomSelectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("GalaxyRandomSelectComponent"));
+	//galaxyRandomSelectComponent_->SetChildActorClass(AGalaxyRandomSelect::StaticClass());
+	//galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
 
 }
 
@@ -147,12 +147,19 @@ void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
 			//------------------------------------------------------------------
 			// データをセット
 
-			// セットするナイアガラの番号を決定
-			int setNiagaraNum = FMath::RandRange(0, niagaraCount - 1);
-			
-			newTileData->SetTileNiagaraSys(tileNiagaraArray_[setNiagaraNum]);	// ナイアガラをセット
-			newTileData->SetTileType(tileTypeArray_[y].typeArray[x]);			// マスの種類
-			newTileData->SetTileArrayIndex( FVector2D( x, y ) );				// マスの配列内での番号
+			// ナイアガラが保存されているとき
+			if (tileNiagaraArray_.Num() > 0) {
+				
+				// セットするナイアガラの番号を決定
+				int setNiagaraNum = FMath::RandRange(0, niagaraCount - 1);
+				// ナイアガラをセット
+				newTileData->SetTileNiagaraSys(tileNiagaraArray_[setNiagaraNum]);
+			}
+
+			// マスの種類セット
+			newTileData->SetTileType(tileTypeArray_[y].typeArray[x]);		
+			// マスの配列内での番号セット
+			newTileData->SetTileArrayIndex( FVector2D( x, y ) );				
 
 			// 配列に追加
 			newTileDataArray.tileDataArray_.Add(newTileData);
@@ -185,19 +192,20 @@ void AStageDataManager::GetNiagaraSystemsFromFolder(const FString& folderPath)
 	Filter.ClassPaths.Add(UNiagaraSystem::StaticClass()->GetClassPathName()); // ナイアガラシステムのみ
 
 
+	// フォルダ内のアセットを配列に入れる
 	TArray<FAssetData> AssetDataList;
 	AssetRegistry.GetAssets(Filter, AssetDataList);
+
+	UE_LOG(LogTemp, Log, TEXT("Found %d Niagara assets in folder: %s"), AssetDataList.Num(), *folderPath);
+
 
 	// ナイアガラシステムを配列に追加
 	for (const FAssetData& AssetData : AssetDataList)
 	{
 		TSoftObjectPtr<UNiagaraSystem> NiagaraSystem = TSoftObjectPtr<UNiagaraSystem>(AssetData.ToSoftObjectPath());
-		if (NiagaraSystem.IsValid())
-		{
 
-			tileNiagaraArray_.Add(NiagaraSystem);
-			
-		}
+		tileNiagaraArray_.Add(NiagaraSystem);
+
 	}
 }
 
