@@ -5,6 +5,8 @@
 #include "tsutsumi\Status.h"
 #include "Kismet/GameplayStatics.h"
 #include "Manager\PlaySceneGameModeBase.h"
+#include "Templates/SharedPointer.h"
+
 // Sets default values
 AAC_WeaponSelectManager::AAC_WeaponSelectManager()
 {
@@ -53,13 +55,15 @@ void AAC_WeaponSelectManager::WeaponLevelUp()
 	if (!PlaySceneGameMode)return;
 	UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : 武器を取得を完了"));
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::MapLevelChange);
+	SelectWeaponBase = WeaponBase;
 	PlaySceneGameMode->ChangeLevel(nextLevel,GetWorld());
-	WindowClose();
 }
 
 void AAC_WeaponSelectManager::MapLevelChange()
 {
 }
-void AAC_WeaponSelectManager::WindowClose()
+
+AWeaponBase* AAC_WeaponSelectManager::OnWeaponSelect()
 {
+	return SelectWeaponBase;
 }
