@@ -67,6 +67,11 @@ UHealingDisplay* APlaySceneGameModeBase::GetHealingDisplayWhidget()
 	return nullptr;
 }
 
+void APlaySceneGameModeBase::SetWepoanManager(AWeaponManager* WeaponManager)
+{
+	WeaponManagerRef = WeaponManager;
+}
+
 void APlaySceneGameModeBase::SetEnemyManager(AEnemyManager* EnemyManager)
 {
 	EnemyManagerRef = EnemyManager;

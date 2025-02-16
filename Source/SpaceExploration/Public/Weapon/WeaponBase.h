@@ -45,6 +45,8 @@ public:
 	// 左マウスをクリックしたときの処理
 	virtual void LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter) override;
 
+	void SetWeaponMeshHiddenInGame(bool bNewHidden);
+
 	UFUNCTION(BlueprintCallable)
 	void SettingWeapon();
 

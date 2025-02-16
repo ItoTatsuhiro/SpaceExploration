@@ -5,13 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "tsutsumi/Status.h"
+#include "tsutsumi/Element.h"
 #include "EnemyManager.generated.h"
 
 class AEnemyBase;
-
+class AWeaponManager;
 
 
 /*
+* 作成者：前
 * 敵の生成やステータスの管理を行うクラス
 */
 UCLASS()
@@ -44,6 +46,11 @@ public:
 
 private:
 	// -----------------------------------------------------------------
+	// WeaponManagerの参照が存在するか確認し、セットする
+	// -----------------------------------------------------------------
+	void CheckWeaponManager();
+
+	// -----------------------------------------------------------------
 	// 敵のステータスを設定する
 	// 
 	// 引数
@@ -58,7 +65,14 @@ private:
 	TArray< TSubclassOf< AEnemyBase > > EnemyClass;
 
 	// 敵のステータスのデータテーブル
-	UPROPERTY(EditDefaultsOnly, Category = "DataTable")
+	UPROPERTY(EditAnywhere , Category = "DataTable")
 	TSoftObjectPtr<UDataTable> EnemyStatusDataTable;
+
+	// 敵の武器を生成する用のクラス参照
+	UPROPERTY(VisibleAnywhere, Category = "WeaponManager")
+	AWeaponManager* WeaponManagerRef;
+
+	UPROPERTY()
+	FTimerHandle EnemyManagerProcessHandle;
 
 };

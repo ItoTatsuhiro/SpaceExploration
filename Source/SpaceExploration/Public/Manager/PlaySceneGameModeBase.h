@@ -9,6 +9,7 @@
 class ALevelInterface;
 class UHealingDisplay;
 class AEnemyManager;
+class AWeaponManager;
 class AStageDataManager;
 
 struct FStageMapData;
@@ -74,6 +75,23 @@ public:
 	UHealingDisplay* GetHealingDisplayWhidget();
 
 	// --------------------------------------------------------------------------------------------
+	// 武器の生成、ステータスを管理するアクタークラスの参照をセットする
+	// 
+	// WeaopomManagger...セットするアクタの参照
+	// --------------------------------------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	void SetWepoanManager(AWeaponManager* WeaponManager);
+
+	// --------------------------------------------------------------------------------------------
+	// 武器の生成、ステータスを管理するアクタークラスの参照を返す
+	// --------------------------------------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	AWeaponManager* GetWeaponManager()
+	{
+		return WeaponManagerRef;
+	}
+
+	// --------------------------------------------------------------------------------------------
 	// 敵の生成、ステータスを管理するアクタークラスの参照をセットする
 	// 
 	// _EnemyManagger...セットするアクタの参照
@@ -93,7 +111,7 @@ public:
 	// --------------------------------------------------------------------------------------------
 	// ステージデータを管理するアクタークラスの参照をセットする
 	// 
-	// _EnemyManagger...セットするアクタの参照
+	// _StageDataManagger...セットするアクタの参照
 	// --------------------------------------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	void SetStageDataManager(AStageDataManager* StageDataManager);
@@ -110,6 +128,10 @@ public:
 private:
 	// 現在のステージの各惑星データの持つ構造体
 	FStageMapData* StageMapData;
+
+	// 武器の生成、ステータスを管理するクラスの参照
+	UPROPERTY()
+	AWeaponManager* WeaponManagerRef;
 
 	// 敵の生成、ステータスを管理するクラスの参照
 	UPROPERTY()
