@@ -17,9 +17,10 @@ struct FStatus {
         Speed = 1.f;
         PlayerLevel = 1;
         PlayerName = "No Name";
+        Exp = 0;
     }
 
-    FStatus(float _HP, float _MaxHp, float _AttackPower, float _DefencePower, float _Speed, int _PlayerLevel, FString _PlayerName) 
+    FStatus(float _HP, float _MaxHp, float _AttackPower, float _DefencePower, float _Speed, int _PlayerLevel, FString _PlayerName, int _Exp) 
     {
         HP = _HP;
         MaxHp = _MaxHp;
@@ -28,6 +29,7 @@ struct FStatus {
         Speed = _Speed;
         PlayerLevel = _PlayerLevel;
         PlayerName = _PlayerName;
+        Exp = _Exp;
     }
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -51,6 +53,9 @@ struct FStatus {
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FString PlayerName;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int Exp;
+
     // オーバーロードされた代入演算子
     FStatus& operator=(const FStatus& status) {
         if (this != &status) {
@@ -61,6 +66,7 @@ struct FStatus {
             Speed = status.Speed;
             PlayerName = status.PlayerName;
             PlayerLevel = status.PlayerLevel;
+            Exp = status.Exp;
         }
         return *this;
     }

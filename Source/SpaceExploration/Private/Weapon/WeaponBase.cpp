@@ -86,28 +86,10 @@ void AWeaponBase::Tick(float DeltaTime)
 
 void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter)
 {
-	if (!PlayerCharacter) {
-		UKismetSystemLibrary::PrintString(this, "PlayerCharacter is nullptr", true, true, FColor::Red, 2.f, TEXT(""));
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is nullptr"));
-		return;
-	}
-	CurrentLevelStatus = NextLevelStatus;
-	PlayerCharacter->SetEquippedWeapon(this);
-	UWorld* World = GetWorld();
-	ALevelScriptActor* LevelScript = World->GetLevelScriptActor();
-	if (LevelScript)
-	{
-		FName FunctionName(TEXT("Weapon Sets")); 
-		UFunction* Function = LevelScript->FindFunction(FunctionName);
+	
+}
 
-		if (Function)
-		{
-			LevelScript->ProcessEvent(Function, nullptr);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("WeaponSets function not found"));
-		}
-	}
-	Destroy();
+void AWeaponBase::SetWeaponMeshHiddenInGame(bool bNewHidden)
+{
+	MeshComponent->SetHiddenInGame(bNewHidden);
 }

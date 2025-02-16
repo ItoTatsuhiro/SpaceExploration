@@ -6,7 +6,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/EnemyBase.h"
 #include "Manager/PlaySceneGameModeBase.h"
-#include "GameData/EnemyStatusData.h"
+#include "GameData/StatusData.h"
+#include "Manager/WeaponManager.h"
+#include "Weapon/WeaponBase.h"
 
 // Sets default values
 AEnemyManager::AEnemyManager()
@@ -21,6 +23,8 @@ void AEnemyManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	EnemyStatusDataTable.LoadSynchronous();
+
 	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>( UGameplayStatics::GetGameMode( GetWorld() ) );
 
 	if (!PlaySceneGameMode)
@@ -31,6 +35,9 @@ void AEnemyManager::BeginPlay()
 
 	PlaySceneGameMode->SetEnemyManager(this);
 
+	// WeaponManagerRef の取得をタイマーで定期的に試みる
+	GetWorldTimerManager().SetTimer(EnemyManagerProcessHandle, this, &AEnemyManager::CheckWeaponManager, 0.1f, true);
+
 }
 
 // Called every frame
@@ -40,6 +47,14 @@ void AEnemyManager::Tick(float DeltaTime)
 
 }
 
+// -----------------------------------------------------------------
+// 敵の生成を行う
+// 
+// 引数
+// EnemyType...		敵の種類
+// EnemyLevel...	敵のレベル
+// EnemyElement...	敵の属性
+// -----------------------------------------------------------------
 AEnemyBase* AEnemyManager::CreateEnemy(int EnemyType, int EnemyLevel, EElement EnemyElement)
 {
 	UE_LOG(LogClass, Log, TEXT("AEnemyManager::CreateEnemy() : begin process"));
@@ -63,21 +78,68 @@ AEnemyBase* AEnemyManager::CreateEnemy(int EnemyType, int EnemyLevel, EElement E
 	// 敵のステータスを設定する
 	Enemy->SetCharacterStatus( SetEnemyStatus(EnemyLevel - 1) );
 
+	if (!WeaponManagerRef) 
+	{
+		UE_LOG(LogClass, Error, TEXT("AEnemyManager::CreateEnemy() : WeaponManagerRef が nullptr でした"));
+		return Enemy;
+	}
+
+	// 敵の武器生成
+	AWeaponBase* Weapon = WeaponManagerRef->CreateWeapon(1, EnemyElement);
+
+	if (!Weapon)
+	{
+		UE_LOG(LogClass, Error, TEXT("AEnemyManager::CreateEnemy() : Weapon の生成に失敗しました"));
+		return Enemy;
+	}
+
+	// 生成した武器を装備
+	Weapon->SetWeaponMeshHiddenInGame(true);
+	Enemy->SetEquippedWeapon(Weapon);
+
 	UE_LOG(LogClass, Log, TEXT("AEnemyManager::CreateEnemy() : end process"));
 
 	return Enemy;
 }
 
+// -----------------------------------------------------------------
+// WeaponManagerの参照が存在するか確認し、セットする
+// -----------------------------------------------------------------
+void AEnemyManager::CheckWeaponManager()
+{
+	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	if (PlaySceneGameMode)
+	{
+		WeaponManagerRef = PlaySceneGameMode->GetWeaponManager();
+
+		if (WeaponManagerRef)
+		{
+			UE_LOG(LogClass, Log, TEXT("WeaponManagerRef を取得しました"));
+			// WeaponManagerRef を取得したのでタイマーを解除
+			GetWorldTimerManager().ClearTimer(EnemyManagerProcessHandle);
+		}
+	}
+}
+
+// -----------------------------------------------------------------
+// 敵のステータスを設定する
+// 
+// 引数
+// EnemyLevel...敵のレベル
+// -----------------------------------------------------------------
 FStatus AEnemyManager::SetEnemyStatus(int EnemyLevel)
 {
+	// 新しくセットするステータス
 	FStatus NewEnemyStatus;
 
 	if (!EnemyStatusDataTable)
 	{
-		UE_LOG(LogClass, Error, TEXT("AEnemyManager::SetStatus() : EnemyStatusDataTable がセットされていません"), EnemyLevel + 1);
+		UE_LOG(LogClass, Error, TEXT("AEnemyManager::SetStatus() : EnemyStatusDataTable がセットされていません"));
 		return NewEnemyStatus;
 	}
 
+	// EnemyStatusDataTable のデータを取得
 	TArray<FName> Names = EnemyStatusDataTable->GetRowNames();
 
 	if (EnemyLevel < 0 || EnemyLevel >= Names.Num())
@@ -86,7 +148,8 @@ FStatus AEnemyManager::SetEnemyStatus(int EnemyLevel)
 		return NewEnemyStatus;
 	}
 
-	FEnemyStatusData* BaseStatus = EnemyStatusDataTable->FindRow<FEnemyStatusData>( Names[EnemyLevel], FString() );
+	// EnemyLevelに一致する列のステータスを取得
+	FStatusData* BaseStatus = EnemyStatusDataTable->FindRow<FStatusData>( Names[EnemyLevel], FString() );
 
 	if (!BaseStatus)
 	{
@@ -94,12 +157,13 @@ FStatus AEnemyManager::SetEnemyStatus(int EnemyLevel)
 		return NewEnemyStatus;
 	}
 
-	NewEnemyStatus.MaxHp = BaseStatus->MaxHp;
-	NewEnemyStatus.HP = BaseStatus->MaxHp;
-	NewEnemyStatus.AttackPower = BaseStatus->Attack;
-	NewEnemyStatus.DefencePower = BaseStatus->Defence;
-	NewEnemyStatus.Speed = BaseStatus->Speed;
-	//// **** NewEnemyStatus. = BaseStatus->Exp; ********************
+	// 各ステータスの設定
+	NewEnemyStatus.MaxHp = BaseStatus->BaseMaxHp + (FMath::Rand() % BaseStatus->RandomMaxHp);
+	NewEnemyStatus.HP = NewEnemyStatus.MaxHp;
+	NewEnemyStatus.AttackPower = BaseStatus->BaseAttack + (FMath::Rand() % BaseStatus->RandomAttack);
+	NewEnemyStatus.DefencePower = BaseStatus->BaseDefence + (FMath::Rand() % BaseStatus->RandomDefence);
+	NewEnemyStatus.Speed = BaseStatus->BaseSpeed + (FMath::Rand() % BaseStatus->RandomSpeed);
+	NewEnemyStatus.Exp = BaseStatus->Exp;
 
 	return NewEnemyStatus;
 }

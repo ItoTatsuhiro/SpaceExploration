@@ -49,6 +49,8 @@ ACharacterBase::ACharacterBase()
 	DeathNiagaraComp->SetAutoActivate(false);
 
 	// その他
+	CharacterStatus = FStatus();
+
 	E_CharacterActState = ECharacterActState::Idle;
 
 	EquippedWeapon = nullptr;
@@ -104,6 +106,11 @@ void ACharacterBase::SetEquippedWeapon(AWeaponBase* Weapon)
 	if (!Weapon) {
 		UE_LOG(LogClass, Display, TEXT("nullptrがセットされました"));
 		return;
+	}
+
+	if (EquippedWeapon) {
+		// 装備していた武器を削除
+		EquippedWeapon->Destroy();
 	}
 
 	// 装備する武器をクラスにアタッチし、装備中の武器に設定する。

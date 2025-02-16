@@ -153,8 +153,8 @@ protected:
 	ECharacterActState E_CharacterActState;
 
 	// ステータス
-	UPROPERTY(EditAnywhere)
-	FStatus CharacterStatus = FStatus();
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FStatus CharacterStatus;
 	
 	// 装備中のウェポン
 	UPROPERTY(EditAnywhere)
