@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -30,95 +30,121 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// --------------------------------------------------------------------------
-	// UŒ‚ˆ—‚ğs‚¤
+	// æ”»æ’ƒå‡¦ç†ã‚’è¡Œã†
 	// --------------------------------------------------------------------------
 	void Attack() override;
 
 	// --------------------------------------------------------------------------
-	// ƒ_ƒ[ƒW‚ğó‚¯‚éˆ—‚ğs‚¤
+	// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†ã‚’è¡Œã†
 	// 
-	// Eˆø”
-	// DamageFƒ_ƒ[ƒW—Ê
+	// ãƒ»å¼•æ•°
+	// Damageï¼šãƒ€ãƒ¡ãƒ¼ã‚¸é‡
 	// --------------------------------------------------------------------------
 	void TakeDamage(int32 Damage) override;
 
 	// --------------------------------------------------------------------------
-	// €–S‚Ìˆ—‚ğs‚¤
+	// æ­»äº¡æ™‚ã®å‡¦ç†ã‚’è¡Œã†
 	// --------------------------------------------------------------------------
 	void Death() override;
 
 	// -----------------------------------------------------------------
-	// ƒvƒŒƒCƒ„[‚ğŒ©‰º‚ë‚µ‚Ä‚¢‚éƒJƒƒ‰‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ•Ô‚·B
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è¦‹ä¸‹ã‚ã—ã¦ã„ã‚‹ã‚«ãƒ¡ãƒ©ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’è¿”ã™ã€‚
 	// -----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	UChildActorComponent* GetLookingDownCaemeraComponent() const { return LookingDownCameraComp; }
 
 	// -----------------------------------------------------------------
-	// ƒvƒŒƒCƒ„[‚Ì•ŠíƒCƒ“ƒxƒ“ƒgƒŠ‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ•Ô‚·B
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ­¦å™¨ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’è¿”ã™ã€‚
 	// -----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	UWeaponInventoryComponent* GetWeaponInventoryComponent() { return WeaponInventoryComponent; }
 
 	// -----------------------------------------------------------------
-	// w’è‚µ‚½‘®«‚ğ‚Â•Ší‚ÌƒAƒhƒŒƒX‚ğ•Ô‚·B
+	// æŒ‡å®šã—ãŸå±æ€§ã‚’æŒã¤æ­¦å™¨ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¿”ã™ã€‚
 	// 
-	// args1...æ“¾‚µ‚½‚¢•Ší‚Ì‘®«
+	// args1...å–å¾—ã—ãŸã„æ­¦å™¨ã®å±æ€§
 	// -----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetElementWeapon(EElement WeaponElement);
 
 	// -----------------------------------------------------------------
-	// –Ú•W‚ÌˆÊ’u‚ÉƒvƒŒƒCƒ„[‚ğˆÚ“®‚³‚¹‚é
+	// ç›®æ¨™ã®ä½ç½®ã«ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ç§»å‹•ã•ã›ã‚‹
 	// 
-	// args1...ƒvƒŒƒCƒ„[‚ğˆÚ“®‚³‚¹‚½‚¢ˆÊ’u
+	// args1...ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ç§»å‹•ã•ã›ãŸã„ä½ç½®
 	// -----------------------------------------------------------------
 	void BeginMoveTargetLocation(const FVector& Location);
 
+	// -----------------------------------------------------------------
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çµŒé¨“å€¤ã‚’è¿½åŠ ã€‚
+	// 
+	// args1...è¿½åŠ ã™ã‚‹çµŒé¨“å€¤
+	// -----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	void AddExp(int Exp);
+
+	// -----------------------------------------------------------------
+	// ãƒ¬ãƒ™ãƒ«ãŒä¸Šã’ã‚‰ã‚Œã‚‹ã‹åˆ¤å®šã‚’è¿”ã™ã€‚
+	// 
+	// args1...è¿½åŠ ã™ã‚‹çµŒé¨“å€¤
+	// -----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	bool CanLevelUp();
+
+	// -----------------------------------------------------------------
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—ã‚’å®Ÿè¡Œã™ã‚‹
+	// -----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	void ExecuteLevelUp();
+
 private:	
-	// ƒXƒ^ƒeƒBƒbƒNƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg
+	// ã‚¹ã‚¿ãƒ†ã‚£ãƒƒã‚¯ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> CharacterStaticMeshComp;
 
-	// ƒvƒŒƒCƒ„[‚ÌƒV[ƒPƒ“ƒX
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å„ãƒ¬ãƒ™ãƒ«ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚„å¿…è¦çµŒé¨“å€¤ã‚’å®šç¾©ã—ãŸãƒ‡ãƒ¼ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«
+	UPROPERTY(EditAnywhere, Category = "DataTable")
+	TSoftObjectPtr<UDataTable> PlayerDataTable;
+
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	Sequence PlayerSequence;
 
-	// ˆÚ“®•ûŒü‚Ö‚Ì‘¬“x
+	// ç§»å‹•æ–¹å‘ã¸ã®é€Ÿåº¦
 	UPROPERTY(EditAnywhere)
 	FVector MoveVelocity;
 
-	// –Ú“IˆÊ’u
+	// ç›®çš„ä½ç½®
 	UPROPERTY(EditAnywhere)
 	FVector TargetLocation;
 
-	// ˆÚ“®‘¬“x
+	// ç§»å‹•é€Ÿåº¦
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
 
-	// Œ©‰º‚ë‚µ•û‚ÌƒJƒƒ‰‚ÌƒXƒvƒŠƒ“ƒOƒA[ƒ€
+	// è¦‹ä¸‹ã‚ã—æ–¹ã®ã‚«ãƒ¡ãƒ©ã®ã‚¹ãƒ—ãƒªãƒ³ã‚°ã‚¢ãƒ¼ãƒ 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USpringArmComponent* LookingDownCameraSpringArm;
 
-	// Œ©‰º‚ë‚µ•û‚ÌƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg
+	// è¦‹ä¸‹ã‚ã—æ–¹ã®ã‚«ãƒ¡ãƒ©ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UChildActorComponent* LookingDownCameraComp;
 
-	// •Ší‚ÌƒCƒ“ƒxƒ“ƒgƒŠƒRƒ“ƒ|[ƒlƒ“ƒg
+	// æ­¦å™¨ã®ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	UPROPERTY(VisibleAnywhere, Category = "Ineventory", BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	UWeaponInventoryComponent* WeaponInventoryComponent;
 	
 private:
-	// ¶ƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½‚Æ‚«AƒCƒ“ƒ^[ƒtƒF[ƒX‚ğÀs‚·‚éB
+	// å·¦ã‚¯ãƒªãƒƒã‚¯ã‚’æŠ¼ã—ãŸã¨ãã€ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã‚’å®Ÿè¡Œã™ã‚‹ã€‚
 	void ClickedMouseLeftButton();
 
-	// ‘Ò‹@ƒV[ƒPƒ“ƒX
+	// å¾…æ©Ÿã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	bool SeqIdle(const float DeltaTime);
-	// ˆÚ“®ƒV[ƒPƒ“ƒX
+	// ç§»å‹•ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	bool SeqMoveTargetLocation(const float DeltaTime);
-	// UŒ‚ƒV[ƒPƒ“ƒX
+	// æ”»æ’ƒã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	bool SeqAttack(const float DeltaTime);
-	// ƒ_ƒ[ƒW‚ğó‚¯‚éƒV[ƒPƒ“ƒX
+	// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	bool SeqTakeDamage(const float DelataTime);
-	// €–S‰‰o‚ğs‚¤ƒV[ƒPƒ“ƒX
+	// æ­»äº¡æ¼”å‡ºã‚’è¡Œã†ã‚·ãƒ¼ã‚±ãƒ³ã‚¹
 	bool SeqDeath(const float DeltaTime);
 
 };
