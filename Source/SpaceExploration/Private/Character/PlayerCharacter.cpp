@@ -63,11 +63,13 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PlayerDataTable.LoadSynchronous();
+
 	// PlayerController の取得
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter:PlayerControllerの取得に失敗しました。"));
+		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter::BeginPlay() : PlayerControllerの取得に失敗しました。"));
 		return;
 	}
 	// マウスカーソルを表示
@@ -76,7 +78,7 @@ void APlayerCharacter::BeginPlay()
 	PlayerController->SetViewTargetWithBlend(LookingDownCameraComp->GetChildActor());
 
 	if (!WeaponInventoryComponent) {
-		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:WeaponInventoryの取得に失敗しました。"));
+		UE_LOG(LogTemp, Error, TEXT("APlayCharacter::BeginPlay() : WeaponInventoryの取得に失敗しました。"));
 		return;
 	}
 
@@ -198,6 +200,91 @@ void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqMoveTargetLocation);
 
 	E_CharacterActState = ECharacterActState::Move;
+}
+
+// -----------------------------------------------------------------
+// プレイヤーの経験値を追加。
+// -----------------------------------------------------------------
+void APlayerCharacter::AddExp(int Exp)
+{
+	CharacterStatus.Exp += Exp;
+}
+
+// -----------------------------------------------------------------
+// レベルが上げられるか判定を返す。
+// 
+// args1...追加する経験値
+// -----------------------------------------------------------------
+bool APlayerCharacter::CanLevelUp()
+{
+	if (!PlayerDataTable)
+	{
+		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::CanLevelUp() : PlayerDataTable がセットされていません"));
+		return false;
+	}
+
+	TArray<FName> Names = PlayerDataTable->GetRowNames();
+
+	if (CharacterStatus.PlayerLevel < 0 || CharacterStatus.PlayerLevel >= Names.Num())
+	{
+		UE_LOG(LogClass, Warning, TEXT("APlayerCharacter::CanLevelUp() : %d は PlayerDataTable の行の範囲外です。"), CharacterStatus.PlayerLevel);
+		return false;
+	}
+
+	FStatus* NextStatus = PlayerDataTable->FindRow<FStatus>(Names[CharacterStatus.PlayerLevel], FString());
+
+	if (!NextStatus)
+	{
+		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::CanLevelUp() : PlayerDataTable に FStatus型のデータテーブルが存在しませんでした"));
+		return false;
+	}
+
+	if ( CharacterStatus.Exp < NextStatus->Exp )
+	{
+		UE_LOG(LogClass, Log, TEXT("APlayerCharacter::CanLevelUp() : レベルアップに必要な経験値に達していません...現在経験値：%d, 必要経験値：%d"), CharacterStatus.Exp, NextStatus->Exp);
+		return false;
+	}
+
+	UE_LOG(LogClass, Log, TEXT("APlayerCharacter::CanLevelUp() : レベルアップ可能...現在経験値：%d, 必要経験値：%d"), CharacterStatus.Exp, NextStatus->Exp);
+
+	return true;
+}
+
+// -----------------------------------------------------------------
+// プレイヤーのレベルアップを実行する
+// -----------------------------------------------------------------
+void APlayerCharacter::ExecuteLevelUp()
+{
+	if (!PlayerDataTable)
+	{
+		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::ExecuteLevelUp() : PlayerDataTable がセットされていません"));
+		return;
+	}
+
+	TArray<FName> Names = PlayerDataTable->GetRowNames();
+
+	if (CharacterStatus.PlayerLevel < 0 || CharacterStatus.PlayerLevel >= Names.Num())
+	{
+		UE_LOG(LogClass, Warning, TEXT("APlayerCharacter::ExecuteLevelUp() : %d は PlayerDataTable の行の範囲外です。"), CharacterStatus.PlayerLevel);
+		return;
+	}
+
+	FStatus* NextStatus = PlayerDataTable->FindRow<FStatus>(Names[CharacterStatus.PlayerLevel], FString());
+
+	if (!NextStatus)
+	{
+		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::ExecuteLevelUp() : PlayerDataTable に FStatus型のデータテーブルが存在しませんでした"));
+		return;
+	}
+
+	CharacterStatus.PlayerLevel = NextStatus->PlayerLevel;
+	CharacterStatus.MaxHp = NextStatus->MaxHp;
+	CharacterStatus.HP = CharacterStatus.MaxHp;
+	CharacterStatus.AttackPower = NextStatus->AttackPower;
+	CharacterStatus.DefencePower = NextStatus->DefencePower;
+	CharacterStatus.Speed = NextStatus->Speed;
+
+	UE_LOG(LogClass, Log, TEXT("APlayerCharacter::ExecuteLevelUp() : レベルアップ完了") );
 }
 
 //　----------------------------------------------------------------

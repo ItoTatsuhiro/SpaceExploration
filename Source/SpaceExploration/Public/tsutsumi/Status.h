@@ -1,10 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "Status.generated.h"
 
 USTRUCT(BlueprintType)
-struct FStatus {
+struct FStatus : public FTableRowBase
+{
 
     GENERATED_BODY()
 
