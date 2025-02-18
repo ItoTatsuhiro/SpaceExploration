@@ -164,7 +164,9 @@ void APlayerCharacter::Death()
 	UE_LOG(LogTemp, Log, TEXT("APlayerCharacter::Death() : プレイヤーはやられた"));
 }
 
+// ----------------------------------------------------------------
 // 指定した属性の武器を返す。
+// ----------------------------------------------------------------
 AWeaponBase* APlayerCharacter::GetElementWeapon(EElement WeaponElement)
 {
 	TArray<AWeaponBase*>& ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
@@ -433,7 +435,7 @@ bool APlayerCharacter::SeqTakeDamage(const float DelataTime)
 // ----------------------------------------------------------------
 bool APlayerCharacter::SeqDeath(const float DeltaTime)
 {
-	if (DeathNiagaraComp->IsActive())
+	if (SequenceElapsedTime < DeathEffectTime)
 	{
 		return true;
 	}

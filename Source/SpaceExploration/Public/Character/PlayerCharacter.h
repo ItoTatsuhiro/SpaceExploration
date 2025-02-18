@@ -113,12 +113,15 @@ private:
 	FVector MoveVelocity;
 
 	// 目的位置
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	FVector TargetLocation;
 
 	// 移動速度
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float DeathEffectTime;
 
 	// 見下ろし方のカメラのスプリングアーム
 	UPROPERTY(VisibleAnywhere, Category = "Components")
