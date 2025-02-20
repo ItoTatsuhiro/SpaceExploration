@@ -20,32 +20,37 @@ ACharacterBase::ACharacterBase()
 
 	// ルートコンポーネントの設定
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	DefaultSceneRoot->bEditableWhenInherited = true;
+	DefaultSceneRoot->SetMobility(EComponentMobility::Movable);
 	RootComponent = DefaultSceneRoot;
 
 	// 武器の生成ポイントコンポーネントの設定
 	WeaponSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponPoint"));
-	WeaponSpawnPoint->SetupAttachment(DefaultSceneRoot);
+	WeaponSpawnPoint->SetupAttachment(RootComponent);
 
 	// バトルシーンのカメラ設定
 	BattleCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("BattleCameraSpringArm"));
-	BattleCameraSpringArm->SetupAttachment(DefaultSceneRoot);
+	BattleCameraSpringArm->SetMobility(EComponentMobility::Movable);
+	BattleCameraSpringArm->SetupAttachment(RootComponent);
 
 	BattleCameraSpringArm->TargetArmLength = 2000.f;
-	BattleCameraSpringArm->SetWorldRotation(FRotator(0.f, 0.f, 0.f));
+	BattleCameraSpringArm->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 
 	BattleCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("BattleCamera"));
 	BattleCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
 	BattleCameraComp->SetupAttachment(BattleCameraSpringArm);
 
-	BattleCameraComp->SetWorldRotation(FRotator(0.f, 0.f, 180.f));
+	BattleCameraComp->SetRelativeRotation(FRotator(0.f, 0.f, 180.f));
 
 	// ナイアガラの設定
 	DamageNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DamageNiagara"));
-	DamageNiagaraComp->SetupAttachment(DefaultSceneRoot);
+	DamageNiagaraComp->SetMobility(EComponentMobility::Movable);
+	DamageNiagaraComp->SetupAttachment(RootComponent);
 	DamageNiagaraComp->SetAutoActivate(false);
 
 	DeathNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DeathNiagara"));
-	DeathNiagaraComp->SetupAttachment(DefaultSceneRoot);
+	DeathNiagaraComp->SetMobility(EComponentMobility::Movable);
+	DeathNiagaraComp->SetupAttachment(RootComponent);
 	DeathNiagaraComp->SetAutoActivate(false);
 
 	// その他

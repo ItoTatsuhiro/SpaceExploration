@@ -11,7 +11,7 @@
 #include "../Library/GameLibrary.h"
 #include "CharacterBase.generated.h"
 
-UCLASS(BlueprintType, Blueprintable, Abstract)
+UCLASS(BlueprintType, Blueprintable)
 class SPACEEXPLORATION_API ACharacterBase : public APawn
 {
 	GENERATED_BODY()
@@ -96,7 +96,7 @@ public:
 	// キャラクターの位置を設定する。
 	// ----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
-	inline void SetCharacterLocation(const FVector& Location) 
+	virtual void SetCharacterLocation(const FVector& Location) 
 	{
 		SetActorLocation(Location);
 	}
@@ -141,7 +141,7 @@ public:
 
 protected:
 	// キャラクターのルートコンポーネント
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 
 	// 武器の配置するポイント
@@ -160,10 +160,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, Category = "Components")
 	class USpringArmComponent* BattleCameraSpringArm;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, Category = "Components")
 	UChildActorComponent* BattleCameraComp;
 
 	// キャラクターのシーケンス経過時間
