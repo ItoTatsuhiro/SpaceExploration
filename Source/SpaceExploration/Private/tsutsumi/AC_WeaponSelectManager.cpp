@@ -12,7 +12,6 @@ AAC_WeaponSelectManager::AAC_WeaponSelectManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 // Called when the game starts or when spawned
 void AAC_WeaponSelectManager::BeginPlay()
@@ -21,7 +20,6 @@ void AAC_WeaponSelectManager::BeginPlay()
 
 	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::WeaponLevelUp);
 }
-// Called every frame
 void AAC_WeaponSelectManager::Tick(float DeltaTime)
 {
 	AActor::Tick(DeltaTime);
@@ -37,30 +35,33 @@ void AAC_WeaponSelectManager::WeaponLevelUp()
 	{
 		return;
 	}
-
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (!PlayerController) 
-	{
-		return;
-	}
 	AWeaponBase* WeaponBase = Cast<AWeaponBase>(PerformRaycast());
 	if (!WeaponBase)
 	{
 		UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : error WeaponBase is nullptr"));
 		return;
 	}
-	if (!playerCharacter_)return;
-	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
-	playerCharacter_->SetEquippedWeapon(WeaponBase);
-	if (!PlaySceneGameMode)return;
-	UE_LOG(LogClass, Log, TEXT("AAC_WeaponManager::WeaponLevelUp() : 武器を取得を完了"));
-	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::MapLevelChange);
 	SelectWeaponBase = WeaponBase;
-	PlaySceneGameMode->ChangeLevel(nextLevel,GetWorld());
+	WeaponSelect(WeaponBase);
+	OnLevelUpDelegate.BindUObject(this, &AAC_WeaponSelectManager::MapLevelChange);
 }
-
 void AAC_WeaponSelectManager::MapLevelChange()
 {
+}
+void AAC_WeaponSelectManager::BindWeapon()
+{
+	playerCharacter_->SetEquippedWeapon(SelectWeaponBase);
+	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (!PlaySceneGameMode)
+	{
+		UE_LOG(LogClass,Log,TEXT("PlaySceneGameMode is nullptr"));
+		return;
+	}
+	PlaySceneGameMode->ChangeLevel(nextLevel,GetWorld());
+}
+void AAC_WeaponSelectManager::Cancel()
+{
+	OnLevelUpDelegate.BindUObject(this,&AAC_WeaponSelectManager::WeaponLevelUp);
 }
 
 AWeaponBase* AAC_WeaponSelectManager::OnWeaponSelect()

@@ -38,4 +38,13 @@ public:
     
     UFUNCTION(BlueprintPure,Category = "WeaponSelect")
     AWeaponBase* OnWeaponSelect();
+
+    UFUNCTION(BlueprintImplementableEvent,Category = "WeaponSelect")
+    void WeaponSelect(AWeaponBase* WeaponBase);
+
+    UFUNCTION(BlueprintCallable,Category = "WeaponSelect")
+    void Cancel();
+
+    UFUNCTION(BlueprintCallable,Category = "WeaponSelect")
+    void BindWeapon();
 };
