@@ -49,9 +49,6 @@ private:
 		water,
 		wind
 	};
-	//属性相性判定用
-	const int type_corr_[5] = { wind, fire, water, wind, fire };
-
 	//属性相性のダメージ補正値
 	//good_ = 2.0
 	//bad_ = 0.5
@@ -103,14 +100,12 @@ private:
 	};
 	E_BatlleWinner battlewinner = E_BatlleWinner::none; 
 
-	//カメラ切り替え用
-	APlayerController* playercontroller = nullptr;
-
 	//受けるダメージ
 	float playerdamage = 0.0, enemydamage = 0.0;
 
 	//シーケンス時間
-	float _time = 2.0f, _count = 0.0f;
+	const float _time = 2.0f;
+	float _count = 0.0f;
 
 	//カメラ切り替えに掛かる時間
 	const float camerachangetime = 1.0f;
@@ -123,8 +118,9 @@ private:
 	//バトルで使用するエネミーのカメラ
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	AActor* EnemyCamera = nullptr;
-
-	//バトルシーンのカメラ
+	//バトルシーンレベルのカメラ
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	AActor* BattleSceneCamera = nullptr;
 	enum class Camera {
 		none,
 		battlecamera,
@@ -140,13 +136,6 @@ private:
 
 	//各シーケンスで一度だけ処理する事の確認変数
 	bool Seq_IsOnce_ = false;
-
-	//バトルシーンレベル
-	UPROPERTY(EditAnywhere, Category = "Level")
-	TSoftObjectPtr<UWorld> MyLevel;
-	//バトルシーンレベルのカメラ
-	UPROPERTY(EditAnywhere, Category = "Camera")
-	AActor* BattleSceneCamera = nullptr;
 
 //---------------------------------------------------------------------------------------------
 //Widget関係
@@ -176,11 +165,28 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	float enemyHP_ratio = 1.0f;
 
-	//属性
+	//HPbarの上の属性
 	UPROPERTY(BlueprintReadOnly)
 	int playerelement = 1;
 	UPROPERTY(BlueprintReadOnly)
 	int enemyelement = 0;
+
+	//バトル前のステータス
+	UPROPERTY(BlueprintReadOnly)
+	FStatus PostBattlePlayerStatus;
+	//バトル後のステータス
+	UPROPERTY(BlueprintReadOnly)
+	FStatus PreBattlePlayerStatus;
+
+	//Gameover時の表示物
+	UPROPERTY(BlueprintReadOnly)
+	int GameOverDisplayStatus_MapLevel = 1;
+	UPROPERTY(BlueprintReadOnly)
+	int GameOverDisplayStatus_PlayerLevel = 1;
+	UPROPERTY(BlueprintReadOnly)
+	int	GameOverDisplayStatus_WeaponElement = 0;
+	UPROPERTY(BlueprintReadOnly)
+	int GameOverDisplayStatus_WeaponLevel = 1;
 
 //--------------------------------------------------------------------------------------------
 
@@ -202,6 +208,10 @@ private:
 	//ゲームモード
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<APlaySceneGameModeBase> gamemode;
+
+	//プレイヤーコントローラー
+	UPROPERTY(VisibleAnywhere)
+	APlayerController* playercontroller = nullptr;
 
 	//エネミーマネージャー
 	TObjectPtr<AEnemyManager> enemymanager;
@@ -230,7 +240,7 @@ public:
 	//引数２：攻撃側の属性
 	//引数３：防御側の防御力
 	//引数４：防御側の属性
-	float DamageMath(const float& A_atk, const int& A_type, const float& D_def, const int& D_type);
+	float DamageMath(const float& A_atk, const EElement& A_type, const float& D_def, const EElement& D_type);
 
 	Sequence battlesequence;
 	//バトルシーケンス
