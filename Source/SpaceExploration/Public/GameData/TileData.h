@@ -35,7 +35,7 @@ protected :
 
 	// マスのナイアガラコンポーネント
 	UPROPERTY(VisibleAnywhere)
-	TSoftObjectPtr<UNiagaraSystem> tileNiagaraSys_;
+	TObjectPtr<UNiagaraSystem> tileNiagaraSys_;
 	
 
 	// 配列内でのマスの番号
@@ -55,7 +55,7 @@ public :
 	E_TILE_TYPE GetTileType() { return tileType_; }
 
 	// マスのナイアガラのゲッター
-	TSoftObjectPtr<UNiagaraSystem> GetTileNiagaraComp() { return tileNiagaraSys_; }
+	TObjectPtr<UNiagaraSystem> GetTileNiagaraSys() { return tileNiagaraSys_; }
 
 	// 配列内のマスの番号のゲッター
 	FVector2D GetTileArrayIndex() { return tileArrayIndex_; }
@@ -68,7 +68,7 @@ public :
 	void SetTileType(E_TILE_TYPE tileType) { tileType_ = tileType; }
 
 	// マスのナイアガラのセッター
-	void SetTileNiagaraSys(TSoftObjectPtr<UNiagaraSystem> tileNiagaraSys) { tileNiagaraSys_ = tileNiagaraSys; }
+	void SetTileNiagaraSys(TObjectPtr<UNiagaraSystem> tileNiagaraSys) { tileNiagaraSys_ = tileNiagaraSys; }
 
 	// 配列内のマスの番号のセッター
 	void SetTileArrayIndex(FVector2D tileArrayIndex) { tileArrayIndex_ = tileArrayIndex; }

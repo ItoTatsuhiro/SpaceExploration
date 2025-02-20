@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../Scene/SelectTileScene/AC_StageMapManager.h"
+//#include "../Scene/SelectTileScene/AC_StageMapManager.h"
 #include "../../Public/GameData/TileData.h"
 #include "StageMapData.generated.h"
 
@@ -11,10 +11,6 @@
 // 二次元配列として扱うために用いる構造体
 // これを配列にすることで二次元配列として扱う
 // 
-// ※※※※※※※※※※※※※※※※※※※※※※※※※※※
-// こちらは別の場所では使用しない！！！
-// (FStageMapDataで配列にして使用する用途のため）
-// ※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // --------------------------------------------------------
 USTRUCT()
 struct FTileDataArray {

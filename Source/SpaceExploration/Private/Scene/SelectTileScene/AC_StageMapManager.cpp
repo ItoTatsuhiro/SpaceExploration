@@ -8,6 +8,9 @@
 #include "../../../Public/Scene/SelectTileScene/AC_MapTile_Battle.h"
 #include "../../../Public/Character/PlayerCharacter.h"
 #include "PlayerController/SelectPlanetPlayerController.h"
+#include "Manager/StageDataManager.h"
+#include "../../../Public/Manager/PlaySceneGameModeBase.h"
+#include "GameData/TileData.h"
 
 #include <Kismet/GameplayStatics.h>
 
@@ -34,6 +37,7 @@ AAC_StageMapManager::AAC_StageMapManager()
 
     //tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
     //tileObjectComponent_->SetupAttachment(RootComponent);
+
 
 }
 
@@ -145,30 +149,49 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
     }
 
 
-    // マスの種類をランダムで生成
-    if (galaxyRandomSelectComponent_)
-    {
-        // 子オブジェクトを取得
-        AActor* childActor = galaxyRandomSelectComponent_->GetChildActor();
+    //// マスの種類をランダムで生成
+    //if (galaxyRandomSelectComponent_)
+    //{
+    //    // 子オブジェクトを取得
+    //    AActor* childActor = galaxyRandomSelectComponent_->GetChildActor();
 
-        UE_LOG(LogTemp, Log, TEXT("コンポーネント確認"));
+    //    UE_LOG(LogTemp, Log, TEXT("コンポーネント確認"));
 
-        if (childActor) {
+    //    if (childActor) {
 
-            galaxyRandomSelect_ = Cast<AGalaxyRandomSelect>(childActor);
+    //        galaxyRandomSelect_ = Cast<AGalaxyRandomSelect>(childActor);
 
-            UE_LOG(LogTemp, Log, TEXT("子オブジェクト確認"));
+    //        UE_LOG(LogTemp, Log, TEXT("子オブジェクト確認"));
 
-            if (galaxyRandomSelect_) {
+    //        if (galaxyRandomSelect_) {
 
-                UE_LOG(LogTemp, Log, TEXT("オブジェクト生成"));
+    //            UE_LOG(LogTemp, Log, TEXT("オブジェクト生成"));
 
-                CreateTileObjArray({ 1, 2, 3, 2, 3, 2, 1 });
-            }
+    //            CreateTileObjArray({ 1, 2, 3, 2, 3, 2, 1 });
+    //        }
+    //    }
+    //}
 
-        }
 
+    // ゲームモード
+    APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>( UGameplayStatics::GetGameMode( GetWorld() ) );
+
+    // マップのデータの取得を試みる
+    if ( !(playsceneGameMode->GetStageDataManager()->TryGetStageMapData(stageMapData_)) ) {
+
+        UE_LOG(LogTemp, Log, TEXT("stageMapManager::SeqCreateTile　タイルデータ作成"));
+        playsceneGameMode->GetStageDataManager()->CreateTileArray({ 1, 2, 3, 2, 3, 2, 1 });
+
+        playsceneGameMode->GetStageDataManager()->TryGetStageMapData(stageMapData_);
     }
+    else {
+        UE_LOG(LogTemp, Log, TEXT("stageMapManager::SeqCreateTile　タイルデータ取得"));
+    }
+
+    // stageMapData_の内容をもとにオブジェクトを作成する
+    CreateTileObjArray({ 1, 2, 3, 2, 3, 2, 1 });
+
+
 
 
 
@@ -377,60 +400,81 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
     tileTypeArray_.Empty();
     tileObjArray_.Empty();
 
-    if (!galaxyRandomSelect_) {
-        return;
-    }
-
-
-    //if (!tileObjectComponent_) {
-    //    // 生成するマスを保持するためのコンポーネント作成
-    //    tileObjectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("tileObjectComponent"));
-    //    tileObjectComponent_->SetupAttachment(RootComponent);
+    //if (!galaxyRandomSelect_) {
+    //    UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　galaxyRandomSelectがありません"));
+    //    return;
     //}
 
 
+    // ゲームモード
+    APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 
-    // マスの種類をランダムで生成
-    tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(createTileNumArray);
+
+
+    UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　createTileNumArray.Num() = %d"), createTileNumArray.Num());
+
+
+    // playsceneGameMode->GetStageDataManager()->CreateTileArray(createTileNumArray);
+
+    // playsceneGameMode->GetStageDataManager()->TryGetStageMapData(stageMapData_);
+
+    //// マスの種類をランダムで生成
+    //tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(createTileNumArray);
+
+
+
+    UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　stageMapData_.tileDataArray_[row].Num() = %d"), stageMapData_.tileDataArray_.Num());
+
+
+
 
     // tileTypeArray_の中身に応じてそれぞれのマスのオブジェクトを生成し、
     // tileObjArray_に入れる処理
-    for (int row = 0; row < tileTypeArray_.Num(); ++row)
+    for (int row = 0; row < stageMapData_.tileDataArray_.Num(); ++row)
     {
         // 二重配列に入れる用の仮の配列
         FTileArray tempTileArray;
 
         AAC_MapTileBase* tempTile;
 
+
+
+
+        //// マスのデータを元にオブジェクトを生成する！！！！！！
+        //stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetTileType();
+
+
+
+        UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　stageMapData_.tileDataArray_[row].tileDataArray_.Num() = %d"), stageMapData_.tileDataArray_[row].tileDataArray_.Num());
+
+
+
         // マスのオブジェクトを生成
-        for (int col = 0; col < tileTypeArray_[row].typeArray.Num(); ++col)
+        for (int col = 0; col < stageMapData_.tileDataArray_[row].tileDataArray_.Num(); ++col)
         {
             // マスの種類に応じて実際のオブジェクトを生成する処理
-            switch (tileTypeArray_[row].typeArray[col])
+            switch ( stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetTileType() )
             {
             case E_TILE_TYPE::BATTLE:
                 tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
 
-                tempTileArray.TileArray.Emplace(tempTile);
+                
                 break;
 
             case E_TILE_TYPE::ITEM:
                 tempTile = GetWorld()->SpawnActor<AAC_MapTileItem>(itemTileClass_);
 
-                tempTileArray.TileArray.Emplace(tempTile);
                 break;
 
             case E_TILE_TYPE::HEAL:
 
                 tempTile = GetWorld()->SpawnActor<AAC_MapTileHeal>(healTileClass_);
-                tempTileArray.TileArray.Emplace(tempTile);
                 break;
 
             case E_TILE_TYPE::NONE:
                 tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
 
-                // NONEのときはBattleのクラスを生成するようにしておく
-                tempTileArray.TileArray.Emplace(tempTile);
+
 
                 UE_LOG(LogTemp, Log, TEXT("tileTypeArray_[%d].typeArray[%d] = NONE"), row, col);
                 break;
@@ -438,14 +482,21 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
             default:
                 tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
 
-                // 何にも当てはまらない場合は念のためBattleのクラスを生成するようにしておく
-                tempTileArray.TileArray.Emplace(tempTile);
 
                 UE_LOG(LogTemp, Log, TEXT("tileTypeArray_[%d].typeArray[%d] = OTHER"), row, col);
 
                 break;
             }
 
+
+            // データに設定されているのナイアガラシステムをオブジェクト自身に設定
+            tempTile->SetNiagaraSystem( stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetTileNiagaraSys() );
+
+
+            // 配列に追加
+            tempTileArray.TileArray.Emplace(tempTile);
+
+            // 
             tempTile->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 
 
@@ -455,12 +506,17 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
         tileObjArray_.Emplace(tempTileArray);
     }
 
+    UE_LOG(LogTemp, Log, TEXT("マス生成完了"));
+
+
     // マスをそれぞれ順番に配置
-    for (int row = 0; row < tileTypeArray_.Num(); ++row)
+    for (int row = 0; row < tileObjArray_.Num(); ++row)
     {
 
-        for (int col = 0; col < tileTypeArray_[row].typeArray.Num(); ++col)
+        for (int col = 0; col < tileObjArray_[row].TileArray.Num() ; ++col)
         {
+
+
             // 中身が無ければログを表示
             if (tileObjArray_[row].TileArray[col] == nullptr) {
 
@@ -476,6 +532,7 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
             // マスを配置する座標を計算
             FVector tilePos = basePos_ + FVector{ colPos, static_cast<float>(row), 0.0f } *tileSpace_;
 
+            UE_LOG(LogTemp, Log, TEXT("tile(%d, %d) pos = { %d, %d }"), row, col, tilePos.X, tilePos.Y);
 
             // 座標を設定
             tileObjArray_[row].TileArray[col]->SetActorLocation(tilePos);

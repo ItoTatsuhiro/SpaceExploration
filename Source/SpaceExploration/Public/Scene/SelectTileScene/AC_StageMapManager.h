@@ -9,6 +9,7 @@
 #include "../../Scene/SelectTileScene/E_Tile.h"
 #include "../../Manager/SequenceManager.h"
 #include "../AC_SceneManagerBase.h"
+#include "../../GameData/StageMapData.h"
 
 #include "AC_StageMapManager.generated.h"
 
@@ -112,13 +113,11 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TArray< FTileEnumArray > tileTypeArray_;
 
-	//// 生成したマスのオブジェクトを保持するためのコンポーネント
-	//UPROPERTY(VisibleAnywhere)
-	//class UChildActorComponent* tileObjectComponent_;
+
 
 	// マスのオブジェクトの配列
 	// tileTypeArrayから実際にオブジェクトを生成
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TArray< FTileArray > tileObjArray_;
 
 
@@ -166,7 +165,7 @@ private:
 
 	//和田記載-----------------------------------------------------------
 
-		//プレイヤーコントローラー
+	//プレイヤーコントローラー
 	UPROPERTY(VisibleAnywhere)
 	APlayerController* playercontroller = nullptr;
 
@@ -174,6 +173,13 @@ private:
 	AActor* playerlookingdowncamera = nullptr;
 
 	//-------------------------------------------------------------------
+
+
+	// ステージデータの変数
+	// ゲームモード経由でStageDataManagerから取得してくる
+	UPROPERTY(VisibleAnywhere)
+	FStageMapData stageMapData_;
+
 
 public:
 	// Called every frame

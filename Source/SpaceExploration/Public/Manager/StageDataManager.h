@@ -6,10 +6,11 @@
 #include "GameFramework/Actor.h"
 
 #include "../GameData/StageMapData.h"
+#include "../tsutsumi/GalaxyRandomSelect.h"
 
 #include "StageDataManager.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class SPACEEXPLORATION_API AStageDataManager : public AActor
 {
 	GENERATED_BODY()
@@ -45,13 +46,13 @@ protected:
 	// マス生成関連
 
 	// マスランダム生成のためのクラスのインスタンス用
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	AGalaxyRandomSelect* galaxyRandomSelect_ = nullptr;
 
 	// マスをランダム生成するためのGalaxyRandomSelectクラスのコンポーネント
 	// ランダムにマスを生成する際に、MakeTileArray関数を呼び出して使用する
 	UPROPERTY(VisibleAnywhere)
-	class UChildActorComponent* galaxyRandomSelectComponent_;
+	UChildActorComponent* galaxyRandomSelectComponent_;
 
 
 	// マスの情報を保存するUTileDataのクラス
@@ -65,7 +66,10 @@ protected:
 	// マスに使用するナイアガラの配列
 	// BP化した先で使用するナイアガラを設定する
 	UPROPERTY(EditAnywhere)
-	TArray< TSoftObjectPtr<UNiagaraSystem> > tileNiagaraArray_;
+	TArray< TObjectPtr<UNiagaraSystem> > tileNiagaraArray_;
+
+
+
 
 
 public:	
