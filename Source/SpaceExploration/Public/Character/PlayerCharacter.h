@@ -13,11 +13,12 @@ class UInputMappingContext;
 class USpringArmComponent;
 class UCameraComponent;
 class UUserWidget;
+class UNiagaraComponent;
 
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class SPACEEXPLORATION_API APlayerCharacter : public ACharacterBase
 {
 	GENERATED_BODY()
@@ -47,17 +48,16 @@ public:
 	// --------------------------------------------------------------------------
 	void Death() override;
 
+	// --------------------------------------------------------------------------
+	// 死亡時の処理を行う
+	// --------------------------------------------------------------------------
+	void SetCharacterLocation(const FVector& Location) override;
+
 	// -----------------------------------------------------------------
 	// プレイヤーを見下ろしているカメラのコンポーネントを返す。
 	// -----------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	UChildActorComponent* GetLookingDownCaemeraComponent() const { return LookingDownCameraComp; }
-
-	// -----------------------------------------------------------------
-	// プレイヤーの武器インベントリのコンポーネントを返す。
-	// -----------------------------------------------------------------
-	UFUNCTION(BlueprintCallable)
-	UWeaponInventoryComponent* GetWeaponInventoryComponent() { return WeaponInventoryComponent; }
 
 	// -----------------------------------------------------------------
 	// 指定した属性を持つ武器のアドレスを返す。
@@ -101,6 +101,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> CharacterStaticMeshComp;
 
+	// 噴射エフェクトのコンポーネント
+	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "Naigara", meta = (AllowPrivateAccess = "true") )
+	TObjectPtr<UNiagaraComponent> JetNiagaraComp;
+
 	// プレイヤーの各レベルのステータスや必要経験値を定義したデータテーブル
 	UPROPERTY(EditAnywhere, Category = "DataTable")
 	TSoftObjectPtr<UDataTable> PlayerDataTable;
@@ -116,6 +120,22 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	FVector TargetLocation;
 
+	// プレイヤーの通常位置
+	UPROPERTY(VisibleAnywhere)
+	FVector DefaultPlayerLocation;
+
+	// 通常のプレイヤー回転値
+	UPROPERTY(VisibleAnywhere)
+	FRotator DefaultPlayerRotate;
+
+	// 通常の見下ろしカメラアームの回転値
+	UPROPERTY(VisibleAnywhere)
+	FRotator DefaultLookingDownCameraRotate;
+
+	// 待機時のアングル
+	UPROPERTY(VisibleAnywhere)
+	int IdleAngle;
+
 	// 移動速度
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed;
@@ -124,19 +144,25 @@ private:
 	float DeathEffectTime;
 
 	// 見下ろし方のカメラのスプリングアーム
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, Category = "Components")
 	USpringArmComponent* LookingDownCameraSpringArm;
 
 	// 見下ろし方のカメラコンポーネント
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, Category = "Components")
 	UChildActorComponent* LookingDownCameraComp;
-
-	// 武器のインベントリコンポーネント
-	UPROPERTY(VisibleAnywhere, Category = "Ineventory", BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UWeaponInventoryComponent* WeaponInventoryComponent;
 	
 private:
+	// -----------------------------------------------------------------
+	// 指定したレベルのプレイヤーのステータスをセットする
+	// 
+	// SetLevel...セットするステータスのレベル
+	// -----------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	void SetStatusForDataTable(int SetLevel);
+
+	// -----------------------------------------------------------------
 	// 左クリックを押したとき、インターフェースを実行する。
+	// -----------------------------------------------------------------
 	void ClickedMouseLeftButton();
 
 	// 待機シーケンス

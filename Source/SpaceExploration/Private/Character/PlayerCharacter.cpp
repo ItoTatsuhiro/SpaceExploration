@@ -7,6 +7,7 @@
 #include <EnhancedInputSubsystems.h>
 #include "InputAction.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/PlayerStart.h"
 #include "Camera/BaseCamera.h"
 #include "Weapon/WeaponInventoryComponent.h"
 #include "Weapon/WeaponBase.h"
@@ -15,9 +16,10 @@
 #include "NiagaraComponent.h"
 #include <Blueprint/WidgetBlueprintLibrary.h>
 #include <Kismet/KismetSystemLibrary.h>
+#include "Kismet/GameplayStatics.h"
 
 
-APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(2000.0f)
+APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), IdleAngle(0), MoveSpeed(2000.0f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,16 +28,17 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	CharacterStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayeMesh"));
 
-	CharacterStaticMeshComp->SetupAttachment(DefaultSceneRoot);
+	CharacterStaticMeshComp->SetupAttachment(RootComponent);
 
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 
 	// ----------- カメラの作成 -----------------------------------------------------
 	LookingDownCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("LookingDownCameraSpringArm"));
-	LookingDownCameraSpringArm->SetupAttachment(DefaultSceneRoot);
+	LookingDownCameraSpringArm->SetMobility(EComponentMobility::Movable);
+	LookingDownCameraSpringArm->SetupAttachment(RootComponent);
 
 	LookingDownCameraSpringArm->TargetArmLength = 1000.f;
-	LookingDownCameraSpringArm->SetWorldRotation(FRotator(-90.f, 0.f, 0.f));
+	LookingDownCameraSpringArm->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
 
 	LookingDownCameraComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("LookingDownCameraComponent"));
 	LookingDownCameraComp->SetChildActorClass(ABaseCamera::StaticClass());
@@ -43,16 +46,13 @@ APlayerCharacter::APlayerCharacter() : TargetLocation({ 0, 0, 0 }), MoveSpeed(20
 
 	// ----------- ナイアガラの初期化 ------------------------------------------------
 
+	JetNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("JetNiagara"));
+	JetNiagaraComp->SetMobility(EComponentMobility::Movable);
+	JetNiagaraComp->SetupAttachment(RootComponent);
+
 	DamageNiagaraComp->SetActive(false);
 	DeathNiagaraComp->SetActive(false);
 
-	// ----------- 武器インベントリコンポーネントの生成 ------------------------------
-	WeaponInventoryComponent = CreateDefaultSubobject<UWeaponInventoryComponent>(TEXT("Weapon Inventory"));
-
-	if (!WeaponInventoryComponent)
-	{
-		UE_LOG(LogTemp, Error, TEXT("APlayCharacter:WeaponInventoryの生成に失敗しました。"));
-	}
 
 }
 
@@ -63,7 +63,13 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	JetNiagaraComp->Activate(true);
+
+	// データテーブルをロード
 	PlayerDataTable.LoadSynchronous();
+
+	// プレイヤーのステータスを設定
+	SetStatusForDataTable(1);
 
 	// PlayerController の取得
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
@@ -77,17 +83,21 @@ void APlayerCharacter::BeginPlay()
 
 	PlayerController->SetViewTargetWithBlend(LookingDownCameraComp->GetChildActor());
 
-	if (!WeaponInventoryComponent) {
-		UE_LOG(LogTemp, Error, TEXT("APlayCharacter::BeginPlay() : WeaponInventoryの取得に失敗しました。"));
+	// プレイヤーのトランスフォームを設定
+	const APlayerStart* PlayerStart = Cast<APlayerStart>( UGameplayStatics::GetActorOfClass( GetWorld(), APlayerStart::StaticClass() ) );
+
+	if (!PlayerStart)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayCharacter::BeginPlay() : PlayerStartの取得に失敗しました。"));
 		return;
 	}
 
-	WeaponInventoryComponent->CreateElememtWeapons();
+	SetActorTransform(PlayerStart->GetActorTransform());
 
-	auto ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
+	DefaultPlayerLocation = PlayerStart->GetActorLocation();
+	DefaultPlayerRotate = PlayerStart->GetActorRotation();
+	DefaultLookingDownCameraRotate = LookingDownCameraSpringArm->GetRelativeRotation();
 
-	// EquippedWeapon = ElementWeapons[0];
-	
 	//// マウスカーソルのモードを UI モードに設定 (必要に応じて)
 	//FInputModeUIOnly InputMode;
 	//PlayerController->SetInputMode(InputMode);
@@ -155,6 +165,10 @@ void APlayerCharacter::Death()
 	// メッシュを非表示にする
 	CharacterStaticMeshComp->SetHiddenInGame(true);
 	EquippedWeapon->SetActorHiddenInGame(true);
+	
+	// 噴射演出を非表示
+	JetNiagaraComp->Deactivate();
+	JetNiagaraComp->SetHiddenInGame(true);
 
 	DeathNiagaraComp->Activate();
 	SequenceElapsedTime = 0.0f;
@@ -164,29 +178,15 @@ void APlayerCharacter::Death()
 	UE_LOG(LogTemp, Log, TEXT("APlayerCharacter::Death() : プレイヤーはやられた"));
 }
 
-// ----------------------------------------------------------------
-// 指定した属性の武器を返す。
-// ----------------------------------------------------------------
+void APlayerCharacter::SetCharacterLocation(const FVector& Location)
+{
+	ACharacterBase::SetCharacterLocation(Location);
+
+	DefaultPlayerLocation = Location;
+}
+
 AWeaponBase* APlayerCharacter::GetElementWeapon(EElement WeaponElement)
 {
-	TArray<AWeaponBase*>& ElementWeapons = WeaponInventoryComponent->GetElementWeapons();
-
-	// インベントリの各属性の武器と、引数の属性を確認する
-	for (int i = 0; i < ElementWeapons.Num(); ++i)
-	{
-		if (!ElementWeapons[i])
-		{
-			continue;
-		}
-
-		// インベントリの武器と属性が一致したら、その武器のアドレスを返す。
-		if (ElementWeapons[i]->GetWeaponElement() == WeaponElement)
-		{
-			return ElementWeapons[i];
-		}
-	}
-
-	// 存在しない場合、nullptrを返す。（基本的にはエラー）
 	return nullptr;
 }
 
@@ -198,7 +198,23 @@ void APlayerCharacter::BeginMoveTargetLocation(const FVector& Location)
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Player Move TargetLocation：x = %1.f, y = %1.f, z = %1.f"), 
 		Location.X, Location.Y, Location.Z )
 		, true, true, FColor::Cyan, 2.f, TEXT(""));
+
+	FVector ActorLocation = GetActorLocation();
+
 	TargetLocation = Location;
+
+	// アクターの角度を調整
+	FVector Distance = GetActorLocation() - TargetLocation;
+
+	float Angle = FMath::RadiansToDegrees( FMath::Atan2(Distance.Y, Distance.X) ) - 90.f;
+
+	FRotator ActorRotation = GetActorRotation();
+	FRotator NewRotation = FRotator(ActorRotation.Pitch, Angle, ActorRotation.Roll);
+
+	SetActorRotation(NewRotation);
+	LookingDownCameraSpringArm->SetRelativeRotation(FRotator(DefaultLookingDownCameraRotate.Pitch, DefaultPlayerRotate.Yaw - Angle, DefaultLookingDownCameraRotate.Roll ) );
+
+	// 目標位置にに移動するシーケンスにデリゲートを切り替える
 	PlayerSequence.BindUObject(this, &APlayerCharacter::SeqMoveTargetLocation);
 
 	E_CharacterActState = ECharacterActState::Move;
@@ -257,25 +273,39 @@ bool APlayerCharacter::CanLevelUp()
 // -----------------------------------------------------------------
 void APlayerCharacter::ExecuteLevelUp()
 {
+	SetStatusForDataTable(CharacterStatus.PlayerLevel + 1);
+
+	UE_LOG(LogClass, Log, TEXT("APlayerCharacter::ExecuteLevelUp() : レベルアップ完了") );
+}
+
+// -----------------------------------------------------------------
+// 指定したレベルのプレイヤーのステータスをセットする
+// 
+// SetLevel...セットするステータスのレベル
+// -----------------------------------------------------------------
+void APlayerCharacter::SetStatusForDataTable(int SetLevel)
+{
+	SetLevel -= 1;
+
 	if (!PlayerDataTable)
 	{
-		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::ExecuteLevelUp() : PlayerDataTable がセットされていません"));
+		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::SetStatusForDataTable() : PlayerDataTable がセットされていません"));
 		return;
 	}
 
 	TArray<FName> Names = PlayerDataTable->GetRowNames();
 
-	if (CharacterStatus.PlayerLevel < 0 || CharacterStatus.PlayerLevel >= Names.Num())
+	if (SetLevel < 0 || SetLevel >= Names.Num())
 	{
-		UE_LOG(LogClass, Warning, TEXT("APlayerCharacter::ExecuteLevelUp() : %d は PlayerDataTable の行の範囲外です。"), CharacterStatus.PlayerLevel);
+		UE_LOG(LogClass, Warning, TEXT("APlayerCharacter::SetStatusForDataTable() : %d は PlayerDataTable の行の範囲外です。"), SetLevel);
 		return;
 	}
 
-	FStatus* NextStatus = PlayerDataTable->FindRow<FStatus>(Names[CharacterStatus.PlayerLevel], FString());
+	FStatus* NextStatus = PlayerDataTable->FindRow<FStatus>(Names[SetLevel], FString());
 
 	if (!NextStatus)
 	{
-		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::ExecuteLevelUp() : PlayerDataTable に FStatus型のデータテーブルが存在しませんでした"));
+		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::SetStatusForDataTable() : PlayerDataTable に FStatus型のデータテーブルが存在しませんでした"));
 		return;
 	}
 
@@ -286,7 +316,6 @@ void APlayerCharacter::ExecuteLevelUp()
 	CharacterStatus.DefencePower = NextStatus->DefencePower;
 	CharacterStatus.Speed = NextStatus->Speed;
 
-	UE_LOG(LogClass, Log, TEXT("APlayerCharacter::ExecuteLevelUp() : レベルアップ完了") );
 }
 
 //　----------------------------------------------------------------
@@ -344,6 +373,17 @@ void APlayerCharacter::ClickedMouseLeftButton()
 // ----------------------------------------------------------------
 bool APlayerCharacter::SeqIdle(const float DeltaTime)
 {
+	IdleAngle += 2;
+	IdleAngle %= 360;
+
+	/*SetActorLocation(
+		FVector(
+			DefaultPlayerLocation.X,
+			DefaultPlayerLocation.Y,
+			DefaultPlayerLocation.Z + ( FMath::Sin( FMath::DegreesToRadians(IdleAngle) ) * 100.f ) 
+		) 
+	);*/
+
 	return true;
 }
 
@@ -367,6 +407,10 @@ bool APlayerCharacter::SeqMoveTargetLocation(const float DeltaTime)
 
 	if (FVector::Dist(GetActorLocation(), TargetLocation) <= 100.f) {
 		SetActorLocation(TargetLocation);
+		
+		SetActorRelativeRotation(DefaultPlayerRotate);
+		LookingDownCameraSpringArm->SetRelativeRotation(DefaultLookingDownCameraRotate);
+
 		PlayerSequence.BindUObject(this, &APlayerCharacter::SeqIdle);
 		E_CharacterActState = ECharacterActState::Idle;
 	}
