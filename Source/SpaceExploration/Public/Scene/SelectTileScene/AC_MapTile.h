@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 
 #include "E_Tile.h"
+#include "NiagaraComponent.h" 
 #include "../../Character/MouseButtonEvent.h"
 #include "AC_MapTile.generated.h"
 
@@ -25,9 +26,11 @@ public:
 	AAC_MapTileBase();
 
 	// マスの種類のゲッター
+	UFUNCTION(BlueprintCallable)
 	inline E_TILE_TYPE getTileType() { return tileType_; }
 
 	// マスのイベントが完了したか判定を返す
+	UFUNCTION(BlueprintCallable)
 	bool IsEventCompleted()
 	{
 		return bIsEvnetCompleted;
@@ -46,6 +49,7 @@ protected:
 	// デフォルト値はNONE
 	UPROPERTY(EditAnywhere)
 	E_TILE_TYPE tileType_;
+
 
 
 	//------------------------------------------------------------------
@@ -95,6 +99,19 @@ public:
 	// 
 	// 使用例）SetStaticMesh(TEXT("/Game/StarterContent/Shapes/Shape_Sphere"));
 	void SetStaticMesh(const TCHAR* fileName);
+
+
+
+	// ナイアガラシステムをセットする関数
+	// 引数：planetNiagaraComp...セットするナイアガラ
+	inline void SetNiagaraSystem( TObjectPtr<UNiagaraSystem> niagaraSystem) {
+
+		// ナイアガラシステムをセット
+		planetNiagaraComp_->SetAsset(niagaraSystem);
+
+	}
+
+
 
 	// 左クリックをされた時の処理を行う。
 	// プレイヤーを自身の惑星まで移動させる。

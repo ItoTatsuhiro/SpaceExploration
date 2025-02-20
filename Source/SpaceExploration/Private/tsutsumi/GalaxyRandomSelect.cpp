@@ -190,16 +190,16 @@ void AGalaxyRandomSelect::BeginPlay()
 
 
 
-	for (int v = 0; v < tileNumHolizontal_.Num(); ++v) {
+	//for (int v = 0; v < tileNumHolizontal_.Num(); ++v) {
 
 
-		for (int h = 0; h < tileNumHolizontal_[v]; ++h) {
+	//	for (int h = 0; h < tileNumHolizontal_[v]; ++h) {
 
-			UE_LOG(LogTemp, Log, TEXT("x:%d, y:%d, tileType = %d"), v, h, tileArray_[v].typeArray[h]);
+	//		UE_LOG(LogTemp, Log, TEXT("x:%d, y:%d, tileType = %d"), v, h, tileArray_[v].typeArray[h]);
 
-		}
+	//	}
 
-	}
+	//}
 
 	
 
@@ -219,6 +219,10 @@ void AGalaxyRandomSelect::Tick(float DeltaTime)
 TArray<FTileEnumArray> AGalaxyRandomSelect::MakeTileArray(TArray<int> tileNumHolizontal) {
 
 	tileArray_.Empty();
+
+
+	UE_LOG(LogTemp, Log, TEXT("AGalaxyRandomSelect::MakeTileArray tileNumHolizontal.Num() = %d "), tileNumHolizontal.Num());
+
 
 	// マスの数分、配列の枠を生成
 	for (int v = 0; v < tileNumHolizontal.Num(); ++v) {
@@ -260,7 +264,19 @@ TArray<FTileEnumArray> AGalaxyRandomSelect::MakeTileArray(TArray<int> tileNumHol
 			if (tileArray_[v].typeArray[h] != E_TILE_TYPE::NONE) {
 				continue;
 			}
-			tileArray_[v].typeArray[h] = RandomTileSelect();
+
+			// 一番後ろのマスの場合はバトルマスにする
+			if (v == tileNumHolizontal.Num() - 1) {
+				
+				tileArray_[v].typeArray[h] = E_TILE_TYPE::BATTLE;
+
+			}
+			// そうでないときはランダムに選択する
+			else {
+
+				tileArray_[v].typeArray[h] = RandomTileSelect();
+			}
+
 		}
 	}
 

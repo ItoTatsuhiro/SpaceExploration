@@ -1,11 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Manager/StageDataManager.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "NiagaraSystem.h"
-#include "Algo/RandomShuffle.h"
+#include "Manager/PlaySceneGameModeBase.h"
+
+#include <Kismet/GameplayStatics.h>
+
+
 
 // Sets default values
 AStageDataManager::AStageDataManager()
@@ -15,10 +19,15 @@ AStageDataManager::AStageDataManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 
-	//// ƒ‰ƒ“ƒ_ƒ€¶¬‚·‚é‚½‚ß‚ÌƒNƒ‰ƒX‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
-	//galaxyRandomSelectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("GalaxyRandomSelectComponent"));
-	//galaxyRandomSelectComponent_->SetChildActorClass(AGalaxyRandomSelect::StaticClass());
-	//galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
+	// ãƒ©ãƒ³ãƒ€ãƒ ç”Ÿæˆã™ã‚‹ãŸã‚ã®ã‚¯ãƒ©ã‚¹ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
+	galaxyRandomSelectComponent_ = CreateDefaultSubobject<UChildActorComponent>(TEXT("GalaxyRandomSelectComponent"));
+	galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
+	galaxyRandomSelectComponent_->SetChildActorClass(AGalaxyRandomSelect::StaticClass());
+	
+
+	
 
 }
 
@@ -26,12 +35,47 @@ AStageDataManager::AStageDataManager()
 void AStageDataManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// ”O‚Ì‚½‚ß‹ó‚É‚µ‚Ä‚¨‚­
+
+	// ã‚²ãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰å–å¾—
+	APlaySceneGameModeBase* playSceneGameMode = Cast<APlaySceneGameModeBase>( UGameplayStatics::GetGameMode( GetWorld() ) );
+
+	// ã“ã®ã‚¯ãƒ©ã‚¹ã‚’ã‚²ãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰ã«ã‚»ãƒƒãƒˆã™ã‚‹
+	playSceneGameMode->SetStageDataManager(this);
+
+
+
+	if (galaxyRandomSelectComponent_)
+	{
+		// æ˜ç¤ºçš„ã«å­ã‚¢ã‚¯ã‚¿ãƒ¼ã‚’ç”Ÿæˆ
+		galaxyRandomSelectComponent_->CreateChildActor();
+
+		// å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å–å¾—
+		AActor* childActor = galaxyRandomSelectComponent_->GetChildActor();
+
+		if (childActor)
+		{
+			galaxyRandomSelect_ = Cast<AGalaxyRandomSelect>(childActor);
+			UE_LOG(LogTemp, Log, TEXT("å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒæ­£ã—ãç”Ÿæˆã•ã‚Œã¾ã—ãŸ"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒå–å¾—ã§ãã¾ã›ã‚“"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("galaxyRandomSelectComponent_ ãŒ nullptr ã§ã™"));
+	}
+
+
+
+	// å¿µã®ãŸã‚ç©ºã«ã—ã¦ãŠã
 	tileNiagaraArray_.Empty();
-	// w’è‚µ‚½ƒtƒHƒ‹ƒ_‚ÌƒiƒCƒAƒKƒ‰‚ğ“Ç‚İ‚Ş
+	// æŒ‡å®šã—ãŸãƒ•ã‚©ãƒ«ãƒ€ã®ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã‚’èª­ã¿è¾¼ã‚€
 	GetNiagaraSystemsFromFolder("/Game/graphics/alpha/Master_planet/FX_planet_naiagara");
 
+
+	// CreateTileArray({ 1, 2, 3, 2, 3, 2, 1 });
 }
 
 // Called every frame
@@ -44,35 +88,35 @@ void AStageDataManager::Tick(float DeltaTime)
 
 
 // =================================================================================================================
-// ƒXƒe[ƒW‚Ìƒf[ƒ^‚ÌŠm”FEæ“¾‚ğs‚¤ŠÖ”
+// ã‚¹ãƒ†ãƒ¼ã‚¸ã®ãƒ‡ãƒ¼ã‚¿ã®ç¢ºèªãƒ»å–å¾—ã‚’è¡Œã†é–¢æ•°
 // 
-// ˆø”FstagaMapData...Šù‚É‘¶İ‚·‚éƒf[ƒ^‚ğ‘ã“ü‚·‚é‚½‚ß‚Ì•Ï”B
-//		QÆ‚Å“n‚·‚±‚Æ‚ÅAƒf[ƒ^‚ğ“ü‚ê‚é‚±‚Æ‚ª‚Å‚«‚é‚æ‚¤‚É‚·‚é
+// å¼•æ•°ï¼šstagaMapData...æ—¢ã«å­˜åœ¨ã™ã‚‹ãƒ‡ãƒ¼ã‚¿ã‚’ä»£å…¥ã™ã‚‹ãŸã‚ã®å¤‰æ•°ã€‚
+//		å‚ç…§ã§æ¸¡ã™ã“ã¨ã§ã€ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã‚‹ã“ã¨ãŒã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹
 // 
-// ‚PDƒf[ƒ^‚ª‘¶İ‚·‚éê‡‚Íˆø”‚ÌstageMapData‚Éƒf[ƒ^‚ğ“ü‚ê‚½‚¤‚¦‚ÅtrueŒ^‚ğ•Ô‚·
-// ‚QDƒf[ƒ^‚ª‘¶İ‚µ‚È‚¢ê‡‚Íƒf[ƒ^‚ğ“ü‚ê‚¸‚ÉfalseŒ^‚ğ•Ô‚·
+// ï¼‘ï¼ãƒ‡ãƒ¼ã‚¿ãŒå­˜åœ¨ã™ã‚‹å ´åˆã¯å¼•æ•°ã®stageMapDataã«ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚ŒãŸã†ãˆã§trueå‹ã‚’è¿”ã™
+// ï¼’ï¼ãƒ‡ãƒ¼ã‚¿ãŒå­˜åœ¨ã—ãªã„å ´åˆã¯ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œãšã«falseå‹ã‚’è¿”ã™
 bool AStageDataManager::TryGetStageMapData(FStageMapData& stageMapData)
 {
 
-	// ƒ}ƒbƒvƒf[ƒ^‚ªŠù‚É—LŒø‚È‚Æ‚«
+	// ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ãŒæ—¢ã«æœ‰åŠ¹ãªã¨ã
 	if (stageMapData_.bIsValid_) {
 
-		// ˆø”‚Æ‚µ‚Ä“n‚µ‚½•Ï”‚É—LŒø‚Èƒ}ƒbƒvƒf[ƒ^‚ğ“ü‚ê‚é
+		// å¼•æ•°ã¨ã—ã¦æ¸¡ã—ãŸå¤‰æ•°ã«æœ‰åŠ¹ãªãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã‚‹
 		stageMapData = stageMapData_;
 		
 		return true;
 	}
 
-	// —LŒø‚Èƒ}ƒbƒvƒf[ƒ^‚ª‘¶İ‚µ‚È‚©‚Á‚½‚Æ‚«false
+	// æœ‰åŠ¹ãªãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ãŒå­˜åœ¨ã—ãªã‹ã£ãŸã¨ãfalse
 	return false;
 }
 
 
 
 // =================================================================================================================
-// ƒ}ƒX‚ğˆÚ“®‚·‚éÛ‚ÉŒÄ‚Ño‚·ŠÖ”
-// Œ»İ‚¢‚éƒ}ƒX nowTilePosIndex_ ‚ğˆÚ“®æ‚Ìƒ}ƒX‚É•ÏX‚·‚é
-// Ÿ‚Ìƒ}ƒX‚ÉˆÚ“®‚·‚éÛ‚ÍŒÄ‚Ño‚·‚±‚ÆI
+// ãƒã‚¹ã‚’ç§»å‹•ã™ã‚‹éš›ã«å‘¼ã³å‡ºã™é–¢æ•°
+// ç¾åœ¨ã„ã‚‹ãƒã‚¹ nowTilePosIndex_ ã‚’ç§»å‹•å…ˆã®ãƒã‚¹ã«å¤‰æ›´ã™ã‚‹
+// æ¬¡ã®ãƒã‚¹ã«ç§»å‹•ã™ã‚‹éš›ã¯å‘¼ã³å‡ºã™ã“ã¨ï¼
 void AStageDataManager::MoveTile(const FVector2D& nextTileIndex)
 {
 
@@ -85,90 +129,128 @@ void AStageDataManager::MoveTile(const FVector2D& nextTileIndex)
 
 
 // =================================================================================================================
-// ƒ}ƒX‚ğ’Ç‰Á‚Å¶¬‚·‚éŠÖ”
-// ˆø”FtileNumArray...V‚µ‚­¶¬‚·‚éƒ}ƒX‚Ì”z—ñ‚Ì‘å‚«‚³
+// ãƒã‚¹ã‚’è¿½åŠ ã§ç”Ÿæˆã™ã‚‹é–¢æ•°
+// å¼•æ•°ï¼štileNumArray...æ–°ã—ãç”Ÿæˆã™ã‚‹ãƒã‚¹ã®é…åˆ—ã®å¤§ãã•
 // ----------------------------------------------------------------------
-// —áj{ 1, 2, 3, 2 }‚Æ‚µ‚½ê‡AˆÈ‰º‚Ì‚æ‚¤‚Èƒ}ƒX‚ğ¶¬‚·‚é‚±‚Æ‚ğ‘z’è
-// 3	@Z@Z	
-// 2	Z@Z@Z
-// 1	@Z@Z
-// 0	@@Z
+// ä¾‹ï¼‰{ 1, 2, 3, 2 }ã¨ã—ãŸå ´åˆã€ä»¥ä¸‹ã®ã‚ˆã†ãªãƒã‚¹ã‚’ç”Ÿæˆã™ã‚‹ã“ã¨ã‚’æƒ³å®š
+// 3	ã€€ã€‡ã€€ã€‡	
+// 2	ã€‡ã€€ã€‡ã€€ã€‡
+// 1	ã€€ã€‡ã€€ã€‡
+// 0	ã€€ã€€ã€‡
 // ----------------------------------------------------------------------
 void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
 {
 	// -----------------------------------------------------------------------------------
-	// ƒ}ƒX‚Ìí—Ş‚ğƒ‰ƒ“ƒ_ƒ€‚Å¶¬
+	// ãƒã‚¹ã®ç¨®é¡ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã§ç”Ÿæˆ
 
 
-	if (galaxyRandomSelectComponent_)
-	{
-		// qƒIƒuƒWƒFƒNƒg‚ğæ“¾
-		AActor* childActor = galaxyRandomSelectComponent_->GetChildActor();
+	//if (galaxyRandomSelectComponent_)
+	//{
+	//	// å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å–å¾—
+	//	AActor* childActor = galaxyRandomSelectComponent_->GetChildActor();
 
-		UE_LOG(LogTemp, Log, TEXT("ƒRƒ“ƒ|[ƒlƒ“ƒgŠm”F"));
+	//	UE_LOG(LogTemp, Log, TEXT("ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç¢ºèª"));
 
-		if (childActor) {
+	//	if (childActor) {
 
-			galaxyRandomSelect_ = Cast<AGalaxyRandomSelect>(childActor);
+	//		galaxyRandomSelect_ = Cast<AGalaxyRandomSelect>(childActor);
 
-			UE_LOG(LogTemp, Log, TEXT("qƒIƒuƒWƒFƒNƒgŠm”F"));
+	//		UE_LOG(LogTemp, Log, TEXT("å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç¢ºèª"));
 
-			if (galaxyRandomSelect_) {
+	//		if (galaxyRandomSelect_) {
 
-				UE_LOG(LogTemp, Log, TEXT("ƒ}ƒXí—Ş¶¬"));
+	//			UE_LOG(LogTemp, Log, TEXT("ãƒã‚¹ç¨®é¡ç”Ÿæˆ"));
 
-				// ƒ}ƒX‚Ìí—Ş‚Ì”z—ñ‚ğì¬
-				tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(tileNumArray);
+	//			// ãƒã‚¹ã®ç¨®é¡ã®é…åˆ—ã‚’ä½œæˆ
+	//			tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(tileNumArray);
 
-			}
+	//		}
 
-		}
+
+	//	}
+
+	//}
+
+
+	if (galaxyRandomSelect_) {
+
+		UE_LOG(LogTemp, Log, TEXT("ãƒã‚¹ç¨®é¡ç”Ÿæˆ"));
+
+		// ãƒã‚¹ã®ç¨®é¡ã®é…åˆ—ã‚’ä½œæˆ
+		tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(tileNumArray);
 
 	}
 
 
-	// -----------------------------------------------------------------------------------
-	// í—Ş‚ÉŠî‚Ã‚¢‚Äƒf[ƒ^‚ğì¬
+	if (galaxyRandomSelect_ == nullptr) {
+		UE_LOG(LogClass, Log, TEXT("galaxyRandomSelectãŒã‚ã‚Šã¾ã›ã‚“"));
+	}
 
-	// •Û‘¶‚³‚ê‚Ä‚¢‚éƒiƒCƒAƒKƒ‰‚Ì”‚ğŠm”F
+
+	// -----------------------------------------------------------------------------------
+	// ç¨®é¡ã«åŸºã¥ã„ã¦ãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
+
+	// ä¿å­˜ã•ã‚Œã¦ã„ã‚‹ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã®æ•°ã‚’ç¢ºèª
 	int niagaraCount = tileNiagaraArray_.Num();
 
 
 	for (int y = 0; y < tileTypeArray_.Num(); ++y) {
 
-		// ƒXƒe[ƒWƒf[ƒ^‚É’Ç‰Á‚·‚é—p‚Ìƒ}ƒX‚Ì”z—ñ
+		// ã‚¹ãƒ†ãƒ¼ã‚¸ãƒ‡ãƒ¼ã‚¿ã«è¿½åŠ ã™ã‚‹ç”¨ã®ãƒã‚¹ã®é…åˆ—
 		FTileDataArray newTileDataArray;
 		
 
 		for (int x = 0; x < tileTypeArray_[y].typeArray.Num(); ++x) {			
 			
-			UTileData* newTileData = GetWorld()->SpawnActor<UTileData>(tileDataClass_);
+			// UTileData* newTileData = GetWorld()->SpawnActor<UTileData>(tileDataClass_);
+			UTileData* newTileData = NewObject<UTileData>(this);
 
 			//------------------------------------------------------------------
-			// ƒf[ƒ^‚ğƒZƒbƒg
+			// ãƒ‡ãƒ¼ã‚¿ã‚’ã‚»ãƒƒãƒˆ
 
-			// ƒiƒCƒAƒKƒ‰‚ª•Û‘¶‚³‚ê‚Ä‚¢‚é‚Æ‚«
+			// ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ãŒä¿å­˜ã•ã‚Œã¦ã„ã‚‹ã¨ã
 			if (tileNiagaraArray_.Num() > 0) {
 				
-				// ƒZƒbƒg‚·‚éƒiƒCƒAƒKƒ‰‚Ì”Ô†‚ğŒˆ’è
+
+
+				// ã‚»ãƒƒãƒˆã™ã‚‹ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã®ç•ªå·ã‚’æ±ºå®š
 				int setNiagaraNum = FMath::RandRange(0, niagaraCount - 1);
-				// ƒiƒCƒAƒKƒ‰‚ğƒZƒbƒg
-				newTileData->SetTileNiagaraSys(tileNiagaraArray_[setNiagaraNum]);
+
+
+				if (tileNiagaraArray_[setNiagaraNum]) {
+
+					// ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã‚’ã‚»ãƒƒãƒˆ
+					newTileData->SetTileNiagaraSys(tileNiagaraArray_[setNiagaraNum]);
+
+				
+				}
+				
 			}
 
-			// ƒ}ƒX‚Ìí—ŞƒZƒbƒg
+			// ãƒã‚¹ã®ç¨®é¡ã‚»ãƒƒãƒˆ
 			newTileData->SetTileType(tileTypeArray_[y].typeArray[x]);		
-			// ƒ}ƒX‚Ì”z—ñ“à‚Å‚Ì”Ô†ƒZƒbƒg
+			// ãƒã‚¹ã®é…åˆ—å†…ã§ã®ç•ªå·ã‚»ãƒƒãƒˆ
 			newTileData->SetTileArrayIndex( FVector2D( x, y ) );				
 
-			// ”z—ñ‚É’Ç‰Á
+			// é…åˆ—ã«è¿½åŠ 
 			newTileDataArray.tileDataArray_.Add(newTileData);
 		}
 
-		// ”z—ñ‚ğƒXƒe[ƒWƒf[ƒ^‚É’Ç‰Á
+		// é…åˆ—ã‚’ã‚¹ãƒ†ãƒ¼ã‚¸ãƒ‡ãƒ¼ã‚¿ã«è¿½åŠ 
 		stageMapData_.tileDataArray_.Add( newTileDataArray );
 
 	}
+
+
+	UE_LOG(LogTemp, Log, TEXT("stageDataManager::CreateTileArray stageMapData_.tileDataArray.Num() = %d"), stageMapData_.tileDataArray_.Num() );
+
+	// ãƒ‡ãƒ¼ã‚¿ã‚’æœ‰åŠ¹ã«ã™ã‚‹
+	stageMapData_.bIsValid_ = true;
+
+	// ã‚²ãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰å–å¾—
+	APlaySceneGameModeBase* playSceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	// ç”Ÿæˆã—ãŸã‚¹ãƒ†ãƒ¼ã‚¸ã®ãƒ‡ãƒ¼ã‚¿ã‚’ã‚²ãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰ã«ã‚»ãƒƒãƒˆã™ã‚‹
+	playSceneGameMode->SetStageMapData(&stageMapData_);
 
 
 }
@@ -176,37 +258,45 @@ void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
 
 
 // =================================================================================================================
-// w’è‚µ‚½ƒtƒHƒ‹ƒ_“à‚ÌƒiƒCƒAƒKƒ‰‚ğ“Ç‚İ‚ñ‚Å•Û‘¶‚·‚éŠÖ”
+// æŒ‡å®šã—ãŸãƒ•ã‚©ãƒ«ãƒ€å†…ã®ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã‚’èª­ã¿è¾¼ã‚“ã§ä¿å­˜ã™ã‚‹é–¢æ•°
 // 
-// ˆø”FFolderPath...ƒiƒCƒAƒKƒ‰‚Ì•Û‘¶ƒtƒHƒ‹ƒ_‚ÌƒpƒX
+// å¼•æ•°ï¼šFolderPath...ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã®ä¿å­˜ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ‘ã‚¹
 void AStageDataManager::GetNiagaraSystemsFromFolder(const FString& folderPath)
 {
-	// ƒAƒZƒbƒgƒŒƒWƒXƒgƒŠ‚ğæ“¾
+	// ã‚¢ã‚»ãƒƒãƒˆãƒ¬ã‚¸ã‚¹ãƒˆãƒªã‚’å–å¾—
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 
-	// ƒtƒHƒ‹ƒ_“à‚ÌƒAƒZƒbƒg‚ğæ“¾
+	// ãƒ•ã‚©ãƒ«ãƒ€å†…ã®ã‚¢ã‚»ãƒƒãƒˆã‚’å–å¾—
 	FARFilter Filter;
-	Filter.PackagePaths.Add(*folderPath); // w’è‚µ‚½ƒtƒHƒ‹ƒ_“à‚ğŒŸõ
-	Filter.bRecursivePaths = true;        // ƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ
-	Filter.ClassPaths.Add(UNiagaraSystem::StaticClass()->GetClassPathName()); // ƒiƒCƒAƒKƒ‰ƒVƒXƒeƒ€‚Ì‚İ
+	Filter.PackagePaths.Add(*folderPath); // æŒ‡å®šã—ãŸãƒ•ã‚©ãƒ«ãƒ€å†…ã‚’æ¤œç´¢
+	Filter.bRecursivePaths = true;        // ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚‚æ¤œç´¢
+	Filter.ClassPaths.Add(UNiagaraSystem::StaticClass()->GetClassPathName()); // ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã‚·ã‚¹ãƒ†ãƒ ã®ã¿
 
 
-	// ƒtƒHƒ‹ƒ_“à‚ÌƒAƒZƒbƒg‚ğ”z—ñ‚É“ü‚ê‚é
+	// ãƒ•ã‚©ãƒ«ãƒ€å†…ã®ã‚¢ã‚»ãƒƒãƒˆã‚’é…åˆ—ã«å…¥ã‚Œã‚‹
 	TArray<FAssetData> AssetDataList;
 	AssetRegistry.GetAssets(Filter, AssetDataList);
 
 	UE_LOG(LogTemp, Log, TEXT("Found %d Niagara assets in folder: %s"), AssetDataList.Num(), *folderPath);
 
 
-	// ƒiƒCƒAƒKƒ‰ƒVƒXƒeƒ€‚ğ”z—ñ‚É’Ç‰Á
+	// ãƒŠã‚¤ã‚¢ã‚¬ãƒ©ã‚·ã‚¹ãƒ†ãƒ ã‚’é…åˆ—ã«è¿½åŠ 
 	for (const FAssetData& AssetData : AssetDataList)
 	{
-		TSoftObjectPtr<UNiagaraSystem> NiagaraSystem = TSoftObjectPtr<UNiagaraSystem>(AssetData.ToSoftObjectPath());
+		TSoftObjectPtr<UNiagaraSystem> SoftNiagaraSystem = TSoftObjectPtr<UNiagaraSystem>(AssetData.ToSoftObjectPath());
 
-		tileNiagaraArray_.Add(NiagaraSystem);
+		// ã‚½ãƒ•ãƒˆã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’åŒæœŸãƒ­ãƒ¼ãƒ‰
+		UNiagaraSystem* LoadedNiagaraSystem = SoftNiagaraSystem.LoadSynchronous();
 
+		if (LoadedNiagaraSystem)
+		{
+			// TObjectPtr ã«æ ¼ç´
+			TObjectPtr<UNiagaraSystem> NiagaraSystem = LoadedNiagaraSystem;
+			tileNiagaraArray_.Add(NiagaraSystem);
+		}
 	}
+
 }
 
 
