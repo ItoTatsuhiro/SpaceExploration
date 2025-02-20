@@ -7,6 +7,7 @@
 #include "../Scene/AC_SceneManagerBase.h"
 #include "AC_WeaponSelectManager.generated.h"
 
+
 DECLARE_DELEGATE(FWeaponSelectDelegate);
 
 UCLASS()
@@ -24,6 +25,9 @@ public:
     void WeaponLevelUp();
     void MapLevelChange();
 
+    UPROPERTY(VisibleAnywhere, Category = "WeaponSelect")
+    AWeaponBase* SelectWeaponBase;
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
@@ -31,6 +35,7 @@ protected:
 public:	
     // Called every frame
     virtual void Tick(float DeltaTime) override;
-    UFUNCTION(BlueprintCallable, Category = "WeaponSelectManager")
-    void WindowClose();
+    
+    UFUNCTION(BlueprintPure,Category = "WeaponSelect")
+    AWeaponBase* OnWeaponSelect();
 };
