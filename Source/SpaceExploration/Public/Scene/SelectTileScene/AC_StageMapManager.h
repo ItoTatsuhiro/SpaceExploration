@@ -89,8 +89,16 @@ private:
 
 	// マスのイベント処理シーケンス
 	void SeqTileEventProcess(const float);
-	// マスのイベント開始シーケンス用デリゲート（コンストラクタで初期化）
+	// マスのイベント処理シーケンス用デリゲート（コンストラクタで初期化）
 	FSequenceDelegate tileEventProcessDel_;
+
+
+	// ステージクリア処理シーケンス
+	void SeqStageClear(const float delta_time);
+	// ステージクリア処理シーケンス用デリゲート
+	FSequenceDelegate stageClearDel_;
+
+
 
 	//------------------------------------------------------------------------------------
 	// マス生成関連
@@ -143,11 +151,6 @@ private:
 	TSubclassOf<class AAC_MapTileItem> itemTileClass_;
 
 
-	//// プレイヤーの参照
-	//UPROPERTY(EditAnywhere)
-	//APlayerCharacter* playerCharacter_;
-
-
 
 	// カーソルが重なっているマス
 	UPROPERTY(VisibleAnywhere)
@@ -180,6 +183,10 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	FStageMapData stageMapData_;
 
+	// ステージをクリアしているか否かの変数
+	UPROPERTY(VisibleAnywhere)
+	bool isStageClear_ = false;
+
 
 public:
 	// Called every frame
@@ -196,5 +203,10 @@ public:
 	// 0	　　〇
 	// ----------------------------------------------------------------------
 	void CreateTileObjArray(TArray<int> createTileNumArray);
+
+
+	// ステージをクリアしているかどうかを確認するための関数
+	UFUNCTION(BlueprintCallable)
+	bool GetIsStageClear() { return isStageClear_; }
 
 };
