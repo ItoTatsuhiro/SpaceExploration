@@ -199,6 +199,10 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
     CreateTileObjArray({ 1, 2, 3, 2, 3, 2, 1 });
 
 
+    FVector2D mapIndex = playsceneGameMode->GetStageDataManager()->GetNowTileIndex();
+
+    // プレイヤーの座標をプレイヤーのいるマスの位置に移動させる
+    UGameplayStatics::GetPlayerPawn(GetWorld(), 0)->SetActorLocation(tileObjArray_[mapIndex.Y].TileArray[mapIndex.X]->GetActorLocation() + playerCharacter_->GetActorRotation().RotateVector(moveTargetOffset_) );
 
 
 
