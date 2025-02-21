@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -29,20 +29,20 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	// •Ší‚ÌƒXƒe[ƒ^ƒX‚ğæ“¾‚·‚é
+	// æ­¦å™¨ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’å–å¾—ã™ã‚‹
 	UFUNCTION(BlueprintCallable)
 	inline FStatus GetWeaponStatus() const { return CurrentLevelStatus; }
 	inline FStatus GetWeaponNextLevelStatus() const { return NextLevelStatus; }
-	// •Ší‚Ì‘®«‚ğæ“¾‚·‚é
+	// æ­¦å™¨ã®å±æ€§ã‚’å–å¾—ã™ã‚‹
 	inline const EElement GetWeaponElement() const { return WeaponElement; }
 
 	// ==========================================================================
-	// ‚±‚±‚©‚ç
+	// ã“ã“ã‹ã‚‰
 	// ==========================================================================
-	// •Ší‚ÌƒXƒe[ƒ^ƒX‚ğİ’è‚·‚é
-	inline void SetWeaponStatus(const FStatus& Status) { CurrentLevelStatus = Status; }
+	// æ­¦å™¨ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’è¨­å®šã™ã‚‹
+	void SetWeaponStatus(const FStatus& Status);
 
-	// ¶ƒ}ƒEƒX‚ğƒNƒŠƒbƒN‚µ‚½‚Æ‚«‚Ìˆ—
+	// å·¦ãƒã‚¦ã‚¹ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ãŸã¨ãã®å‡¦ç†
 	virtual void LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter) override;
 
 	void SetWeaponMeshHiddenInGame(bool bNewHidden);
@@ -61,39 +61,39 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneComponent;
 
-	// •Ší‚ÌƒƒbƒVƒ…
+	// æ­¦å™¨ã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
-	// •Ší‚ÌUŒ‚ƒGƒtƒFƒNƒg
+	// æ­¦å™¨ã®æ”»æ’ƒã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraComponent> WeaponAttackNiagaraComp;
 
-	//•Ší‚Ì‰ŠúƒXƒe[ƒ^ƒX
+	//æ­¦å™¨ã®åˆæœŸã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	FStatus CurrentLevelStatus;
 
-	//•Ší‚ÌŸ‚ÌƒŒƒxƒ‹‚ÌƒXƒe[ƒ^ƒX
+	//æ­¦å™¨ã®æ¬¡ã®ãƒ¬ãƒ™ãƒ«ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	FStatus NextLevelStatus;
 
-	// •Ší‚Ì‘®«
+	// æ­¦å™¨ã®å±æ€§
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	EElement WeaponElement = EElement::fire;
 
-	//HP‚ÌƒŒƒxƒ‹‚²‚Æ‚Ì‹­‰»’l
+	//HPã®ãƒ¬ãƒ™ãƒ«ã”ã¨ã®å¼·åŒ–å€¤
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "EnhancedValue")
 	int HpEnhancedValue;
 
-	//ƒXƒs[ƒh‚ÌƒŒƒxƒ‹‚²‚Æ‚Ì‹­‰»’l
+	//ã‚¹ãƒ”ãƒ¼ãƒ‰ã®ãƒ¬ãƒ™ãƒ«ã”ã¨ã®å¼·åŒ–å€¤
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "EnhancedValue")
 	int SpeedEnhancedValue;
 
-	//UŒ‚—Í‚ÌƒŒƒxƒ‹‚²‚Æ‚Ì‹­‰»’l
+	//æ”»æ’ƒåŠ›ã®ãƒ¬ãƒ™ãƒ«ã”ã¨ã®å¼·åŒ–å€¤
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "EnhancedValue")
 	int AttackEnhancedValue;
 
-	//–hŒä—Í‚ÌƒŒƒxƒ‹‚²‚Æ‚Ì‹­‰»’l
+	//é˜²å¾¡åŠ›ã®ãƒ¬ãƒ™ãƒ«ã”ã¨ã®å¼·åŒ–å€¤
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "EnhancedValue")
 	int DeffenceEnhancedValue;
 };

@@ -133,8 +133,12 @@ FStatus AEnemyManager::SetEnemyStatus(int EnemyLevel)
 	// 新しくセットするステータス
 	FStatus NewEnemyStatus;
 
+	// データテーブルをロード
+	EnemyStatusDataTable.LoadSynchronous();
+
 	if (!EnemyStatusDataTable)
 	{
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("EnemyStatusDataTable がセットされていません")), true, true, FColor::Red, 2.f, TEXT(""));
 		UE_LOG(LogClass, Error, TEXT("AEnemyManager::SetStatus() : EnemyStatusDataTable がセットされていません"));
 		return NewEnemyStatus;
 	}

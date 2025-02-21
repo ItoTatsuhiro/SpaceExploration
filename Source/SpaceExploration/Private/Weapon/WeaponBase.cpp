@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Weapon/WeaponBase.h"
@@ -23,7 +23,7 @@ AWeaponBase::AWeaponBase()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
 
-	// •Ší‚ÌUŒ‚ƒGƒtƒFƒNƒg‚Ìİ’è
+	// æ­¦å™¨ã®æ”»æ’ƒã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®è¨­å®š
 	WeaponAttackNiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeaponAttackEffect"));
 	WeaponAttackNiagaraComp->SetupAttachment(RootComponent);
 	WeaponAttackNiagaraComp->SetActive(false);
@@ -45,7 +45,7 @@ void AWeaponBase::SettingWeapon()
 			if (!PlayerWeapon)
 			{
 				NextLevelStatus = CurrentLevelStatus;
-				UE_LOG(LogTemp, Error, TEXT("•Ší‚ª‹ó‚Å‚·"));
+				UE_LOG(LogTemp, Error, TEXT("æ­¦å™¨ãŒç©ºã§ã™"));
 				return;
 			}
 			if (PlayerWeapon->WeaponElement == WeaponElement)
@@ -64,7 +64,7 @@ void AWeaponBase::SettingWeapon()
 		
 }
 
-// •Ší‚ÌUŒ‚ƒGƒtƒFƒNƒg‚ğÀs‚·‚é
+// æ­¦å™¨ã®æ”»æ’ƒã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’å®Ÿè¡Œã™ã‚‹
 void AWeaponBase::ExecuteAttack()
 {
 	UE_LOG(LogTemp, Log, TEXT("AWeaponBase:Attack"));
@@ -83,6 +83,13 @@ void AWeaponBase::Tick(float DeltaTime)
 
 }
 
+
+void AWeaponBase::SetWeaponStatus(const FStatus& Status)
+{
+	FString WeaponName = CurrentLevelStatus.PlayerName;
+	CurrentLevelStatus = Status;
+	CurrentLevelStatus.PlayerName = WeaponName;
+}
 
 void AWeaponBase::LeftMouseButtonEvent_Implementation(APlayerCharacter* PlayerCharacter)
 {
