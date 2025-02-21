@@ -76,6 +76,13 @@ void ABP_MapSceneUIManager::BeginPlay()
 		helpwidget->SetVisibility(ESlateVisibility::Hidden);
 		mapsceneuiwidget->SetVisibility(ESlateVisibility::Visible);
 	}
+
+	if (_nowstagedata.isStageClear_) {
+		UE_LOG(LogClass, Warning, TEXT("ABP_MapSceneUIManager::BeginPlay : isClear : TRUE \n"));
+	}
+	else if (!_nowstagedata.isStageClear_) {
+		UE_LOG(LogClass, Warning, TEXT("ABP_MapSceneUIManager::BeginPlay : isClear : FALSE \n"));
+	}
 	
 	UE_LOG(LogClass, Warning, TEXT("~ABP_MapSceneUIManager::BeginPlay~\n"));
 }
@@ -94,7 +101,13 @@ void ABP_MapSceneUIManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	
+	isclear = gamemode->GetStageDataManager()->GetIsStageClear();
 
+	if (isclear) {
+		gameclearwidget->SetVisibility(ESlateVisibility::Visible);
+		helpwidget->SetVisibility(ESlateVisibility::Hidden);
+		mapsceneuiwidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+	
 }
 

@@ -53,6 +53,9 @@ private:
 	UPROPERTY()
 	UUserWidget* gameclearwidget = nullptr;
 
+
+	bool isclear = false;
+
 	FStageMapData _nowstagedata;
 
 	//ƒQ[ƒ€ƒ‚[ƒh
