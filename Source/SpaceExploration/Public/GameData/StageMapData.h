@@ -40,6 +40,9 @@ struct FStageMapData
 	bool bIsValid_ = false;
 
 
+	// ステージをクリアしているか否か
+	bool isStageClear_ = false;
+
 	// マスのデータの配列
 	// 最初にデータを入れる際にはbIsValidをtrueに切り替えること！
 	UPROPERTY(VisibleAnywhere)
