@@ -119,7 +119,7 @@ bool AStageDataManager::TryGetStageMapData(FStageMapData& stageMapData)
 void AStageDataManager::MoveTile(const FVector2D& nextTileIndex)
 {
 
-	nowTilePosIndex_ = nextTileIndex;
+	nowTileIndex_ = nextTileIndex;
 
 }
 

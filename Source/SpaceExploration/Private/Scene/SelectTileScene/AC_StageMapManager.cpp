@@ -60,7 +60,7 @@ void AAC_StageMapManager::BeginPlay()
     playerMoveIdleDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqPlayerMoveIdle);
     startTileEventDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqStartTileEvent);
     tileEventProcessDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqTileEventProcess);
-
+    stageClearDel_ = FSequenceDelegate::CreateUObject(this, &AAC_StageMapManager::SeqStageClear);
 
 
     // シーケンスマネージャーが存在するときは初期シーケンスのデリゲートをセット
@@ -218,6 +218,24 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
 // マス選択シーケンス
 void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
 
+    // ゲームモード
+    APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+    // 
+    if (playsceneGameMode->GetStageDataManager()->GetNowTileIndex().Y == stageMapData_.tileDataArray_.Num() - 1 ){
+
+
+        // 実行するシーケンスを切り替え
+        // 切り替え先：クリアシーケンス
+        sequenceManager_->ChangeSequence(stageClearDel_);
+
+        isStageClear_ = true;
+
+        return;
+    }
+
+
+
     // カーソルと重なっているオブジェクトを取得
     AActor* hoveredObj = PerformRaycast();
 
@@ -265,8 +283,7 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
     selectTile_ = hoveredTile_;
 
 
-    // ゲームモード
-    APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
     
     // 現在いるマスを更新
     playsceneGameMode->GetStageDataManager()->MoveTile( selectTile_->GetTileIndex() );
@@ -423,8 +440,29 @@ void AAC_StageMapManager::SeqTileEventProcess(const float)
 
 
 
+    if (tileObjArray_.Num() - 1 <= selectTile_->GetTileIndex().Y) {
 
-    sequenceManager_->ChangeSequence(selectTileDel_);
+        sequenceManager_->ChangeSequence(stageClearDel_);
+
+        isStageClear_ = true;
+    }
+    else {
+
+        sequenceManager_->ChangeSequence(selectTileDel_);
+    }
+    
+
+}
+
+
+
+void AAC_StageMapManager::SeqStageClear(const float delta_time)
+{
+
+    if (!isStageClear_) {
+        isStageClear_ = true;
+    }
+
 
 }
 
