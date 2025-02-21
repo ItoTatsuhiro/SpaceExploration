@@ -69,17 +69,19 @@ protected:
 	TArray< TObjectPtr<UNiagaraSystem> > tileNiagaraArray_;
 
 	// 現在のステージのエネミーレベル
+	UPROPERTY(VisibleAnywhere)
 	int CurrentStageEnemyLevel;
 
 	// 現在のステージの武器レベル
+	UPROPERTY(VisibleAnywhere)
 	int CurrentStageWeaponLevel;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable)
-	int GetCurrentStageWeaponLevel() { return CurrentStageWeaponLevel; }
+	UFUNCTION(BlueprintPure)
+	inline int GetCurrentStageWeaponLevel() { return CurrentStageWeaponLevel; }
 
 	// ----------------------------------------------------------------------
 	// プレイヤーのいる座標のマスデータの取得を試す
