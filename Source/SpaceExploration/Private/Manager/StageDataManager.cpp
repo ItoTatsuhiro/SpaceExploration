@@ -26,8 +26,11 @@ AStageDataManager::AStageDataManager()
 	galaxyRandomSelectComponent_->SetupAttachment(RootComponent);
 	galaxyRandomSelectComponent_->SetChildActorClass(AGalaxyRandomSelect::StaticClass());
 	
+	// 敵のレベルを初期化
+	CurrentStageEnemyLevel = 1;
 
-	
+	// 武器のレベルを初期化
+	CurrentStageWeaponLevel = 1;
 
 }
 
@@ -82,6 +85,30 @@ void AStageDataManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+bool AStageDataManager::TryGetCurrentTileDataForPlayerLocation(UTileData* TileData)
+{
+	if (nowTileIndex_.Y >= stageMapData_.tileDataArray_.Num())
+	{
+		UE_LOG(LogClass, Log, TEXT("nowTileIndex_.yは範囲外のため、TileDataの取得に失敗しました"));
+		return false;
+	}
+
+	if (nowTileIndex_.X >= stageMapData_.tileDataArray_[nowTileIndex_.Y].tileDataArray_.Num())
+	{
+		UE_LOG(LogClass, Log, TEXT("nowTileIndex_.xは範囲外のため、TileDataの取得に失敗しました"));
+		return false;
+	}
+
+	TileData = stageMapData_.tileDataArray_[nowTileIndex_.Y].tileDataArray_[nowTileIndex_.X];
+
+	if (TileData)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -229,10 +256,19 @@ void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
 			// マスの種類セット
 			newTileData->SetTileType(tileTypeArray_[y].typeArray[x]);		
 			// マスの配列内での番号セット
-			newTileData->SetTileArrayIndex( FVector2D( x, y ) );				
+			newTileData->SetTileArrayIndex( FVector2D( x, y ) );			
+
+			// 敵の情報をランダムで生成する
+			if (newTileDataArray.tileDataArray_[y]->GetTileType() == E_TILE_TYPE::BATTLE)
+			{
+				FEnemyData NewEnemyData = CreateRandomEnemyData(y);
+				newTileData->SetEnemyData(NewEnemyData);
+			}
+
 
 			// 配列に追加
 			newTileDataArray.tileDataArray_.Add(newTileData);
+
 		}
 
 		// 配列をステージデータに追加
@@ -252,6 +288,28 @@ void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
 	playSceneGameMode->SetStageMapData(&stageMapData_);
 
 
+}
+
+// ----------------------------------------------------------------------
+// 敵の情報をランダムで生成する
+// 
+// y...マスのy座標
+// ----------------------------------------------------------------------
+FEnemyData AStageDataManager::CreateRandomEnemyData(int y)
+{
+	FEnemyData NewEnemyData;
+
+	NewEnemyData.EnemyElement = static_cast<EElement>( FMath::Rand() % static_cast<uint8>( EElement::none ) );
+
+	// 敵のモデルをランダムに設定　※ 2 はモデル数、時間がなかったのでマジックナンバーで実装。
+	NewEnemyData.EnemyType = FMath::Rand() % 2;
+
+	// 敵のレベルを y 座標の位置で設定する。
+	// y座標の 3分1以下：現在のステージ敵のレベル、3分2以下：現在のステージ敵のレベル + 1, それ以上：現在のステージ敵のレベル + 1
+	NewEnemyData.Level = ((tileTypeArray_.Num() / 3) > y) ? CurrentStageEnemyLevel : 
+		(tileTypeArray_.Num() - tileTypeArray_.Num() / 3) > y ? CurrentStageEnemyLevel + 1 : CurrentStageEnemyLevel + 2;
+
+	return NewEnemyData;
 }
 
 

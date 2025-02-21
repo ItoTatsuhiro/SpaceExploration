@@ -511,6 +511,8 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
         // 生成するマス
         AAC_MapTileBase* tempTile;
 
+        AAC_MapTileBattle* battleTile = nullptr;
+
 
         // マスのオブジェクトを生成
         for (int col = 0; col < stageMapData_.tileDataArray_[row].tileDataArray_.Num(); ++col)
@@ -519,9 +521,11 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
             switch ( stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetTileType() )
             {
             case E_TILE_TYPE::BATTLE:
-                tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
 
-                
+                battleTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
+                battleTile->SetEnemyData(stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetEnemyData());
+                tempTile = battleTile;
+
                 break;
 
             case E_TILE_TYPE::ITEM:
@@ -535,7 +539,9 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
                 break;
 
             case E_TILE_TYPE::NONE:
-                tempTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
+                battleTile = GetWorld()->SpawnActor<AAC_MapTileBattle>(battleTileClass_);
+                battleTile->SetEnemyData(stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetEnemyData());
+                tempTile = battleTile;
 
 
 

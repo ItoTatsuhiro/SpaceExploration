@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Scene/SelectTileScene/AC_MapTile.h"
 #include "LevelGroup/LevelInterface.h"
+#include "../../GameData/EnemyData.h"
 #include "AC_MapTile_Battle.generated.h"
 
 class APlaySceneGameModeBase;
@@ -30,6 +31,10 @@ private :
 	//バトルレベルのPath
 	const FString BPPath_BattleLevel = "/Game/graphics/alpha/Master_Lv_battlemap/Lv_battle_map";
 
+	// 敵の情報
+	UPROPERTY(VisibleAnywhere)
+	FEnemyData EnemyData;
+
 public :
 	
 	// 更新用関数
@@ -38,5 +43,11 @@ public :
 	// マスで実行するイベントの関数
 	// AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 	void TileEvent() override;
+
+	// エネミーデータ（情報）を取得する
+	FEnemyData GetEnemyData() { return EnemyData; }
+
+	// エネミーデータ（情報）を設定する
+	void SetEnemyData(const FEnemyData& _EnemyData);
 
 };
