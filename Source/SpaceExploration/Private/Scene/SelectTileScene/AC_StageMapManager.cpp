@@ -458,9 +458,9 @@ void AAC_StageMapManager::SeqTileEventProcess(const float)
 
 void AAC_StageMapManager::SeqStageClear(const float delta_time)
 {
-
-    if (!isStageClear_) {
-        isStageClear_ = true;
+    // マップのデータのクリア状態がfalseのときtrueにする
+    if (!stageMapData_.isStageClear_) {
+        stageMapData_.isStageClear_ = true;
     }
 
 
