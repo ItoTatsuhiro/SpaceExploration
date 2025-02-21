@@ -264,6 +264,14 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
     // 重なっているマスを選択中のマスとして登録
     selectTile_ = hoveredTile_;
 
+
+    // ゲームモード
+    APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+    
+    // 現在いるマスを更新
+    playsceneGameMode->GetStageDataManager()->MoveTile( selectTile_->GetTileIndex() );
+
+
     // 実行するシーケンスを切り替え
     // 切り替え先：移動開始シーケンス
     sequenceManager_->ChangeSequence(playerMoveBeginDel_);
