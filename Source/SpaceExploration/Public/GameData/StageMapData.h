@@ -41,6 +41,7 @@ struct FStageMapData
 
 
 	// ステージをクリアしているか否か
+	UPROPERTY(EditAnywhere)
 	bool isStageClear_ = false;
 
 	// マスのデータの配列
