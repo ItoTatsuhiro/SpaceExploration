@@ -81,3 +81,10 @@ void APlaySceneGameModeBase::SetStageDataManager(AStageDataManager* StageDataMan
 {
 	StageDataManagerRef = StageDataManager;
 }
+
+void APlaySceneGameModeBase::SetCurrentEnemyData(FEnemyData EnemyData)
+{
+	CurrentEnemyData.Level = EnemyData.Level;
+	CurrentEnemyData.EnemyType = EnemyData.EnemyType;
+	CurrentEnemyData.EnemyElement = EnemyData.EnemyElement;
+}

@@ -12,6 +12,9 @@
 #include "Manager/EnemyManager.h"
 #include "BattleScene/BatllSceneWidget.h"
 #include "BattleScene/BattleStandoff_Widget.h"
+#include "Scene/SelectTileScene/AC_StageMapManager.h"
+#include "Manager/StageDataManager.h"
+#include "GameData/StageMapData.h"
 #include "BattleScene/GameOverWidget.h"
 #include "Character/E_CharacterActState.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -79,10 +82,14 @@ void ABattleManager::BeginPlay()
 		UKismetSystemLibrary::QuitGame(GetWorld(), playercontroller, EQuitPreference::Quit, false);
 	}
 	
-//******************************************************************************
-//敵のステータスはゲームインスタンスではなく、伊藤氏が作るStageManagerから受け取る
-//敵をインスタンス化するのはEnemyManager（ParentLevelに設置）で行う
-//******************************************************************************
+	/*gamemode->GetStageDataManager()->TryGetCurrentTileDataForPlayerLocation(battletiledata);
+	if (!battletiledata) {
+		UE_LOG(LogClass, Warning, TEXT("ABattleManager::BeginPlay : error : No battletiledata\n"));
+	}*/
+
+	//バトル惑星のエネミーデータを取得
+	battletiledata = gamemode->GetCurrentEnemyData();
+	
 
 //キャラクター情報取得時----------------------------------------------------------------------
 
@@ -120,7 +127,14 @@ void ABattleManager::BeginPlay()
 	//敵生成
 	if (enemymanager) {
 		//敵のステータス（CreateEnemyの引数）はStageManagerから取る
-		enemy = enemymanager->CreateEnemy(0, 2, EElement::wind);
+		/*if (battletiledata) {
+			enemy = enemymanager->CreateEnemy(battletiledata->GetEnemyData().EnemyType, battletiledata->GetEnemyData().Level, battletiledata->GetEnemyData().EnemyElement);
+		}
+		else {
+			enemy = enemymanager->CreateEnemy(0, 1, EElement::wind);
+		}*/
+		enemy = enemymanager->CreateEnemy(battletiledata.EnemyType, battletiledata.Level, battletiledata.EnemyElement);
+		
 		UE_LOG(LogClass, Log, TEXT("ABattleManager::BeginPlay : success : create enemy\n"));
 	}
 	else {
@@ -262,7 +276,7 @@ void ABattleManager::BeginPlay()
 			BattleStandoff->SetBattleManager(this);
 		}
 	}
-	
+
 //-----------------------------------------------------------------------------------------------------
 
 	//バトル順など初期化
@@ -364,16 +378,16 @@ float ABattleManager::DamageMath(const float& A_atk, const EElement& A_type, con
 		switch (D_type)
 		{
 		case EElement::fire:
-			damage = (A_atk / D_def) * none_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * none_);
 			break;
 		case EElement::water:
-			damage = (A_atk / D_def) * bad_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * bad_);
 			break;
 		case EElement::wind:
-			damage = (A_atk / D_def) * good_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * good_);
 			break;
 		default:
-			damage = (A_atk / D_def) * none_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * none_);
 			break;
 		}
 	}
@@ -381,16 +395,16 @@ float ABattleManager::DamageMath(const float& A_atk, const EElement& A_type, con
 		switch (D_type)
 		{
 		case EElement::fire:
-			damage = (A_atk / D_def) * good_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * good_);
 			break;
 		case EElement::water:
-			damage = (A_atk / D_def) * none_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * none_);
 			break;
 		case EElement::wind:
-			damage = (A_atk / D_def) * bad_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * bad_);
 			break;
 		default:
-			damage = (A_atk / D_def) * none_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * none_);
 			break;
 		}
 	}
@@ -398,16 +412,16 @@ float ABattleManager::DamageMath(const float& A_atk, const EElement& A_type, con
 		switch (D_type)
 		{
 		case EElement::fire:
-			damage = (A_atk / D_def) * bad_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * bad_);
 			break;
 		case EElement::water:
-			damage = (A_atk / D_def) * good_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * good_);
 			break;
 		case EElement::wind:
-			damage = (A_atk / D_def) * none_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * none_);
 			break;
 		default:
-			damage = (A_atk / D_def) * none_;
+			damage = FMath::Max(1, (A_atk - D_def / 2) * none_);
 			break;
 		}
 	}
@@ -531,18 +545,21 @@ bool ABattleManager::SEQ_BATTLE_RESULT(const float deltatime)
 	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_RESULT start"))
 
+		//プレイヤー勝利時
 		if (battlewinner == E_BatlleWinner::player) {
 			player->AddExp(enemy->GetCharacterStatus().Exp);
 			if (player->CanLevelUp()) {
 				player->ExecuteLevelUp();
 			}	
 		}
+		//敵勝利時
 		else{
 		}
 
 		//バトル後のプレイヤーステータス
 		PostBattlePlayerStatus = player->GetCharacterStatus();
 
+		//widget表示
 		battlestartwidget->SetVisibility(ESlateVisibility::Hidden);
 		Seq_IsOnce_ = true;
 	}
@@ -565,12 +582,14 @@ bool ABattleManager::SEQ_BATTLE_END(const float deltatime)
 	if (Seq_IsOnce_ == false) {
 		UE_LOG(LogClass, Log, TEXT("ABattleManager : SEQ_BATTLE_END start"))
 
+		//プレイヤー勝利時
 		if (battlewinner == E_BatlleWinner::player) {
 			UKismetSystemLibrary::PrintString(this, "~Winner Player~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 
 			//バトル終了（勝利）を表示
 			battleendwidget->SetVisibility(ESlateVisibility::Visible);
 		}
+		//敵勝利時
 		else if (battlewinner == E_BatlleWinner::enemy) {
 			UKismetSystemLibrary::PrintString(this, "~Winner Enemy~", true, true, FColor::Cyan, 2.f, TEXT("None"));
 

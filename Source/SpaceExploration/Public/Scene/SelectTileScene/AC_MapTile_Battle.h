@@ -45,6 +45,7 @@ public :
 	void TileEvent() override;
 
 	// エネミーデータ（情報）を取得する
+	UFUNCTION(BlueprintCallable)
 	FEnemyData GetEnemyData() { return EnemyData; }
 
 	// エネミーデータ（情報）を設定する
