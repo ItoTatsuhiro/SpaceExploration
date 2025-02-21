@@ -68,14 +68,27 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray< TObjectPtr<UNiagaraSystem> > tileNiagaraArray_;
 
+	// 現在のステージのエネミーレベル
+	int CurrentStageEnemyLevel;
 
-
-
+	// 現在のステージの武器レベル
+	int CurrentStageWeaponLevel;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	int GetCurrentStageWeaponLevel() { return CurrentStageWeaponLevel; }
+
+	// ----------------------------------------------------------------------
+	// プレイヤーのいる座標のマスデータの取得を試す
+	// 
+	// TileData...マスデータを入れるためのポインタ
+	// 
+	// 戻り値...成功：true、失敗：false
+	// ----------------------------------------------------------------------
+	bool TryGetCurrentTileDataForPlayerLocation(UTileData* TileData);
 
 	// ----------------------------------------------------------------------------------------------
 	// ステージのデータの確認・取得を行う関数
@@ -86,7 +99,6 @@ public:
 	// １．データが存在する場合は引数のstageMapDataにデータを入れたうえでtrue型を返す
 	// ２．データが存在しない場合はデータを入れずにfalse型を返す
 	bool TryGetStageMapData(FStageMapData& stageMapData);
-
 
 	// ----------------------------------------------------------------------------------------------
 	// マスを移動する際に呼び出す関数
@@ -112,6 +124,12 @@ public:
 	// ----------------------------------------------------------------------
 	void CreateTileArray(TArray<int> tileNumArray);
 
+	// ----------------------------------------------------------------------
+	// 敵の情報をランダムで生成する
+	// 
+	// y...マスのy座標
+	// ----------------------------------------------------------------------
+	FEnemyData CreateRandomEnemyData(int y);
 
 
 	// ----------------------------------------------------------------------------------------------

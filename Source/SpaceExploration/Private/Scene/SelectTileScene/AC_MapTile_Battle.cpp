@@ -37,3 +37,10 @@ void AAC_MapTileBattle::TileEvent() {
 	//バトルシーンに移動
 	gamemode->ChangeLevel(NextLevel,this, false, false);
 }
+
+void AAC_MapTileBattle::SetEnemyData(const FEnemyData& _EnemyData)
+{
+	EnemyData.Level = _EnemyData.Level;
+	EnemyData.EnemyType = _EnemyData.EnemyType;
+	EnemyData.EnemyElement = _EnemyData.EnemyElement;
+}

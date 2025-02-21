@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "../Scene/SelectTileScene/E_Tile.h"
 #include "NiagaraComponent.h"
-
+#include "../GameData/EnemyData.h"
 
 #include "TileData.generated.h"
 
@@ -42,6 +42,9 @@ protected :
 	UPROPERTY(VisibleAnywhere)
 	FVector2D tileArrayIndex_;
 
+	// 敵の基本データ
+	UPROPERTY(VisibleAnywhere)
+	FEnemyData enemyData_;
 
 	// 移動できるかどうかのフラグ
 	UPROPERTY(EditAnywhere)
@@ -72,6 +75,9 @@ public :
 	UFUNCTION(BlueprintCallable)
 	inline bool GetCanMove() { return canMove_; }
 
+	// 敵の情報を取得する
+	inline FEnemyData GetEnemyData() { return enemyData_; }
+
 
 	// ----------------------------------------------------------------------------------
 	// セッター
@@ -90,5 +96,8 @@ public :
 	// canMove_のセッター
 	UFUNCTION(BlueprintCallable)
 	inline void SetCanMove(bool canMove) { canMove_ = canMove; }
+
+	// 敵の情報を設定する
+	void SetEnemyData(FEnemyData& _enemyData);
 
 };
