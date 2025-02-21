@@ -43,6 +43,11 @@ protected :
 	FVector2D tileArrayIndex_;
 
 
+	// 移動できるかどうかのフラグ
+	UPROPERTY(EditAnywhere)
+	bool canMove_ = false;
+
+
 public :
 
 	// ---------------------------------------------------------------------------------------------
@@ -52,25 +57,38 @@ public :
 	// ゲッター
 
 	// マスの種類のゲッター
-	E_TILE_TYPE GetTileType() { return tileType_; }
+	UFUNCTION(BlueprintCallable)
+	inline E_TILE_TYPE GetTileType() { return tileType_; }
 
 	// マスのナイアガラのゲッター
-	TObjectPtr<UNiagaraSystem> GetTileNiagaraSys() { return tileNiagaraSys_; }
+	inline TObjectPtr<UNiagaraSystem> GetTileNiagaraSys() { return tileNiagaraSys_; }
 
 	// 配列内のマスの番号のゲッター
-	FVector2D GetTileArrayIndex() { return tileArrayIndex_; }
+	UFUNCTION(BlueprintCallable)
+	inline FVector2D GetTileArrayIndex() { return tileArrayIndex_; }
+
+
+	// canMove_のゲッター
+	UFUNCTION(BlueprintCallable)
+	inline bool GetCanMove() { return canMove_; }
 
 
 	// ----------------------------------------------------------------------------------
 	// セッター
 
 	// マスの種類のセッター
-	void SetTileType(E_TILE_TYPE tileType) { tileType_ = tileType; }
+	UFUNCTION(BlueprintCallable)
+	inline void SetTileType(E_TILE_TYPE tileType) { tileType_ = tileType; }
 
 	// マスのナイアガラのセッター
-	void SetTileNiagaraSys(TObjectPtr<UNiagaraSystem> tileNiagaraSys) { tileNiagaraSys_ = tileNiagaraSys; }
+	inline void SetTileNiagaraSys(TObjectPtr<UNiagaraSystem> tileNiagaraSys) { tileNiagaraSys_ = tileNiagaraSys; }
 
 	// 配列内のマスの番号のセッター
-	void SetTileArrayIndex(FVector2D tileArrayIndex) { tileArrayIndex_ = tileArrayIndex; }
+	UFUNCTION(BlueprintCallable)
+	inline void SetTileArrayIndex(FVector2D tileArrayIndex) { tileArrayIndex_ = tileArrayIndex; }
+
+	// canMove_のセッター
+	UFUNCTION(BlueprintCallable)
+	inline void SetCanMove(bool canMove) { canMove_ = canMove; }
 
 };

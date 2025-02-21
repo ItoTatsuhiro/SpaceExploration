@@ -75,7 +75,6 @@ void AStageDataManager::BeginPlay()
 	GetNiagaraSystemsFromFolder("/Game/graphics/alpha/Master_planet/FX_planet_naiagara");
 
 
-	// CreateTileArray({ 1, 2, 3, 2, 3, 2, 1 });
 }
 
 // Called every frame

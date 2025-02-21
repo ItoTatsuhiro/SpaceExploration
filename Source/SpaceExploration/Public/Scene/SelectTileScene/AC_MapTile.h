@@ -25,16 +25,7 @@ public:
 	// コンストラクタ
 	AAC_MapTileBase();
 
-	// マスの種類のゲッター
-	UFUNCTION(BlueprintCallable)
-	inline E_TILE_TYPE getTileType() { return tileType_; }
 
-	// マスのイベントが完了したか判定を返す
-	UFUNCTION(BlueprintCallable)
-	bool IsEventCompleted()
-	{
-		return bIsEvnetCompleted;
-	}
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,13 +34,21 @@ protected:
 	// マスで実行するイベントが終了しているかどうか
 	// デフォルト値はfalse
 	UPROPERTY(EditAnywhere)
-	bool isTileEventEnd;
+	bool isTileEventEnd_;
 
 	// マスの種類の変数
 	// デフォルト値はNONE
 	UPROPERTY(EditAnywhere)
 	E_TILE_TYPE tileType_;
 
+	// マスのマップ上での位置
+	// データを生成した際にセットも行うこと
+	UPROPERTY(VisibleAnywhere)
+	FVector2D tileIndex_;
+
+	// このマスに移動できる状態かどうかを表す
+	UPROPERTY(EditAnywhere)
+	bool canMove_;
 
 
 	//------------------------------------------------------------------
@@ -87,13 +86,42 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 
+	// ======================================================================================================
+	// マスのイベント関連
+
+	// ----------------------------------------------------------------------------------
 	// マスで実行するイベントの関数
 	// 継承先でこの関数をオーバーライドして処理を作成する
 	virtual void TileEvent() PURE_VIRTUAL(AAC_MapTileBase::TileEvent, );
 
+
+	// ----------------------------------------------------------------------------------
 	// マスのイベント実行中の処理関数
 	virtual void TileEventRunning() PURE_VIRTUAL(AAC_MapTileBase::TileEventRunning, );
 
+
+	// ----------------------------------------------------------------------------------
+	// マスのイベントが完了したか判定を返す
+	UFUNCTION(BlueprintCallable)
+	bool IsEventCompleted()
+	{
+		return bIsEvnetCompleted;
+	}
+
+
+	// ======================================================================================================
+	// ゲッターセッター
+
+
+
+	// ----------------------------------------------------------------------------------
+	// マスの種類のゲッター
+	UFUNCTION(BlueprintCallable)
+	inline E_TILE_TYPE getTileType() { return tileType_; }
+
+
+
+	// ----------------------------------------------------------------------------------
 	// スタティックメッシュをセットする関数
 	// 引数：fileName...スタティックメッシュの保存先のパス
 	// 
@@ -101,7 +129,7 @@ public:
 	void SetStaticMesh(const TCHAR* fileName);
 
 
-
+	// ----------------------------------------------------------------------------------
 	// ナイアガラシステムをセットする関数
 	// 引数：planetNiagaraComp...セットするナイアガラ
 	inline void SetNiagaraSystem( TObjectPtr<UNiagaraSystem> niagaraSystem) {
@@ -112,6 +140,44 @@ public:
 	}
 
 
+	// ----------------------------------------------------------------------------------
+	// tileIndex_のゲッター
+	UFUNCTION(BlueprintCallable)
+	inline FVector2D GetTileIndex() {
+
+		return tileIndex_;
+	}
+
+
+	// ----------------------------------------------------------------------------------
+	// tileIndex_のセッター
+	UFUNCTION(BlueprintCallable)
+	inline void SetTileIndex(FVector2D tileIndex) {
+
+		tileIndex_ = tileIndex;
+	}
+
+
+	// ----------------------------------------------------------------------------------
+	// canMove_のゲッター
+	// 主に移動前に移動可能か確認を行う際に使用（予定）
+	inline bool GetCanMove() {
+
+		return canMove_;
+	}
+
+	// ----------------------------------------------------------------------------------
+	// canMove_のセッター
+	// 主にマスのイベント終了時に次に移動できるマスを変更するのに使用（予定）
+	inline void SetCanMove(bool newCanMove) {
+
+		canMove_ = newCanMove;
+	}
+
+
+
+	// ======================================================================================================
+	// その他
 
 	// 左クリックをされた時の処理を行う。
 	// プレイヤーを自身の惑星まで移動させる。

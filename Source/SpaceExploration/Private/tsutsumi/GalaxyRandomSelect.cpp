@@ -265,11 +265,18 @@ TArray<FTileEnumArray> AGalaxyRandomSelect::MakeTileArray(TArray<int> tileNumHol
 				continue;
 			}
 
+
+			// 生成するマスの種類の条件
+
 			// 一番後ろのマスの場合はバトルマスにする
 			if (v == tileNumHolizontal.Num() - 1) {
 				
 				tileArray_[v].typeArray[h] = E_TILE_TYPE::BATTLE;
 
+			}
+			// 一番前のマスの場合はアイテムマスにする
+			else if (v == 0) {
+				tileArray_[v].typeArray[h] = E_TILE_TYPE::ITEM;
 			}
 			// そうでないときはランダムに選択する
 			else {

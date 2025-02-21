@@ -10,7 +10,7 @@
 
 // Sets default values
 AAC_MapTileBase::AAC_MapTileBase()
-	: isTileEventEnd(false), tileType_(E_TILE_TYPE::NONE)
+	: isTileEventEnd_(false), tileType_(E_TILE_TYPE::NONE)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;

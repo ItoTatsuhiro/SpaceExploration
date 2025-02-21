@@ -20,7 +20,7 @@
 
 // Sets default values
 AAC_StageMapManager::AAC_StageMapManager()
-    : tileSpace_(500), basePos_({ 0, 0, 0 })/*, sequenceManager_(nullptr)*/, galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr)/*, tileObjectComponent_(nullptr)*/, hoveredTile_(nullptr),
+    : tileSpace_(500), basePos_({ 0, 0, 0 }), galaxyRandomSelect_(nullptr), galaxyRandomSelectComponent_(nullptr), hoveredTile_(nullptr),
     battleTileClass_(AAC_MapTileBattle::StaticClass()), healTileClass_(AAC_MapTileHeal::StaticClass()), itemTileClass_(AAC_MapTileItem::StaticClass())
 {
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -179,10 +179,17 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
     // マップのデータの取得を試みる
     if ( !(playsceneGameMode->GetStageDataManager()->TryGetStageMapData(stageMapData_)) ) {
 
-        UE_LOG(LogTemp, Log, TEXT("stageMapManager::SeqCreateTile　タイルデータ作成"));
-        playsceneGameMode->GetStageDataManager()->CreateTileArray({ 1, 2, 3, 2, 3, 2, 1 });
 
+        // 新たにデータを作成する場合
+
+        UE_LOG(LogTemp, Log, TEXT("stageMapManager::SeqCreateTile　タイルデータ作成"));
+        // データを作成
+        playsceneGameMode->GetStageDataManager()->CreateTileArray({ 1, 2, 3, 2, 3, 2, 1 });
+        // 作成したデータを取得
         playsceneGameMode->GetStageDataManager()->TryGetStageMapData(stageMapData_);
+
+        // 一番手前のマスのみ移動可能にする
+        stageMapData_.tileDataArray_[0].tileDataArray_[0]->SetCanMove(true);
     }
     else {
         UE_LOG(LogTemp, Log, TEXT("stageMapManager::SeqCreateTile　タイルデータ取得"));
@@ -198,6 +205,7 @@ void AAC_StageMapManager::SeqCreateTile(const float delta_time) {
     // 実行するシーケンスを切り替え
     // 切り替え先：マス選択シーケンス
     sequenceManager_->ChangeSequence(selectTileDel_);
+
 
     UE_LOG(LogTemp, Log, TEXT("シーケンス切り替え：selectTileDel_"));
 
@@ -227,6 +235,7 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
 
             // ログを表示
             UE_LOG(LogTemp, Log, TEXT("HoveredTile: %s"), *hoveredTile_->GetName());
+            UE_LOG(LogTemp, Log, TEXT("canMove: %s"), hoveredTile_->GetCanMove() ? TEXT("true") : TEXT("false"));
         }
 
     }
@@ -244,6 +253,10 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
     if (!CheckClickInput()) { return; }
     // 重なっているマスが存在しない場合は処理しない
     if (!hoveredTile_) { return; }
+    // 重なっているマスが移動できない状態の時は処理しない
+    if (!hoveredTile_->GetCanMove()) { return; }
+    
+
 
     // ログを表示
     UE_LOG(LogTemp, Log, TEXT("クリック"));
@@ -351,6 +364,33 @@ void AAC_StageMapManager::SeqStartTileEvent(const float delta_time) {
     selectTile_->TileEvent();
 
 
+    // 現在移動可能なマスを移動不可にする
+    for (TObjectPtr<AAC_MapTileBase> tileObj : tileObjArray_[selectTile_->GetTileIndex().Y].TileArray) {
+
+        tileObj->SetCanMove(false);
+
+    }
+    for (UTileData* tileData : stageMapData_.tileDataArray_[selectTile_->GetTileIndex().Y].tileDataArray_) {
+
+        tileData->SetCanMove(false);
+    }
+
+    // まだ先にマスがある時
+    if (selectTile_->GetTileIndex().Y < tileObjArray_.Num() - 1) {
+
+
+        // 現在のマスの一つ先のマスを移動可能にする
+        for (TObjectPtr<AAC_MapTileBase> tileObj : tileObjArray_[selectTile_->GetTileIndex().Y + 1].TileArray) {
+
+            tileObj->SetCanMove(true);
+
+        }
+        for (UTileData* tileData : stageMapData_.tileDataArray_[selectTile_->GetTileIndex().Y + 1].tileDataArray_) {
+
+            tileData->SetCanMove(true);
+        }
+
+    }
 
 
     // ※※※ イベント実行後 ※※※
@@ -371,6 +411,10 @@ void AAC_StageMapManager::SeqTileEventProcess(const float)
     {
         return;
     }
+
+
+
+
 
     sequenceManager_->ChangeSequence(selectTileDel_);
 
@@ -400,30 +444,13 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
     tileTypeArray_.Empty();
     tileObjArray_.Empty();
 
-    //if (!galaxyRandomSelect_) {
-    //    UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　galaxyRandomSelectがありません"));
-    //    return;
-    //}
+
 
 
     // ゲームモード
     APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 
 
-
-    UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　createTileNumArray.Num() = %d"), createTileNumArray.Num());
-
-
-    // playsceneGameMode->GetStageDataManager()->CreateTileArray(createTileNumArray);
-
-    // playsceneGameMode->GetStageDataManager()->TryGetStageMapData(stageMapData_);
-
-    //// マスの種類をランダムで生成
-    //tileTypeArray_ = galaxyRandomSelect_->MakeTileArray(createTileNumArray);
-
-
-
-    UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　stageMapData_.tileDataArray_[row].Num() = %d"), stageMapData_.tileDataArray_.Num());
 
 
 
@@ -435,18 +462,8 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
         // 二重配列に入れる用の仮の配列
         FTileArray tempTileArray;
 
+        // 生成するマス
         AAC_MapTileBase* tempTile;
-
-
-
-
-        //// マスのデータを元にオブジェクトを生成する！！！！！！
-        //stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetTileType();
-
-
-
-        UE_LOG(LogTemp, Log, TEXT("stageMapManager::CreateTileObjArray　stageMapData_.tileDataArray_[row].tileDataArray_.Num() = %d"), stageMapData_.tileDataArray_[row].tileDataArray_.Num());
-
 
 
         // マスのオブジェクトを生成
@@ -491,12 +508,15 @@ void AAC_StageMapManager::CreateTileObjArray(TArray<int> createTileNumArray)
 
             // データに設定されているのナイアガラシステムをオブジェクト自身に設定
             tempTile->SetNiagaraSystem( stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetTileNiagaraSys() );
-
+            // 移動可能かどうかを設定
+            tempTile->SetCanMove(stageMapData_.tileDataArray_[row].tileDataArray_[col]->GetCanMove());
+            // マスのインデックスを設定
+            tempTile->SetTileIndex(FVector2D{ (double)col, (double)row });
 
             // 配列に追加
             tempTileArray.TileArray.Emplace(tempTile);
 
-            // 
+            // 子オブジェクトとして設定
             tempTile->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 
 
