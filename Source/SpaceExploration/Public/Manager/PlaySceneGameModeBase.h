@@ -119,7 +119,7 @@ public:
 	// --------------------------------------------------------------------------------------------
 	// ステージデータを管理するアクタークラスの参照を返す
 	// --------------------------------------------------------------------------------------------
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	AStageDataManager* GetStageDataManager()
 	{
 		return StageDataManagerRef;

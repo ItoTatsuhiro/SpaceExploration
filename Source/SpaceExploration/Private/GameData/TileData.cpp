@@ -18,5 +18,5 @@ void UTileData::SetEnemyData(FEnemyData& _enemyData)
 {
 	enemyData_.EnemyElement = _enemyData.EnemyElement;
 	enemyData_.EnemyType = _enemyData.EnemyType;
-	enemyData_.Level = enemyData_.Level;
+	enemyData_.Level = _enemyData.Level;
 }

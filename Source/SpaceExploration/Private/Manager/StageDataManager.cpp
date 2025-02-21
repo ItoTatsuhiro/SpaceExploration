@@ -30,7 +30,7 @@ AStageDataManager::AStageDataManager()
 	CurrentStageEnemyLevel = 1;
 
 	// 武器のレベルを初期化
-	CurrentStageWeaponLevel = 1;
+	CurrentStageWeaponLevel = 2;
 
 }
 
@@ -259,7 +259,7 @@ void AStageDataManager::CreateTileArray(TArray<int> tileNumArray)
 			newTileData->SetTileArrayIndex( FVector2D( x, y ) );			
 
 			// 敵の情報をランダムで生成する
-			if (newTileDataArray.tileDataArray_[y]->GetTileType() == E_TILE_TYPE::BATTLE)
+			if (newTileData->GetTileType() == E_TILE_TYPE::BATTLE)
 			{
 				FEnemyData NewEnemyData = CreateRandomEnemyData(y);
 				newTileData->SetEnemyData(NewEnemyData);
