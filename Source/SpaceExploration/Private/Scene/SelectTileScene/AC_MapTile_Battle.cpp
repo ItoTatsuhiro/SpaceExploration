@@ -3,6 +3,7 @@
 #include "Scene/SelectTileScene/AC_MapTile_Battle.h"
 #include "Manager/PlaySceneGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Manager/PlaySceneGameModeBase.h"
 #include "Scene/SelectTileScene/E_Tile.h"
 
 // コンストラクタ
@@ -34,6 +35,17 @@ void AAC_MapTileBattle::Tick(float DeltaTime) {
 // 一度だけ呼ぶ
 // AAC_MapTileBaseクラスのTileEventクラスをオーバーライド
 void AAC_MapTileBattle::TileEvent() {
+
+	APlaySceneGameModeBase* PlaySceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	if (!PlaySceneGameMode)
+	{
+		UE_LOG(LogClass, Error, TEXT("PlaySceneGameMode の取得に失敗しました"));
+		return;
+	}
+
+	PlaySceneGameMode->SetCurrentEnemyData(EnemyData);
+
 	//バトルシーンに移動
 	gamemode->ChangeLevel(NextLevel,this, false, false);
 }

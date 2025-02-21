@@ -7,6 +7,7 @@
 #include "Templates/Function.h"
 #include "GameFramework/Actor.h"
 #include "../Character/CharacterBase.h"
+#include "../GameData/EnemyData.h"
 #include "tsutsumi/Element.h"
 #include "Library\GameLibrary.h"
 #include "BattleManager.generated.h"
@@ -20,6 +21,9 @@ class UNiagaraSystem;
 class APlaySceneGameModeBase;
 class UUserWidget;
 class AEnemyManager;
+class AStageDataManager;
+class UTileData;
+struct FStageMapData;
 
 UCLASS()
 class SPACEEXPLORATION_API ABattleManager : public AActor
@@ -137,6 +141,10 @@ private:
 	//各シーケンスで一度だけ処理する事の確認変数
 	bool Seq_IsOnce_ = false;
 
+	//止まっている戦闘惑星の情報
+	UPROPERTY(VisibleAnywhere)
+	FEnemyData battletiledata;
+
 //---------------------------------------------------------------------------------------------
 //Widget関係
 
@@ -157,6 +165,8 @@ private:
 	TSubclassOf<UUserWidget> BattleStartWidgetClass;
 	UPROPERTY()
 	UUserWidget* battlestartwidget = nullptr;
+
+	
 
 public:
 	//HPBar用HPの比率

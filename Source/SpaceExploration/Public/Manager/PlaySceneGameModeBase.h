@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "../GameData/EnemyData.h"
 #include "PlaySceneGameModeBase.generated.h"
 
 class ALevelInterface;
@@ -125,6 +126,11 @@ public:
 		return StageDataManagerRef;
 	}
 
+	void SetCurrentEnemyData(FEnemyData EnemyData);
+
+	UFUNCTION(BlueprintPure)
+	FEnemyData GetCurrentEnemyData() { return CurrentEnemyData; }
+
 private:
 	// 現在のステージの各惑星データの持つ構造体
 	FStageMapData* StageMapData;
@@ -148,5 +154,8 @@ private:
 	// 回復画面のUserWidget
 	UPROPERTY()
 	UHealingDisplay* HealingDisplayWidget;
+
+	UPROPERTY()
+	FEnemyData CurrentEnemyData;
 
 };

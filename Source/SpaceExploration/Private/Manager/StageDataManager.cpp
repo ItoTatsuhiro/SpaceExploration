@@ -101,6 +101,12 @@ bool AStageDataManager::TryGetCurrentTileDataForPlayerLocation(UTileData* TileDa
 		return false;
 	}
 
+	if (!stageMapData_.tileDataArray_[nowTileIndex_.Y].tileDataArray_[nowTileIndex_.X])
+	{
+		UE_LOG(LogClass, Error, TEXT("TileDataがnullptrでした"));
+		return false;
+	}
+
 	TileData = stageMapData_.tileDataArray_[nowTileIndex_.Y].tileDataArray_[nowTileIndex_.X];
 
 	if (TileData)
