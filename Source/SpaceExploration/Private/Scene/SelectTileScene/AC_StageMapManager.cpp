@@ -235,6 +235,9 @@ void AAC_StageMapManager::SeqSelectTile(const float delta_time) {
 
         isStageClear_ = true;
 
+        // StageDataManagerのisStageClearを切り替える
+        playsceneGameMode->GetStageDataManager()->SetIsStageClear(true);
+
         return;
     }
 
@@ -449,6 +452,7 @@ void AAC_StageMapManager::SeqTileEventProcess(const float)
         sequenceManager_->ChangeSequence(stageClearDel_);
 
         isStageClear_ = true;
+
     }
     else {
 
@@ -462,9 +466,17 @@ void AAC_StageMapManager::SeqTileEventProcess(const float)
 
 void AAC_StageMapManager::SeqStageClear(const float delta_time)
 {
+    // ゲームモード
+    APlaySceneGameModeBase* playsceneGameMode = Cast<APlaySceneGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+
+
     // マップのデータのクリア状態がfalseのときtrueにする
-    if (!stageMapData_.isStageClear_) {
+    if (!playsceneGameMode->GetStageDataManager()->GetIsStageClear() ) {
         stageMapData_.isStageClear_ = true;
+
+        // StageDataManagerのisStageClearを切り替える
+        playsceneGameMode->GetStageDataManager()->SetIsStageClear(true);
     }
 
 
