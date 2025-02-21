@@ -235,8 +235,12 @@ void APlayerCharacter::AddExp(int Exp)
 // -----------------------------------------------------------------
 bool APlayerCharacter::CanLevelUp()
 {
+	// データテーブルをロード
+	PlayerDataTable.LoadSynchronous();
+
 	if (!PlayerDataTable)
 	{
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlayerCharacter::CanLevelUp() : PlayerDataTable がセットされていません")), true, true, FColor::Red, 2.f, TEXT(""));
 		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::CanLevelUp() : PlayerDataTable がセットされていません"));
 		return false;
 	}
@@ -287,8 +291,12 @@ void APlayerCharacter::SetStatusForDataTable(int SetLevel)
 {
 	SetLevel -= 1;
 
+	// データテーブルをロード
+	PlayerDataTable.LoadSynchronous();
+
 	if (!PlayerDataTable)
 	{
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("APlayerCharacter::SetStatusForDataTable() : PlayerDataTable がセットされていません")), true, true, FColor::Red, 2.f, TEXT(""));
 		UE_LOG(LogClass, Error, TEXT("APlayerCharacter::SetStatusForDataTable() : PlayerDataTable がセットされていません"));
 		return;
 	}

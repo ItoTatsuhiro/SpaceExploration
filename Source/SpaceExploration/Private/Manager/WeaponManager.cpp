@@ -76,8 +76,11 @@ FStatus AWeaponManager::SetStatus(int WeaponLevel)
 {
 	FStatus NewWeaponStatus;
 
+	WeaponStatusDataTable.LoadSynchronous();
+
 	if (!WeaponStatusDataTable)
 	{
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("AWeaponManager::SetStatus() : WeaponStatusDataTable がセットされていません。")), true, true, FColor::Red, 2.f, TEXT(""));
 		UE_LOG(LogClass, Error, TEXT("AWeaponManager::SetStatus() : WeaponStatusDataTable がセットされていません。"));
 		return NewWeaponStatus;
 	}
